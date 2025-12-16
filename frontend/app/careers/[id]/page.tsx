@@ -6,23 +6,6 @@ import Link from 'next/link';
 import Header from '../../components/Header';
 import JobListings from '../../components/JobListings';
 
-// Generate static params for build time
-export async function generateStaticParams() {
-  // Return common career IDs for static generation
-  return [
-    { id: '1' },
-    { id: '2' },
-    { id: '3' },
-    { id: '4' },
-    { id: '5' },
-    { id: '6' },
-    { id: '7' },
-    { id: '8' },
-    { id: '9' },
-    { id: '10' }
-  ];
-}
-
 interface Career {
   id: string;
   title: string;

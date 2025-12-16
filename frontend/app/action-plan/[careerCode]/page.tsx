@@ -5,19 +5,6 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Header from '../../components/Header';
 
-// Generate static params for build time
-export async function generateStaticParams() {
-  // Return common career codes for static generation
-  return [
-    { careerCode: 'registered-nurse' },
-    { careerCode: 'electrician' },
-    { careerCode: 'medical-assistant' },
-    { careerCode: 'construction-worker' },
-    { careerCode: 'teacher' },
-    { careerCode: 'software-developer' }
-  ];
-}
-
 interface ActionStep {
   id: string;
   title: string;
