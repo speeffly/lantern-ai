@@ -21,7 +21,7 @@ I've converted the app to use static pages with query parameters and wrapped `us
 ### 3. Updated Configuration
 - ✅ Re-enabled `output: 'export'` in `next.config.js`
 - ✅ Updated `amplify.yml` to use `frontend/out` directory
-- ✅ Added `npm run export` script back
+- ✅ Removed deprecated `npm run export` script (Next.js 14+ uses `output: 'export'` automatically)
 
 ### 4. Updated Navigation
 - ✅ Updated results page links to use new static pages
