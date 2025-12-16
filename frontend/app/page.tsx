@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import Header from './components/Header';
 
 export default function Home() {
   const router = useRouter();
@@ -33,7 +34,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
-      <div className="max-w-6xl mx-auto px-4 py-16">
+      <Header />
+      <div className="pt-8">
+        <div className="max-w-6xl mx-auto px-4 py-16">
         {/* Header */}
         <div className="text-center mb-16">
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
@@ -85,16 +88,75 @@ export default function Home() {
 
             {/* CTA */}
             <div className="text-center pt-8">
-              <button
-                onClick={handleGetStarted}
-                disabled={isLoading}
-                className="px-8 py-4 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
-              >
-                {isLoading ? 'Starting...' : 'Get Started'}
-              </button>
-              <p className="text-sm text-gray-500 mt-4">
-                No account needed • Takes about 5 minutes • Completely free
-              </p>
+              <div className="mb-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Choose Your Assessment</h3>
+                <p className="text-gray-600">Select the assessment that best fits your needs</p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                {/* Quick Assessment Card */}
+                <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 hover:border-blue-400 transition-colors">
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                    </div>
+                    <h4 className="text-lg font-semibold text-blue-900 mb-2">Quick Start</h4>
+                    <p className="text-blue-700 text-sm mb-4">Perfect for initial exploration</p>
+                    <ul className="text-xs text-blue-600 mb-4 space-y-1">
+                      <li>• 12 questions, 5 minutes</li>
+                      <li>• Basic career matches</li>
+                      <li>• Immediate results</li>
+                      <li>• Great for demos</li>
+                    </ul>
+                    <button
+                      onClick={handleGetStarted}
+                      disabled={isLoading}
+                      className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                    >
+                      {isLoading ? 'Starting...' : 'Start Quick Assessment'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Enhanced Assessment Card */}
+                <div className="bg-green-50 border-2 border-green-200 rounded-lg p-6 hover:border-green-400 transition-colors relative">
+                  <div className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
+                    RECOMMENDED
+                  </div>
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <h4 className="text-lg font-semibold text-green-900 mb-2">Professional Guidance</h4>
+                    <p className="text-green-700 text-sm mb-4">Comprehensive career planning</p>
+                    <ul className="text-xs text-green-600 mb-4 space-y-1">
+                      <li>• 10 strategic questions</li>
+                      <li>• Detailed 4-year action plan</li>
+                      <li>• Parent sharing features</li>
+                      <li>• Counselor-grade analysis</li>
+                    </ul>
+                    <button
+                      onClick={() => router.push('/counselor-assessment')}
+                      className="w-full px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                      🎓 Start Enhanced Assessment
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-center">
+                <p className="text-sm text-gray-500">
+                  No account needed • Completely free • Save results by creating an account
+                </p>
+                <p className="text-xs text-gray-400 mt-2">
+                  Both assessments provide valuable career guidance - choose based on your time and needs
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -104,6 +166,7 @@ export default function Home() {
           <p className="text-sm">
             Helping rural students explore careers in healthcare and infrastructure
           </p>
+        </div>
         </div>
       </div>
     </div>

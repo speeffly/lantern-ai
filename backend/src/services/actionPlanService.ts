@@ -47,7 +47,7 @@ export class ActionPlanService {
     steps.push({
       id: 'research-1',
       title: 'Explore Career Details',
-      description: `Learn more about what ${career.title} professionals do on a daily basis`,
+      description: `Learn more about what ${career.career.title} professionals do on a daily basis`,
       category: 'research',
       timeframe: 'immediate',
       priority: 'high',
@@ -55,7 +55,7 @@ export class ActionPlanService {
       resources: [
         {
           title: 'O*NET Career Profile',
-          url: `https://www.onetonline.org/link/summary/${career.onetCode}`,
+          url: `https://www.onetonline.org/link/summary/${career.career.onetCode}`,
           type: 'website'
         },
         {
@@ -70,8 +70,8 @@ export class ActionPlanService {
       id: 'research-2',
       title: 'Research Local Opportunities',
       description: userZipCode 
-        ? `Find ${career.title} jobs and training programs near ${userZipCode}`
-        : `Find ${career.title} jobs and training programs in your area`,
+        ? `Find ${career.career.title} jobs and training programs near ${userZipCode}`
+        : `Find ${career.career.title} jobs and training programs in your area`,
       category: 'research',
       timeframe: 'immediate',
       priority: 'high',
@@ -86,7 +86,7 @@ export class ActionPlanService {
     });
 
     // Education Planning
-    if (career.educationLevel === 'High school diploma or equivalent') {
+    if (career.career.requiredEducation === 'high-school') {
       steps.push({
         id: 'education-1',
         title: 'Complete High School',
@@ -101,7 +101,7 @@ export class ActionPlanService {
         title: 'High School Graduation',
         description: 'Earn your high school diploma with strong grades in core subjects'
       });
-    } else if (career.educationLevel.includes('Associate')) {
+    } else if (career.career.requiredEducation === 'associate') {
       steps.push({
         id: 'education-1',
         title: 'Research Community Colleges',
@@ -123,7 +123,7 @@ export class ActionPlanService {
         title: 'Associate Degree',
         description: 'Complete 2-year degree program (typically 60 credits)'
       });
-    } else if (career.educationLevel.includes('Bachelor')) {
+    } else if (career.career.requiredEducation === 'bachelor') {
       steps.push({
         id: 'education-1',
         title: 'Research 4-Year Colleges',
@@ -148,8 +148,8 @@ export class ActionPlanService {
     }
 
     // Skills Development
-    const topSkills = career.skills?.slice(0, 3) || [];
-    topSkills.forEach((skill, index) => {
+    const topSkills = career.career.responsibilities?.slice(0, 3) || [];
+    topSkills.forEach((skill: string, index: number) => {
       steps.push({
         id: `skills-${index + 1}`,
         title: `Develop ${skill} Skills`,
@@ -189,7 +189,7 @@ export class ActionPlanService {
     steps.push({
       id: 'experience-2',
       title: 'Job Shadow a Professional',
-      description: `Spend a day observing a ${career.title} at work`,
+      description: `Spend a day observing a ${career.career.title} at work`,
       category: 'experience',
       timeframe: 'short-term',
       priority: 'medium',
@@ -217,7 +217,7 @@ export class ActionPlanService {
     steps.push({
       id: 'networking-2',
       title: 'Find a Mentor',
-      description: `Connect with an experienced ${career.title} who can guide your career journey`,
+      description: `Connect with an experienced ${career.career.title} who can guide your career journey`,
       category: 'networking',
       timeframe: 'long-term',
       priority: 'medium',
@@ -225,9 +225,9 @@ export class ActionPlanService {
     });
 
     // Certification/Licensing (if applicable)
-    if (career.title.toLowerCase().includes('nurse') || 
-        career.title.toLowerCase().includes('therapist') ||
-        career.title.toLowerCase().includes('technician')) {
+    if (career.career.title.toLowerCase().includes('nurse') || 
+        career.career.title.toLowerCase().includes('therapist') ||
+        career.career.title.toLowerCase().includes('technician')) {
       steps.push({
         id: 'education-2',
         title: 'Research Certification Requirements',
@@ -253,11 +253,11 @@ export class ActionPlanService {
 
     // Calculate estimated time to career
     let estimatedYears = 0;
-    if (career.educationLevel.includes('High school')) {
+    if (career.career.requiredEducation === 'high-school') {
       estimatedYears = isHighSchool ? (12 - (userGrade || 9)) : 0;
-    } else if (career.educationLevel.includes('Associate')) {
+    } else if (career.career.requiredEducation === 'associate') {
       estimatedYears = isHighSchool ? (12 - (userGrade || 9)) + 2 : 2;
-    } else if (career.educationLevel.includes('Bachelor')) {
+    } else if (career.career.requiredEducation === 'bachelor') {
       estimatedYears = isHighSchool ? (12 - (userGrade || 9)) + 4 : 4;
     }
 
@@ -270,8 +270,8 @@ export class ActionPlanService {
           : '6+ years';
 
     return {
-      careerTitle: career.title,
-      careerCode: career.onetCode,
+      careerTitle: career.career.title,
+      careerCode: career.career.onetCode || career.careerId,
       steps: steps.sort((a, b) => {
         const timeframeOrder = { immediate: 0, 'short-term': 1, 'long-term': 2 };
         const priorityOrder = { high: 0, medium: 1, low: 2 };

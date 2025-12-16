@@ -1,0 +1,151 @@
+{
+  "questions": [
+    {
+      "id": "location_grade",
+      "order": 1,
+      "text": "What grade are you currently in, and what's your ZIP code? This helps me find opportunities near you.",
+      "type": "combined",
+      "category": "basic_info",
+      "fields": {
+        "grade": {
+          "type": "select",
+          "options": ["9", "10", "11", "12"],
+          "required": true
+        },
+        "zipCode": {
+          "type": "text",
+          "placeholder": "12345",
+          "maxLength": 5,
+          "required": true
+        }
+      }
+    },
+    {
+      "id": "work_environment",
+      "order": 2,
+      "text": "Where do you see yourself working? Choose what appeals to you most:",
+      "type": "single_choice",
+      "category": "work_preferences",
+      "options": [
+        "Outdoors - construction sites, farms, parks",
+        "Indoors - offices, hospitals, schools",
+        "Mixed - some indoor, some outdoor work",
+        "From home - remote or home-based work",
+        "Traveling - different locations regularly"
+      ]
+    },
+    {
+      "id": "hands_on_preference",
+      "order": 3,
+      "text": "How do you prefer to work with your hands and tools?",
+      "type": "single_choice",
+      "category": "work_style",
+      "options": [
+        "Love working with tools and building things",
+        "Prefer working with people and helping them",
+        "Enjoy working with computers and technology",
+        "Like working with numbers and data",
+        "Prefer creative work like art or design"
+      ]
+    },
+    {
+      "id": "problem_solving",
+      "order": 4,
+      "text": "When you face a problem, what's your natural approach?",
+      "type": "single_choice",
+      "category": "thinking_style",
+      "options": [
+        "Figure it out step-by-step with logical thinking",
+        "Ask others for help and work as a team",
+        "Research and study until I understand it",
+        "Try different solutions until something works",
+        "Use creativity to find a unique solution"
+      ]
+    },
+    {
+      "id": "helping_others",
+      "order": 5,
+      "text": "How important is helping others in your future career?",
+      "type": "single_choice",
+      "category": "values",
+      "options": [
+        "Very important - I want to directly help people",
+        "Somewhat important - helping is nice but not essential",
+        "Not important - I prefer working independently",
+        "Important indirectly - helping through my work/products",
+        "Unsure - I haven't thought about this much"
+      ]
+    },
+    {
+      "id": "education_commitment",
+      "order": 6,
+      "text": "After high school, how much additional education or training are you willing to pursue?",
+      "type": "single_choice",
+      "category": "education_goals",
+      "options": [
+        "Start working right away - minimal additional training",
+        "Short-term training (6 months to 1 year)",
+        "2-year community college degree",
+        "4-year college degree",
+        "Advanced degree (master's, professional school)"
+      ]
+    },
+    {
+      "id": "income_importance",
+      "order": 7,
+      "text": "How important is earning a high income to you?",
+      "type": "single_choice",
+      "category": "values",
+      "options": [
+        "Very important - I want to maximize my earning potential",
+        "Important - I want a comfortable living",
+        "Somewhat important - enough to meet my needs",
+        "Not very important - job satisfaction matters more",
+        "Unsure - I haven't thought about money much"
+      ]
+    },
+    {
+      "id": "job_security",
+      "order": 8,
+      "text": "What type of work schedule and job security do you prefer?",
+      "type": "single_choice",
+      "category": "work_preferences",
+      "options": [
+        "Stable 9-5 job with regular hours",
+        "Flexible hours but steady work",
+        "Project-based work with variety",
+        "Seasonal work with time off",
+        "Entrepreneurial - start my own business"
+      ]
+    },
+    {
+      "id": "subjects_strengths",
+      "order": 9,
+      "text": "Which school subjects do you find easiest or most enjoyable?",
+      "type": "multiple_choice",
+      "category": "academic_strengths",
+      "options": [
+        "Math and numbers",
+        "Science (biology, chemistry, physics)",
+        "English and writing",
+        "History and social studies",
+        "Art and creative subjects",
+        "Physical education and health",
+        "Technology and computers",
+        "Foreign languages",
+        "Music",
+        "None of these appeal to me"
+      ]
+    },
+    {
+      "id": "interests_passions",
+      "order": 10,
+      "text": "Tell me about your interests and what you're passionate about. What do you enjoy doing in your free time? What topics or activities make you excited to learn more? (Be as specific as possible - this helps me understand what careers might truly fulfill you)",
+      "type": "free_text",
+      "category": "interests",
+      "placeholder": "Example: I love working on cars with my dad, I'm fascinated by how the human body works, I enjoy helping younger kids with their homework, I spend hours creating digital art...",
+      "minLength": 50,
+      "maxLength": 500
+    }
+  ]
+}

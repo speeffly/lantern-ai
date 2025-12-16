@@ -9,13 +9,13 @@ cd lantern-ai/backend
 npm run dev
 ```
 
-The backend will start on **http://localhost:3001**
+The backend will start on **http://localhost:3002**
 
 You should see:
 ```
-🚀 Lantern AI API running on port 3001
-📍 Health check: http://localhost:3001/health
-📚 API docs: http://localhost:3001/api
+🚀 Lantern AI API running on port 3002
+📍 Health check: http://localhost:3002/health
+📚 API docs: http://localhost:3002/api
 ```
 
 ---
@@ -27,12 +27,12 @@ cd lantern-ai/frontend
 npm run dev
 ```
 
-The frontend will start on **http://localhost:3000**
+The frontend will start on **http://localhost:3001**
 
 You should see:
 ```
 ▲ Next.js 14.x.x
-- Local:        http://localhost:3000
+- Local:        http://localhost:3001
 - Ready in X.Xs
 ```
 
@@ -42,9 +42,9 @@ You should see:
 
 Once both servers are running:
 
-1. **Open your browser** to: http://localhost:3000
+1. **Open your browser** to: http://localhost:3001
 2. **Start exploring** - You can use the app anonymously or create an account
-3. **Test the API** directly at: http://localhost:3001/health
+3. **Test the API** directly at: http://localhost:3002/health
 
 ---
 
@@ -66,27 +66,27 @@ npm run dev
 
 ### Port already in use?
 
-**Backend (3001):**
-- Find and kill the process using port 3001
+**Backend (3002):**
+- Find and kill the process using port 3002
 - Or change the port in `backend/.env` file
 
-**Frontend (3000):**
-- Next.js will automatically suggest port 3001 if 3000 is busy
-- Accept the suggested port or kill the process using 3000
+**Frontend (3001):**
+- Next.js will automatically suggest port 3002 if 3001 is busy
+- Accept the suggested port or kill the process using 3001
 
 ### Environment Variables
 
 Create `backend/.env` if it doesn't exist:
 ```env
-PORT=3001
-FRONTEND_URL=http://localhost:3000
+PORT=3002
+FRONTEND_URL=http://localhost:3001
 JWT_SECRET=lantern-ai-secret-key-change-in-production
 NODE_ENV=development
 ```
 
 Create `frontend/.env.local` if it doesn't exist:
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:3001
+NEXT_PUBLIC_API_URL=http://localhost:3002
 ```
 
 ---
@@ -94,7 +94,7 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 ## Testing the Setup
 
 ### 1. Test Backend Health
-Open: http://localhost:3001/health
+Open: http://localhost:3002/health
 
 Should return:
 ```json
@@ -107,7 +107,7 @@ Should return:
 ```
 
 ### 2. Test Frontend
-Open: http://localhost:3000
+Open: http://localhost:3001
 
 You should see the Lantern AI homepage with:
 - Welcome message

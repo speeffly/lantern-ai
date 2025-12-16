@@ -12,7 +12,7 @@ router.get('/:careerCode', async (req, res) => {
     const { grade, zipCode } = req.query;
 
     // Get career details
-    const career = await CareerService.getCareerByCode(careerCode);
+    const career = CareerService.getCareerById(careerCode);
     if (!career) {
       return res.status(404).json({
         success: false,
@@ -20,9 +20,24 @@ router.get('/:careerCode', async (req, res) => {
       } as ApiResponse);
     }
 
+    // Create CareerMatch object from Career
+    const careerMatch = {
+      careerId: career.id,
+      career: career,
+      matchScore: 85, // Default match score
+      reasoningFactors: ['Selected career path'],
+      localDemand: 'medium' as const,
+      localSalary: {
+        min: career.salaryRange.min,
+        max: career.salaryRange.max,
+        location: zipCode as string
+      },
+      localEmployers: ['Local employers']
+    };
+
     // Generate action plan
     const actionPlan = ActionPlanService.generateActionPlan(
-      career,
+      careerMatch,
       grade ? parseInt(grade as string) : undefined,
       zipCode as string
     );
@@ -53,15 +68,27 @@ router.post('/multiple', async (req, res) => {
     }
 
     // Get career details for all codes
-    const careers = await Promise.all(
-      careerCodes.map(code => CareerService.getCareerByCode(code))
-    );
+    const careers = careerCodes.map((code: string) => CareerService.getCareerById(code));
+    const validCareers = careers.filter((c: any) => c !== null);
 
-    const validCareers = careers.filter(c => c !== null);
+    // Convert Career objects to CareerMatch objects
+    const careerMatches = validCareers.map((career: any) => ({
+      careerId: career.id,
+      career: career,
+      matchScore: 85, // Default match score
+      reasoningFactors: ['Selected career path'],
+      localDemand: 'medium' as const,
+      localSalary: {
+        min: career.salaryRange.min,
+        max: career.salaryRange.max,
+        location: zipCode as string
+      },
+      localEmployers: ['Local employers']
+    }));
 
     // Generate action plans
     const actionPlans = ActionPlanService.generateMultipleActionPlans(
-      validCareers,
+      careerMatches,
       grade,
       zipCode
     );

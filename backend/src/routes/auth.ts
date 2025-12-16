@@ -4,16 +4,24 @@ import { ApiResponse } from '../types';
 
 const router = express.Router();
 
-// POST /api/auth/register - Student registration
+// POST /api/auth/register - Universal user registration
 router.post('/register', async (req, res) => {
   try {
-    const { email, password, firstName, lastName, grade, zipCode, schoolId } = req.body;
+    const { email, password, firstName, lastName, role, grade, zipCode, schoolId, childrenInfo } = req.body;
 
     // Validate required fields
-    if (!email || !password || !firstName || !lastName) {
+    if (!email || !password || !firstName || !lastName || !role) {
       return res.status(400).json({
         success: false,
-        error: 'Email, password, first name, and last name are required'
+        error: 'Email, password, first name, last name, and role are required'
+      } as ApiResponse);
+    }
+
+    // Validate role
+    if (!['student', 'counselor', 'parent'].includes(role)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid role. Must be student, counselor, or parent'
       } as ApiResponse);
     }
 
@@ -34,14 +42,16 @@ router.post('/register', async (req, res) => {
       } as ApiResponse);
     }
 
-    const result = await AuthService.registerStudent({
+    const result = await AuthService.registerUser({
       email,
       password,
       firstName,
       lastName,
+      role,
       grade,
       zipCode,
-      schoolId
+      schoolId,
+      childrenInfo
     });
 
     if (result.success) {
@@ -236,6 +246,63 @@ router.put('/profile', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to update profile'
+    } as ApiResponse);
+  }
+});
+
+// PUT /api/auth/profile - Update user profile
+router.put('/profile', (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authorization token required'
+      } as ApiResponse);
+    }
+
+    const token = authHeader.substring(7);
+    const tokenData = AuthService.verifyToken(token);
+    
+    if (!tokenData.success || !tokenData.userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid token'
+      } as ApiResponse);
+    }
+
+    const user = AuthService.getUserById(tokenData.userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      } as ApiResponse);
+    }
+
+    // Update user profile
+    const updateData = req.body;
+    const updated = AuthService.updateUserProfile(tokenData.userId, updateData);
+    
+    if (!updated) {
+      return res.status(400).json({
+        success: false,
+        error: 'Failed to update profile'
+      } as ApiResponse);
+    }
+
+    // Get updated user data
+    const updatedUser = AuthService.getUserById(tokenData.userId);
+
+    res.json({
+      success: true,
+      data: updatedUser,
+      message: 'Profile updated successfully'
+    } as ApiResponse);
+  } catch (error) {
+    console.error('Profile update error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Profile update failed'
     } as ApiResponse);
   }
 });

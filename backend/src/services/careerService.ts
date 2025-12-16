@@ -153,12 +153,17 @@ export class CareerService {
    * Get career matches for a student profile
    */
   static getCareerMatches(profile: Partial<StudentProfile>, zipCode: string): CareerMatch[] {
+    console.log('🔍 CareerService.getCareerMatches called with profile:', JSON.stringify(profile, null, 2));
+    console.log('🔍 ZIP Code:', zipCode);
+    
     const matches: CareerMatch[] = [];
 
     for (const career of CAREERS) {
       const matchScore = this.calculateMatchScore(profile, career);
       const reasoningFactors = this.generateReasoningFactors(profile, career, matchScore);
       const localDemand = this.estimateLocalDemand(career, zipCode);
+
+      console.log(`🔍 Career: ${career.title}, Score: ${matchScore}%, Interests: ${profile.interests?.join(', ') || 'none'}`);
 
       matches.push({
         careerId: career.id,
@@ -176,7 +181,10 @@ export class CareerService {
     }
 
     // Sort by match score descending
-    return matches.sort((a, b) => b.matchScore - a.matchScore);
+    const sortedMatches = matches.sort((a, b) => b.matchScore - a.matchScore);
+    console.log('🔍 Top 3 matches:', sortedMatches.slice(0, 3).map(m => `${m.career.title}: ${m.matchScore}%`));
+    
+    return sortedMatches;
   }
 
   /**

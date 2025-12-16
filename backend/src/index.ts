@@ -7,13 +7,23 @@ import sessionRoutes from './routes/sessions';
 import assessmentRoutes from './routes/assessment';
 import careersRoutes from './routes/careers';
 import authRoutes from './routes/auth';
+import authDBRoutes from './routes/authDB';
 import actionPlansRoutes from './routes/actionPlans';
+import counselorAssessmentRoutes from './routes/counselorAssessment';
+import jobsRoutes from './routes/jobs';
 
 // Load environment variables
 dotenv.config();
 
+// Debug: Check if OpenAI API key is loaded
+console.log('🔑 Environment check - OpenAI API key loaded:', !!process.env.OPENAI_API_KEY);
+console.log('🔑 Environment check - API key length:', process.env.OPENAI_API_KEY?.length || 0);
+
+// Initialize database
+import { DatabaseService } from './services/databaseService';
+
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 
 // Middleware
 app.use(helmet());
@@ -37,9 +47,12 @@ app.get('/health', (req, res) => {
 
 // API routes
 app.use('/api/auth', authRoutes);
+app.use('/api/auth-db', authDBRoutes); // New database-enabled auth routes
 app.use('/api/sessions', sessionRoutes);
 app.use('/api/assessment', assessmentRoutes);
+app.use('/api/counselor-assessment', counselorAssessmentRoutes); // New counselor assessment
 app.use('/api/careers', careersRoutes);
+app.use('/api/jobs', jobsRoutes); // Job listings
 app.use('/api/action-plans', actionPlansRoutes);
 
 app.get('/api', (req, res) => {
@@ -49,9 +62,12 @@ app.get('/api', (req, res) => {
     endpoints: {
       health: '/health',
       auth: '/api/auth',
+      authDB: '/api/auth-db',
       sessions: '/api/sessions',
       assessment: '/api/assessment',
+      counselorAssessment: '/api/counselor-assessment',
       careers: '/api/careers',
+      jobs: '/api/jobs',
       actionPlans: '/api/action-plans'
     }
   });
@@ -71,10 +87,24 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Lantern AI API running on port ${PORT}`);
-  console.log(`📍 Health check: http://localhost:${PORT}/health`);
-  console.log(`📚 API docs: http://localhost:${PORT}/api`);
-});
+// Initialize database and start server
+async function startServer() {
+  try {
+    // Initialize database
+    await DatabaseService.initialize();
+    
+    // Start server
+    app.listen(PORT, () => {
+      console.log(`🚀 Lantern AI API running on port ${PORT}`);
+      console.log(`📍 Health check: http://localhost:${PORT}/health`);
+      console.log(`📚 API docs: http://localhost:${PORT}/api`);
+    });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+startServer();
 
 export default app;

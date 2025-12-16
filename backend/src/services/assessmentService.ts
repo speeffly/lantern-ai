@@ -13,6 +13,8 @@ export class AssessmentService {
    * Generate student profile from assessment answers
    */
   static generateProfile(answers: AssessmentAnswer[], zipCode: string): Partial<StudentProfile> {
+    console.log('🔍 AssessmentService.generateProfile called with answers:', JSON.stringify(answers, null, 2));
+    
     const interests: string[] = [];
     const skills: string[] = [];
     let workEnvironment: 'indoor' | 'outdoor' | 'mixed' = 'mixed';
@@ -107,7 +109,7 @@ export class AssessmentService {
       uniqueSkills.push('Willingness to Learn');
     }
 
-    return {
+    const profile = {
       interests: uniqueInterests,
       skills: uniqueSkills,
       workEnvironment,
@@ -117,6 +119,9 @@ export class AssessmentService {
       completedAt: new Date(),
       updatedAt: new Date()
     };
+
+    console.log('🔍 Generated profile:', JSON.stringify(profile, null, 2));
+    return profile;
   }
 
   /**

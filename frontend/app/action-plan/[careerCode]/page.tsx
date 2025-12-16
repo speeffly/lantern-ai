@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import Header from '../../components/Header';
 
 interface ActionStep {
   id: string;
@@ -149,12 +150,15 @@ export default function ActionPlanPage() {
 
   if (error || !actionPlan) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-xl text-red-600 mb-4">{error || 'Action plan not found'}</p>
-          <Link href="/results" className="text-blue-600 hover:underline">
-            Back to Results
-          </Link>
+      <div className="min-h-screen bg-gray-50">
+        <Header title="Action Plan" />
+        <div className="flex items-center justify-center pt-20">
+          <div className="text-center">
+            <p className="text-xl text-red-600 mb-4">{error || 'Action plan not found'}</p>
+            <Link href="/results" className="text-blue-600 hover:underline">
+              Back to Results
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -169,7 +173,8 @@ export default function ActionPlanPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      <Header title="Action Plan" />
+      {/* Career Header */}
       <div className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <Link href="/results" className="text-blue-600 hover:underline mb-4 inline-block">

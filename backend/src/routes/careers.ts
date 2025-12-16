@@ -1,6 +1,9 @@
 import express from 'express';
 import { CareerService } from '../services/careerService';
 import { SessionService } from '../services/sessionService';
+import { AIRecommendationService } from '../services/aiRecommendationService';
+import { LocalJobMarketService } from '../services/localJobMarketService';
+import { CourseRecommendationService } from '../services/courseRecommendationService';
 import { ApiResponse } from '../types';
 
 const router = express.Router();
@@ -48,7 +51,7 @@ router.get('/:id', (req, res) => {
 });
 
 // POST /api/careers/matches - Get career matches for a profile
-router.post('/matches', (req, res) => {
+router.post('/matches', async (req, res) => {
   try {
     const { sessionId, zipCode } = req.body;
 
@@ -78,20 +81,62 @@ router.post('/matches', (req, res) => {
     // Get career matches
     const matches = CareerService.getCareerMatches(session.profileData, zipCode);
 
+    // Generate AI-powered recommendations
+    const aiRecommendations = await AIRecommendationService.generateRecommendations(
+      session.profileData,
+      session.assessmentAnswers || [],
+      matches,
+      zipCode,
+      11 // Default grade, could be enhanced to get from user profile
+    );
+
+    // Get local job market data
+    const localJobMarket = await LocalJobMarketService.getLocalJobMarket(zipCode, matches);
+
+    // Generate academic plan
+    const academicPlan = CourseRecommendationService.generateAcademicPlan(
+      session.profileData,
+      matches,
+      11 // Default grade, could be enhanced to get from user profile
+    );
+
     res.json({
       success: true,
       data: {
         matches,
         profile: session.profileData,
-        totalMatches: matches.length
+        totalMatches: matches.length,
+        aiRecommendations,
+        localJobMarket,
+        academicPlan,
+        generatedAt: new Date().toISOString()
       },
-      message: `Found ${matches.length} career matches`
+      message: `Found ${matches.length} career matches with AI-powered recommendations`
     } as ApiResponse);
   } catch (error) {
     console.error('Error getting career matches:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to get career matches'
+    } as ApiResponse);
+  }
+});
+
+// GET /api/careers/my-matches - Get career matches for authenticated user
+router.get('/my-matches', (req, res) => {
+  try {
+    // This would be implemented when we add proper user profile storage
+    // For now, redirect to session-based matches
+    res.status(501).json({
+      success: false,
+      error: 'User-based matches not implemented yet. Please use session-based assessment.',
+      message: 'Complete the assessment to get personalized matches'
+    } as ApiResponse);
+  } catch (error) {
+    console.error('Error getting user matches:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get user matches'
     } as ApiResponse);
   }
 });

@@ -1,6 +1,6 @@
 // Core type definitions for Lantern AI
 
-export type UserRole = 'student' | 'counselor' | 'teacher' | 'admin';
+export type UserRole = 'student' | 'counselor' | 'parent' | 'teacher' | 'admin';
 
 export type Sector = 'healthcare' | 'infrastructure';
 
@@ -33,6 +33,18 @@ export interface Counselor extends User {
   firstName: string;
   lastName: string;
   schoolId: string;
+}
+
+export interface Parent extends User {
+  role: 'parent';
+  firstName: string;
+  lastName: string;
+  children: {
+    studentId: string;
+    firstName: string;
+    lastName: string;
+    grade?: number;
+  }[];
 }
 
 export interface SessionData {

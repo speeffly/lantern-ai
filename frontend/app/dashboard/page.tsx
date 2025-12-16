@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import JobListings from '../components/JobListings';
 
 interface User {
   id: string;
@@ -127,35 +128,48 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {/* Assessment Card */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
+          {/* Enhanced Assessment Card */}
+          <div className="bg-white rounded-lg shadow-lg p-6 border-2 border-green-200">
             <div className="flex items-center mb-4">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h3 className="ml-4 text-lg font-semibold text-gray-900">
-                Career Assessment
-              </h3>
+              <div className="ml-4">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Enhanced Assessment
+                </h3>
+                <span className="inline-block px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full">
+                  RECOMMENDED
+                </span>
+              </div>
             </div>
             <p className="text-gray-600 mb-4">
-              Take our 12-question assessment to discover careers that match your interests and skills.
+              Take our comprehensive 10-question assessment for detailed career planning with 4-year action plans and parent sharing.
             </p>
-            <button
-              onClick={startAssessment}
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              {user.profileCompleted ? 'Retake Assessment' : 'Start Assessment'}
-            </button>
+            <div className="space-y-2 mb-4">
+              <button
+                onClick={() => router.push('/counselor-assessment')}
+                className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors"
+              >
+                🎓 {user.profileCompleted ? 'Retake Enhanced Assessment' : 'Start Enhanced Assessment'}
+              </button>
+              <button
+                onClick={startAssessment}
+                className="w-full bg-blue-100 text-blue-700 py-2 px-4 rounded-lg hover:bg-blue-200 transition-colors text-sm"
+              >
+                Or take Quick Assessment (5 min)
+              </button>
+            </div>
           </div>
 
           {/* Results Card */}
           <div className="bg-white rounded-lg shadow-lg p-6">
             <div className="flex items-center mb-4">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
               </div>
               <h3 className="ml-4 text-lg font-semibold text-gray-900">
@@ -163,14 +177,35 @@ export default function DashboardPage() {
               </h3>
             </div>
             <p className="text-gray-600 mb-4">
-              View your personalized career matches and explore detailed information about each career.
+              {user.profileCompleted 
+                ? "View your personalized career matches and explore detailed information about each career."
+                : "Complete an assessment first to see your personalized career matches."
+              }
             </p>
-            <Link
-              href="/results"
-              className="block w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-center"
-            >
-              View Results
-            </Link>
+            {user.profileCompleted ? (
+              <div className="space-y-2">
+                <Link
+                  href="/counselor-results"
+                  className="block w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-center"
+                >
+                  📊 Enhanced Results
+                </Link>
+                <Link
+                  href="/results"
+                  className="block w-full bg-blue-100 text-blue-700 py-2 px-4 rounded-lg hover:bg-blue-200 transition-colors text-center text-sm"
+                >
+                  Quick Results
+                </Link>
+              </div>
+            ) : (
+              <button
+                onClick={() => router.push('/counselor-assessment')}
+                className="w-full bg-gray-400 text-white py-2 px-4 rounded-lg cursor-not-allowed"
+                disabled
+              >
+                Complete Assessment First
+              </button>
+            )}
           </div>
 
           {/* Profile Card */}
@@ -196,6 +231,29 @@ export default function DashboardPage() {
             </Link>
           </div>
         </div>
+
+        {/* Job Opportunities Widget */}
+        {user.zipCode && (
+          <div className="mt-8 bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">💼 Job Opportunities Near You</h3>
+              <Link 
+                href="/jobs"
+                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+              >
+                View All Jobs →
+              </Link>
+            </div>
+            <p className="text-gray-600 mb-4">
+              Entry-level positions perfect for students and new graduates in your area.
+            </p>
+            <JobListings 
+              zipCode={user.zipCode}
+              limit={3}
+              showTitle={false}
+            />
+          </div>
+        )}
 
         {/* Profile Status */}
         <div className="mt-8 bg-white rounded-lg shadow p-6">

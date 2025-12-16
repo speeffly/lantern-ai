@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import Header from '../../components/Header';
+import JobListings from '../../components/JobListings';
 
 interface Career {
   id: string;
@@ -52,20 +54,26 @@ export default function CareerDetailsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl">Loading career details...</div>
+      <div className="min-h-screen bg-gray-50">
+        <Header title="Career Details" />
+        <div className="flex items-center justify-center pt-20">
+          <div className="text-xl">Loading career details...</div>
+        </div>
       </div>
     );
   }
 
   if (error || !career) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-xl text-red-600 mb-4">{error || 'Career not found'}</p>
-          <Link href="/results" className="text-blue-600 hover:underline">
-            Back to Results
-          </Link>
+      <div className="min-h-screen bg-gray-50">
+        <Header title="Career Details" />
+        <div className="flex items-center justify-center pt-20">
+          <div className="text-center">
+            <p className="text-xl text-red-600 mb-4">{error || 'Career not found'}</p>
+            <Link href="/results" className="text-blue-600 hover:underline">
+              Back to Results
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -73,7 +81,8 @@ export default function CareerDetailsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      <Header title="Career Details" />
+      {/* Career Header */}
       <div className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <Link href="/results" className="text-blue-600 hover:underline mb-4 inline-block">
@@ -143,6 +152,16 @@ export default function CareerDetailsPage() {
                 <p className="text-gray-700">{career.workEnvironment}</p>
               </div>
             )}
+
+            {/* Job Listings */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <JobListings 
+                careerTitle={career.title}
+                zipCode={localStorage.getItem('zipCode') || undefined}
+                limit={5}
+                showTitle={true}
+              />
+            </div>
           </div>
 
           {/* Sidebar */}

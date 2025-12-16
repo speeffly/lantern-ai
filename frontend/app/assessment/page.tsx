@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Header from '../components/Header';
 
 interface Question {
   id: string;
@@ -100,35 +101,41 @@ export default function AssessmentPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl">Loading questions...</div>
+      <div className="min-h-screen bg-gray-50">
+        <Header title="Career Assessment" />
+        <div className="flex items-center justify-center pt-20">
+          <div className="text-xl">Loading questions...</div>
+        </div>
       </div>
     );
   }
 
   if (showZipCode) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12 px-4">
-        <div className="max-w-2xl mx-auto">
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <h2 className="text-2xl font-bold mb-6">Almost Done!</h2>
-            <p className="text-gray-600 mb-6">
-              Enter your ZIP code to find local career opportunities and training programs.
-            </p>
-            <input
-              type="text"
-              value={zipCode}
-              onChange={(e) => setZipCode(e.target.value.replace(/\D/g, '').slice(0, 5))}
-              placeholder="12345"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg mb-6 text-lg"
-              maxLength={5}
-            />
-            <button
-              onClick={handleSubmit}
-              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700"
-            >
-              See My Career Matches
-            </button>
+      <div className="min-h-screen bg-gray-50">
+        <Header title="Career Assessment" />
+        <div className="py-12 px-4">
+          <div className="max-w-2xl mx-auto">
+            <div className="bg-white rounded-lg shadow-lg p-8">
+              <h2 className="text-2xl font-bold mb-6">Almost Done!</h2>
+              <p className="text-gray-600 mb-6">
+                Enter your ZIP code to find local career opportunities and training programs.
+              </p>
+              <input
+                type="text"
+                value={zipCode}
+                onChange={(e) => setZipCode(e.target.value.replace(/\D/g, '').slice(0, 5))}
+                placeholder="12345"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg mb-6 text-lg"
+                maxLength={5}
+              />
+              <button
+                onClick={handleSubmit}
+                className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700"
+              >
+                See My Career Matches
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -139,20 +146,22 @@ export default function AssessmentPage() {
   const progress = ((currentIndex + 1) / questions.length) * 100;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
-      <div className="max-w-3xl mx-auto">
-        <div className="mb-8">
-          <div className="flex justify-between text-sm text-gray-600 mb-2">
-            <span>Question {currentIndex + 1} of {questions.length}</span>
-            <span>{Math.round(progress)}% Complete</span>
+    <div className="min-h-screen bg-gray-50">
+      <Header title="Career Assessment" />
+      <div className="py-12 px-4">
+        <div className="max-w-3xl mx-auto">
+          <div className="mb-8">
+            <div className="flex justify-between text-sm text-gray-600 mb-2">
+              <span>Question {currentIndex + 1} of {questions.length}</span>
+              <span>{Math.round(progress)}% Complete</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className="bg-blue-600 h-2 rounded-full transition-all"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-blue-600 h-2 rounded-full transition-all"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </div>
 
         <div className="bg-white rounded-lg shadow-lg p-8">
           <h2 className="text-2xl font-semibold mb-6">{currentQuestion.text}</h2>
@@ -188,6 +197,7 @@ export default function AssessmentPage() {
               {currentIndex === questions.length - 1 ? 'Finish' : 'Next'}
             </button>
           </div>
+        </div>
         </div>
       </div>
     </div>
