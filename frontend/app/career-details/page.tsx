@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import Header from '../../components/Header';
-import JobListings from '../../components/JobListings';
+import Header from '../components/Header';
+import JobListings from '../components/JobListings';
 
 interface Career {
   id: string;
@@ -21,8 +21,8 @@ interface Career {
 
 export default function CareerDetailsPage() {
   const router = useRouter();
-  const params = useParams();
-  const careerId = params.id as string;
+  const searchParams = useSearchParams();
+  const careerId = searchParams.get('id') || '1';
   
   const [career, setCareer] = useState<Career | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -145,14 +145,6 @@ export default function CareerDetailsPage() {
               </div>
             )}
 
-            {/* Work Environment */}
-            {career.workEnvironment && (
-              <div className="bg-white rounded-lg shadow-lg p-6">
-                <h2 className="text-2xl font-bold mb-4">Work Environment</h2>
-                <p className="text-gray-700">{career.workEnvironment}</p>
-              </div>
-            )}
-
             {/* Job Listings */}
             <div className="bg-white rounded-lg shadow-lg p-6">
               <JobListings 
@@ -190,7 +182,7 @@ export default function CareerDetailsPage() {
               <h3 className="text-lg font-semibold mb-4">Take Action</h3>
               <div className="space-y-3">
                 <Link
-                  href={`/action-plan/${career.id}`}
+                  href={`/action-plan-view?career=${career.title}`}
                   className="block w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 text-center font-medium"
                 >
                   📋 Get Your Action Plan
@@ -203,51 +195,12 @@ export default function CareerDetailsPage() {
                 >
                   🔍 View on O*NET
                 </a>
-                <a
-                  href={`https://www.careeronestop.org/Toolkit/Jobs/find-jobs.aspx`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block w-full bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 text-center font-medium"
-                >
-                  💼 Find Jobs
-                </a>
                 <Link
                   href="/results"
                   className="block w-full bg-gray-100 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-200 text-center font-medium"
                 >
                   ← Back to All Results
                 </Link>
-              </div>
-            </div>
-
-            {/* Resources */}
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">Helpful Resources</h3>
-              <div className="space-y-3">
-                <a
-                  href="https://www.careeronestop.org/Toolkit/Training/find-local-training.aspx"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block text-blue-600 hover:underline text-sm"
-                >
-                  📚 Find Training Programs
-                </a>
-                <a
-                  href="https://www.careeronestop.org/Toolkit/Wages/find-salary.aspx"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block text-blue-600 hover:underline text-sm"
-                >
-                  💰 Salary Information
-                </a>
-                <a
-                  href="https://www.careeronestop.org/Videos/CareerVideos/career-videos.aspx"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block text-blue-600 hover:underline text-sm"
-                >
-                  🎥 Career Videos
-                </a>
               </div>
             </div>
           </div>

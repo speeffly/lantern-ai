@@ -292,13 +292,13 @@ export default function ResultsPage() {
 
                   <div className="grid grid-cols-2 gap-3">
                     <button
-                      onClick={() => router.push(`/careers/${match.careerId}`)}
+                      onClick={() => router.push(`/career-details?id=${match.careerId}`)}
                       className="bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
                     >
                       View Details
                     </button>
                     <button
-                      onClick={() => router.push(`/action-plan/${match.careerId}`)}
+                      onClick={() => router.push(`/action-plan-view?career=${encodeURIComponent(match.career.title)}`)}
                       className="bg-green-600 text-white py-2 rounded-lg hover:bg-green-700"
                     >
                       Get Action Plan
