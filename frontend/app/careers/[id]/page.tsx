@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -33,8 +35,6 @@ interface Career {
   tasks?: string[];
   workEnvironment?: string;
 }
-
-'use client';
 
 export default function CareerDetailsPage() {
   const router = useRouter();

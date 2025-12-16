@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -42,8 +44,6 @@ interface ActionPlan {
   }[];
   estimatedTimeToCareer: string;
 }
-
-'use client';
 
 export default function ActionPlanPage() {
   const router = useRouter();
