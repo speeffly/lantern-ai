@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Header from '../components/Header';
 import JobListings from '../components/JobListings';
@@ -19,8 +19,7 @@ interface Career {
   workEnvironment?: string;
 }
 
-export default function CareerDetailsPage() {
-  const router = useRouter();
+function CareerDetailsContent() {
   const searchParams = useSearchParams();
   const careerId = searchParams.get('id') || '1';
   
@@ -207,5 +206,20 @@ export default function CareerDetailsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CareerDetailsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50">
+        <Header title="Career Details" />
+        <div className="flex items-center justify-center pt-20">
+          <div className="text-xl">Loading career details...</div>
+        </div>
+      </div>
+    }>
+      <CareerDetailsContent />
+    </Suspense>
   );
 }

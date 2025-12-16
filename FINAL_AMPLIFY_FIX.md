@@ -2,7 +2,11 @@
 
 ## ✅ Problem Solved!
 
-The 404 error was caused by trying to use dynamic routes `[param]` with static export. I've converted the app to use static pages with query parameters instead.
+The 404 error was caused by two issues:
+1. Using dynamic routes `[param]` with static export
+2. Using `useSearchParams` without Suspense boundaries
+
+I've converted the app to use static pages with query parameters and wrapped `useSearchParams` in Suspense components.
 
 ## 🔧 What I Fixed
 
@@ -22,6 +26,10 @@ The 404 error was caused by trying to use dynamic routes `[param]` with static e
 ### 4. Updated Navigation
 - ✅ Updated results page links to use new static pages
 - ✅ All routing now uses query parameters instead of dynamic routes
+
+### 5. Fixed Suspense Boundaries
+- ✅ Wrapped `useSearchParams` in Suspense components in both pages
+- ✅ Added proper loading fallbacks for static export compatibility
 
 ## 🚀 Deploy the Fix
 

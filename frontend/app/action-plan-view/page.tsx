@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Header from '../components/Header';
 
@@ -21,8 +21,7 @@ interface ActionPlan {
   estimatedTimeToCareer: string;
 }
 
-export default function ActionPlanViewPage() {
-  const router = useRouter();
+function ActionPlanContent() {
   const searchParams = useSearchParams();
   const careerTitle = searchParams.get('career') || 'Registered Nurse';
   
@@ -271,5 +270,20 @@ export default function ActionPlanViewPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ActionPlanViewPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50">
+        <Header title="Action Plan" />
+        <div className="flex items-center justify-center pt-20">
+          <div className="text-xl">Loading action plan...</div>
+        </div>
+      </div>
+    }>
+      <ActionPlanContent />
+    </Suspense>
   );
 }
