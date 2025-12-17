@@ -29,15 +29,20 @@ export default function AssessmentPage() {
 
   const fetchQuestions = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/assessment/questions`);
-      const data = await response.json();
+      const { apiCall } = await import('../services/demoDataService');
+      const data = await apiCall(`${process.env.NEXT_PUBLIC_API_URL}/api/assessment/questions`);
       if (data.success) {
         setQuestions(data.data);
         setIsLoading(false);
+      } else {
+        throw new Error(data.error || 'Failed to load questions');
       }
     } catch (error) {
       console.error('Error fetching questions:', error);
-      alert('Failed to load questions');
+      // Fallback to demo questions
+      const { demoDataService } = await import('../services/demoDataService');
+      setQuestions(demoDataService.getQuestions());
+      setIsLoading(false);
     }
   };
 

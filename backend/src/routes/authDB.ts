@@ -109,7 +109,7 @@ router.get('/profile', async (req, res) => {
       } as ApiResponse);
     }
 
-    const profile = await AuthServiceDB.getUserProfile(user.id);
+    const profile = await AuthServiceDB.getUserProfile(parseInt(user.id));
     if (!profile) {
       return res.status(404).json({
         success: false,
@@ -150,7 +150,7 @@ router.put('/profile', async (req, res) => {
       } as ApiResponse);
     }
 
-    const result = await AuthServiceDB.updateUserProfile(user.id, req.body);
+    const result = await AuthServiceDB.updateUserProfile(parseInt(user.id), req.body);
 
     if (result.success) {
       res.json({
@@ -244,10 +244,10 @@ router.post('/create-relationship', async (req, res) => {
     }
 
     const result = await AuthServiceDB.createRelationship(
-      user.id,
+      parseInt(user.id),
       secondaryUserId,
       relationshipType,
-      user.id
+      parseInt(user.id)
     );
 
     if (result.success) {
@@ -297,7 +297,7 @@ router.post('/link-session', async (req, res) => {
       } as ApiResponse);
     }
 
-    const success = await AuthServiceDB.linkSessionToUser(user.id, sessionToken);
+    const success = await AuthServiceDB.linkSessionToUser(parseInt(user.id), sessionToken);
 
     if (success) {
       res.json({

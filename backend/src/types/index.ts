@@ -251,6 +251,103 @@ export interface ParentSummary {
   language: 'en' | 'es';
 }
 
+// Profile Types for Database
+export interface CounselorProfile {
+  id: string;
+  userId: string;
+  firstName: string;
+  lastName: string;
+  schoolId: string;
+  department?: string;
+  yearsExperience?: number;
+  specializations?: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ParentProfile {
+  id: string;
+  userId: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber?: string;
+  address?: string;
+  emergencyContact?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// AI Recommendation Types
+export interface CourseRecommendation {
+  courseCode: string;
+  courseName: string;
+  description: string;
+  credits: number;
+  prerequisites?: string[];
+  provider: string;
+  semester: string;
+  priority: 'high' | 'medium' | 'low';
+}
+
+export interface AIRecommendations {
+  localJobs: LocalJobOpportunity[];
+  academicPlan: {
+    currentYear: CourseRecommendation[];
+    nextYear: CourseRecommendation[];
+    longTerm: CourseRecommendation[];
+  };
+  careerPathway?: {
+    steps: string[];
+    timeline: string;
+    requirements: string[];
+  };
+  skillGaps?: {
+    skill: string;
+    importance: string;
+    howToAcquire: string;
+  }[];
+  actionItems?: {
+    title: string;
+    description: string;
+    priority: string;
+    timeline: string;
+  }[];
+}
+
+export interface LocalJobOpportunity {
+  title: string;
+  company: string;
+  location: string;
+  salary: string;
+  description: string;
+  requirements: string[];
+  distance: number;
+  source: string;
+}
+
+// Relationship Types
+export interface Relationship {
+  id: string;
+  primaryUserId: string;
+  secondaryUserId: string;
+  relationshipType: 'parent-child' | 'counselor-student' | 'teacher-student';
+  status: 'pending' | 'active' | 'inactive';
+  createdAt: Date;
+  createdBy: string;
+}
+
+export interface RelationshipWithUsers {
+  id: string;
+  primary_user_id: string;
+  secondary_user_id: string;
+  relationship_type: string;
+  status: string;
+  created_at: Date;
+  created_by: string;
+  primary_user: User;
+  secondary_user: User;
+}
+
 // API Response Types
 export interface ApiResponse<T = any> {
   success: boolean;

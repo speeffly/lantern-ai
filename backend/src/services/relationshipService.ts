@@ -251,15 +251,19 @@ export class RelationshipService {
           email: rel.primary_email,
           first_name: rel.primary_first_name,
           last_name: rel.primary_last_name,
-          role: rel.primary_role
-        },
+          role: rel.primary_role,
+          createdAt: new Date(rel.primary_created_at || rel.created_at),
+          updatedAt: new Date(rel.primary_updated_at || rel.created_at)
+        } as User,
         secondary_user: {
           id: rel.secondary_user_id,
           email: rel.secondary_email,
           first_name: rel.secondary_first_name,
           last_name: rel.secondary_last_name,
-          role: rel.secondary_role
-        }
+          role: rel.secondary_role,
+          createdAt: new Date(rel.secondary_created_at || rel.created_at),
+          updatedAt: new Date(rel.secondary_updated_at || rel.created_at)
+        } as User
       }));
     } catch (error) {
       console.error('❌ Error getting relationships for user:', error);

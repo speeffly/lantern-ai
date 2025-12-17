@@ -254,8 +254,13 @@ Keep all text simple and avoid special characters.`;
         if (simpleExtraction) {
           console.log('✅ Successfully extracted simple recommendations from AI response');
           return {
-            ...simpleExtraction,
-            localJobs: this.generateLocalJobOpportunities(careerMatches, zipCode)
+            localJobs: this.generateLocalJobOpportunities(careerMatches, zipCode),
+            academicPlan: simpleExtraction.academicPlan || {
+              currentYear: [],
+              nextYear: [],
+              longTerm: []
+            },
+            ...simpleExtraction
           };
         }
       } catch (extractError) {

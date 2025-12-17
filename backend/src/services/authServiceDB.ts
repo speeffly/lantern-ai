@@ -294,8 +294,8 @@ export class AuthServiceDB {
         user: {
           id: user.id,
           email: user.email,
-          firstName: user.first_name,
-          lastName: user.last_name,
+          firstName: (user as any).first_name,
+          lastName: (user as any).last_name,
           role: user.role
         }
       },

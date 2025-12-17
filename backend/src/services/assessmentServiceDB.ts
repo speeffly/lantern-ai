@@ -141,7 +141,7 @@ export class AssessmentServiceDB {
       return answers.map(answer => ({
         questionId: answer.question_id,
         answer: answer.answer,
-        timestamp: answer.answered_at
+        timestamp: new Date(answer.answered_at)
       }));
     } catch (error) {
       console.error('❌ Error getting assessment answers:', error);
