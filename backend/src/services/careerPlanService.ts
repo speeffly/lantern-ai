@@ -1,6 +1,5 @@
 import { DatabaseService } from './databaseService';
-import { CareerMatch } from '../types';
-import { AIRecommendations } from './aiRecommendationService';
+import { CareerMatch, AIRecommendations } from '../types';
 
 export interface CareerRecommendationRecord {
   id: number;
