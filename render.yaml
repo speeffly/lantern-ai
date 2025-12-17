@@ -2,14 +2,12 @@ services:
   - type: web
     name: lantern-ai-backend
     env: node
-    buildCommand: cd backend && npm install
+    buildCommand: cd backend && npm install && npm run build
     startCommand: cd backend && npm start
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 10000
-    disk:
-      name: lantern-ai-data
-      mountPath: /opt/render/project/src/backend/database
-      sizeGB: 1
+      - key: RENDER
+        value: "true"

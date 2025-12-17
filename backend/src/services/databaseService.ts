@@ -1,4 +1,6 @@
 import sqlite3 from 'sqlite3';
+import fs from 'fs';
+import path from 'path';
 
 // Enable verbose mode for debugging
 const sqlite = sqlite3.verbose();
@@ -14,23 +16,51 @@ export class DatabaseService {
     if (this.isInitialized) return;
 
     try {
-      // Use in-memory database for reliable demo deployment
-      const dbPath = ':memory:';
-      console.log('🗄️ Initializing in-memory database for demo');
+      // Render-optimized database path
+      let dbPath: string;
+      
+      if (process.env.RENDER) {
+        // On Render, use /tmp for ephemeral storage (persists during session)
+        dbPath = '/tmp/lantern_ai.db';
+        console.log('🚀 Render deployment: Using /tmp for SQLite database');
+      } else if (process.env.NODE_ENV === 'production') {
+        // Other production environments
+        dbPath = './lantern_ai.db';
+        console.log('🏭 Production: Using current directory for SQLite database');
+      } else {
+        // Development environment
+        const dbDir = './data';
+        if (!fs.existsSync(dbDir)) {
+          fs.mkdirSync(dbDir, { recursive: true });
+        }
+        dbPath = path.join(dbDir, 'lantern_ai.db');
+        console.log('💻 Development: Using ./data directory for SQLite database');
+      }
 
-      // Create database connection
-      this.db = new sqlite.Database(dbPath, (err) => {
+      console.log('🗄️ Initializing SQLite database at:', dbPath);
+
+      // Create database connection with Render optimizations
+      this.db = new sqlite.Database(dbPath, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, (err) => {
         if (err) {
-          console.error('❌ Error opening database:', err);
+          console.error('❌ Error opening SQLite database:', err);
+          console.error('❌ Database path:', dbPath);
+          console.error('❌ Environment:', process.env.NODE_ENV);
+          console.error('❌ Render:', !!process.env.RENDER);
           throw err;
         }
-        console.log('✅ Connected to SQLite database');
+        console.log('✅ Connected to SQLite database successfully');
       });
 
-      // Enable foreign keys
+      // SQLite optimizations for Render deployment
       await this.run('PRAGMA foreign_keys = ON');
+      await this.run('PRAGMA journal_mode = WAL');  // Better concurrency
+      await this.run('PRAGMA synchronous = NORMAL'); // Faster writes
+      await this.run('PRAGMA cache_size = 10000');   // More memory cache
+      await this.run('PRAGMA temp_store = MEMORY');  // Temp tables in memory
+      
+      console.log('✅ SQLite performance optimizations applied');
 
-      // Create tables from schema
+      // Create tables from embedded schema
       await this.createTables();
 
       this.isInitialized = true;
