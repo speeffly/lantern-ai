@@ -14,9 +14,9 @@ export class DatabaseService {
     if (this.isInitialized) return;
 
     try {
-      // Use simple database path for production deployment
-      const dbPath = './data/lantern_ai.db';
-      console.log('🗄️ Initializing database at:', dbPath);
+      // Use in-memory database for reliable demo deployment
+      const dbPath = ':memory:';
+      console.log('🗄️ Initializing in-memory database for demo');
 
       // Create database connection
       this.db = new sqlite.Database(dbPath, (err) => {
