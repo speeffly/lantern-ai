@@ -69,7 +69,29 @@ export class DatabaseAdapter {
     if (this.usePostgreSQL) {
       const pgSql = this.convertSqlToPostgreSQL(sql);
       console.log('🔄 SQL Conversion:', { original: sql, converted: pgSql, params });
-      return DatabaseServicePG.run(pgSql, params);
+      
+      // Handle INSERT statements to return lastID for compatibility
+      if (pgSql.trim().toLowerCase().startsWith('insert')) {
+        // Add RETURNING id if not already present
+        let insertSql = pgSql;
+        if (!insertSql.toLowerCase().includes('returning')) {
+          insertSql = insertSql.replace(/;?\s*$/, ' RETURNING id;');
+        }
+        
+        const result = await DatabaseServicePG.get<{ id: number }>(insertSql, params);
+        return {
+          rowCount: 1,
+          lastID: result?.id || 0,
+          insertId: result?.id || 0
+        };
+      } else {
+        // For UPDATE/DELETE operations
+        const result = await DatabaseServicePG.run(pgSql, params);
+        return {
+          rowCount: result.rowCount || 0,
+          changes: result.rowCount || 0
+        };
+      }
     } else {
       return DatabaseService.run(sql, params);
     }
@@ -166,13 +188,9 @@ export class DatabaseAdapter {
    */
   static async insertWithId(sql: string, params: any[] = []): Promise<number> {
     if (this.usePostgreSQL) {
-      // Convert SQL and add RETURNING id to PostgreSQL INSERT statements
-      let pgSql = this.convertSqlToPostgreSQL(sql);
-      if (!pgSql.toLowerCase().includes('returning')) {
-        pgSql = pgSql.replace(/;?\s*$/, ' RETURNING id;');
-      }
-      const result = await DatabaseServicePG.get<{ id: number }>(pgSql, params);
-      return result?.id || 0;
+      // Use the run method which handles RETURNING id properly
+      const result = await this.run(sql, params);
+      return result.lastID || result.insertId || 0;
     } else {
       const result = await DatabaseService.run(sql, params);
       return result.lastID || 0;
