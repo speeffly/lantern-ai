@@ -3,9 +3,11 @@ export const demoDataService = {
   // Mock assessment questions
   getQuestions: () => [
     {
-      id: 1,
+      id: "1",
+      order: 1,
       text: "What subjects do you enjoy most in school?",
       type: "multiple-choice",
+      category: "interests",
       options: [
         "Math and Science",
         "English and Literature", 
@@ -15,9 +17,11 @@ export const demoDataService = {
       ]
     },
     {
-      id: 2,
+      id: "2",
+      order: 2,
       text: "What type of work environment appeals to you?",
       type: "multiple-choice",
+      category: "preferences",
       options: [
         "Office or indoor setting",
         "Outdoors or field work",
@@ -27,9 +31,11 @@ export const demoDataService = {
       ]
     },
     {
-      id: 3,
+      id: "3",
+      order: 3,
       text: "How do you prefer to work?",
       type: "multiple-choice",
+      category: "work-style",
       options: [
         "Independently with minimal supervision",
         "As part of a small team",
@@ -39,15 +45,19 @@ export const demoDataService = {
       ]
     },
     {
-      id: 4,
+      id: "4",
+      order: 4,
       text: "What are your main interests and hobbies?",
       type: "text",
+      category: "interests",
       placeholder: "Tell us about what you enjoy doing in your free time..."
     },
     {
-      id: 5,
+      id: "5",
+      order: 5,
       text: "What is most important to you in a career?",
       type: "multiple-choice",
+      category: "values",
       options: [
         "High salary and financial security",
         "Helping others and making a difference",
