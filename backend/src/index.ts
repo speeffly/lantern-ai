@@ -20,6 +20,12 @@ dotenv.config();
 console.log('🔑 Environment check - OpenAI API key loaded:', !!process.env.OPENAI_API_KEY);
 console.log('🔑 Environment check - API key length:', process.env.OPENAI_API_KEY?.length || 0);
 
+// Debug: CORS configuration
+console.log('🌐 CORS configuration:');
+console.log('   - Environment:', process.env.NODE_ENV);
+console.log('   - Frontend URL:', process.env.FRONTEND_URL);
+console.log('   - Port:', process.env.PORT || 3002);
+
 // Initialize database
 
 const app = express();
@@ -29,13 +35,22 @@ const PORT = process.env.PORT || 3002;
 app.use(helmet());
 app.use(cors({
   origin: process.env.FRONTEND_URL || process.env.NODE_ENV === 'production' 
-    ? ['https://main.d2ymtj6aumrj0m.amplifyapp.com', 'https://d2ymtj6aumrj0m.amplifyapp.com']
-    : 'http://localhost:3000',
-  credentials: true
+    ? [
+        'https://main.d2ymtj6aumrj0m.amplifyapp.com', 
+        'https://d2ymtj6aumrj0m.amplifyapp.com',
+        'https://*.amplifyapp.com' // Allow all Amplify domains
+      ]
+    : ['http://localhost:3000', 'http://localhost:3001'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Handle preflight requests
+app.options('*', cors());
 
 // Root route - API welcome page
 app.get('/', (req, res) => {
@@ -66,7 +81,7 @@ app.get('/', (req, res) => {
         <h2>🏆 Presidential Innovation Challenge 2025</h2>
         
         <h3>🌐 Frontend Application</h3>
-        <p><a href="https://main.d3k8x9y2z1m4n5.amplifyapp.com" class="link" target="_blank">
+        <p><a href="https://main.d2ymtj6aumrj0m.amplifyapp.com" class="link" target="_blank">
           Visit Lantern AI Platform →
         </a></p>
         
@@ -112,7 +127,7 @@ app.get('/', (req, res) => {
         actionPlans: '/api/action-plans'
       },
       documentation: {
-        frontend: 'https://main.d3k8x9y2z1m4n5.amplifyapp.com',
+        frontend: 'https://main.d2ymtj6aumrj0m.amplifyapp.com',
         github: 'https://github.com/your-username/lantern-ai'
       },
       competition: 'Presidential Innovation Challenge 2025'

@@ -9,7 +9,7 @@ provider:
     NODE_ENV: production
     OPENAI_API_KEY: ${env:OPENAI_API_KEY}
     JWT_SECRET: ${env:JWT_SECRET}
-    FRONTEND_URL: ${env:FRONTEND_URL, 'https://main.d1234567890.amplifyapp.com'}
+    FRONTEND_URL: ${env:FRONTEND_URL, 'https://main.d2ymtj6aumrj0m.amplifyapp.com'}
 
 functions:
   api:
