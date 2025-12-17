@@ -53,7 +53,7 @@ export class DatabaseService {
    */
   private static async createTables(): Promise<void> {
     try {
-      // Embedded schema to avoid file path issues in production
+      // Embedded schema to avoid file path issues in production deployment
       const schema = `
 -- Lantern AI Database Schema
 -- Multi-user career guidance platform with relationships
