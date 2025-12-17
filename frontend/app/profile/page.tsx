@@ -49,7 +49,7 @@ export default function ProfilePage() {
     }
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth-db/profile`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -146,7 +146,7 @@ export default function ProfilePage() {
           }));
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/profile`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth-db/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

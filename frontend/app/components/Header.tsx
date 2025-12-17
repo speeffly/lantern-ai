@@ -34,7 +34,7 @@ export default function Header({ showAuthButtons = true, title }: HeaderProps) {
     }
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth-db/profile`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

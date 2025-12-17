@@ -68,7 +68,7 @@ export default function RegisterPage() {
           }));
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth-db/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -87,7 +87,7 @@ export default function RegisterPage() {
         const sessionId = localStorage.getItem('sessionId');
         if (sessionId) {
           try {
-            await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/link-session`, {
+            await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth-db/link-session`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',

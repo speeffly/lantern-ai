@@ -223,12 +223,12 @@ export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
       return { success: true, data: career };
     }
     
-    if (endpoint.includes('/api/auth/login')) {
+    if (endpoint.includes('/api/auth-db/login')) {
       const body = JSON.parse(options.body as string);
       return demoDataService.mockLogin(body.email, body.password);
     }
     
-    if (endpoint.includes('/api/auth/register')) {
+    if (endpoint.includes('/api/auth-db/register')) {
       const body = JSON.parse(options.body as string);
       return demoDataService.mockRegister(body);
     }
