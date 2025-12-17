@@ -21,7 +21,6 @@ console.log('🔑 Environment check - OpenAI API key loaded:', !!process.env.OPE
 console.log('🔑 Environment check - API key length:', process.env.OPENAI_API_KEY?.length || 0);
 
 // Initialize database
-import { DatabaseService } from './services/databaseService';
 
 const app = express();
 const PORT = process.env.PORT || 3002;
