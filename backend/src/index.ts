@@ -11,6 +11,7 @@ import authDBRoutes from './routes/authDB';
 import actionPlansRoutes from './routes/actionPlans';
 import counselorAssessmentRoutes from './routes/counselorAssessment';
 import jobsRoutes from './routes/jobs';
+import { DatabaseService } from './services/databaseService';
 
 // Load environment variables
 dotenv.config();
@@ -37,13 +38,98 @@ app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Root route - API welcome page
+app.get('/', (req, res) => {
+  // Check if request accepts HTML (browser) or JSON (API client)
+  if (req.headers.accept && req.headers.accept.includes('text/html')) {
+    // Send HTML response for browsers
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Lantern AI API</title>
+        <style>
+          body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+          .header { color: #2563eb; border-bottom: 2px solid #e5e7eb; padding-bottom: 20px; }
+          .status { color: #059669; font-weight: bold; }
+          .endpoint { background: #f3f4f6; padding: 10px; margin: 5px 0; border-radius: 5px; }
+          .link { color: #2563eb; text-decoration: none; }
+          .link:hover { text-decoration: underline; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>🚀 Lantern AI API</h1>
+          <p>AI-Powered Career Exploration Platform for Rural Students</p>
+          <p class="status">Status: Running ✅</p>
+        </div>
+        
+        <h2>🏆 Presidential Innovation Challenge 2025</h2>
+        
+        <h3>🌐 Frontend Application</h3>
+        <p><a href="https://main.d3k8x9y2z1m4n5.amplifyapp.com" class="link" target="_blank">
+          Visit Lantern AI Platform →
+        </a></p>
+        
+        <h3>📡 API Endpoints</h3>
+        <div class="endpoint">GET /health - Health check</div>
+        <div class="endpoint">GET /api - API information</div>
+        <div class="endpoint">POST /api/auth/* - Authentication</div>
+        <div class="endpoint">GET /api/assessment/* - Career assessments</div>
+        <div class="endpoint">GET /api/careers/* - Career recommendations</div>
+        <div class="endpoint">GET /api/jobs/* - Job listings</div>
+        
+        <h3>🤖 AI Features</h3>
+        <ul>
+          <li>Career matching with ML algorithms</li>
+          <li>OpenAI-powered personalized recommendations</li>
+          <li>Local job market analysis (40-mile radius)</li>
+          <li>Academic pathway planning</li>
+          <li>Multi-user system (students, counselors, parents)</li>
+        </ul>
+        
+        <p><em>Built for rural students to explore healthcare and infrastructure careers</em></p>
+      </body>
+      </html>
+    `);
+  } else {
+    // Send JSON response for API clients
+    res.json({
+      name: 'Lantern AI API',
+      description: 'AI-Powered Career Exploration Platform for Rural Students',
+      version: '1.0.0',
+      status: 'Running',
+      timestamp: new Date().toISOString(),
+      endpoints: {
+        health: '/health',
+        api: '/api',
+        auth: '/api/auth',
+        authDB: '/api/auth-db',
+        sessions: '/api/sessions',
+        assessment: '/api/assessment',
+        counselorAssessment: '/api/counselor-assessment',
+        careers: '/api/careers',
+        jobs: '/api/jobs',
+        actionPlans: '/api/action-plans'
+      },
+      documentation: {
+        frontend: 'https://main.d3k8x9y2z1m4n5.amplifyapp.com',
+        github: 'https://github.com/your-username/lantern-ai'
+      },
+      competition: 'Presidential Innovation Challenge 2025'
+    });
+  }
+});
+
 // Health check
 app.get('/health', (req, res) => {
   res.json({
     status: 'OK',
     message: 'Lantern AI API is running',
     timestamp: new Date().toISOString(),
-    version: '1.0.0'
+    version: '1.0.0',
+    database: DatabaseService.isReady() ? 'Connected' : 'Disconnected',
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 
