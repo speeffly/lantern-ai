@@ -1,4 +1,4 @@
-import { DatabaseService } from './databaseService';
+import { DatabaseAdapter } from './databaseAdapter';
 import { AssessmentAnswer, StudentProfile } from '../types';
 import { randomUUID } from 'crypto';
 
@@ -30,7 +30,7 @@ export class AssessmentServiceDB {
       const sessionToken = randomUUID();
       const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
-      const result = await DatabaseService.run(`
+      const result = await DatabaseAdapter.run(`
         INSERT INTO assessment_sessions (user_id, session_token, expires_at)
         VALUES (?, ?, ?)
       `, [userId || null, sessionToken, expiresAt.toISOString()]);
@@ -58,7 +58,7 @@ export class AssessmentServiceDB {
    */
   static async getSessionById(sessionId: number): Promise<AssessmentSession | null> {
     try {
-      const session = await DatabaseService.get<AssessmentSession>(`
+      const session = await DatabaseAdapter.get<AssessmentSession>(`
         SELECT * FROM assessment_sessions WHERE id = ?
       `, [sessionId]);
 
@@ -74,7 +74,7 @@ export class AssessmentServiceDB {
    */
   static async getSessionByToken(sessionToken: string): Promise<AssessmentSession | null> {
     try {
-      const session = await DatabaseService.get<AssessmentSession>(`
+      const session = await DatabaseAdapter.get<AssessmentSession>(`
         SELECT * FROM assessment_sessions WHERE session_token = ?
       `, [sessionToken]);
 
@@ -102,7 +102,7 @@ export class AssessmentServiceDB {
       }
 
       // Delete existing answers for this session
-      await DatabaseService.run(`
+      await DatabaseAdapter.run(`
         DELETE FROM assessment_answers WHERE session_id = ?
       `, [session.id]);
 
@@ -112,7 +112,7 @@ export class AssessmentServiceDB {
         params: [session.id, answer.questionId, answer.answer]
       }));
 
-      await DatabaseService.transaction(statements);
+      await DatabaseAdapter.transaction(statements);
 
       console.log(`✅ Saved ${answers.length} assessment answers for session:`, sessionToken);
       return true;
@@ -132,7 +132,7 @@ export class AssessmentServiceDB {
         return [];
       }
 
-      const answers = await DatabaseService.all<AssessmentAnswerDB>(`
+      const answers = await DatabaseAdapter.all<AssessmentAnswerDB>(`
         SELECT * FROM assessment_answers 
         WHERE session_id = ? 
         ORDER BY answered_at
@@ -160,7 +160,7 @@ export class AssessmentServiceDB {
       }
 
       // Update session status
-      await DatabaseService.run(`
+      await DatabaseAdapter.run(`
         UPDATE assessment_sessions 
         SET status = 'completed', completed_at = CURRENT_TIMESTAMP, zip_code = ?
         WHERE id = ?
@@ -190,7 +190,7 @@ export class AssessmentServiceDB {
         throw new Error('Session not found or expired');
       }
 
-      await DatabaseService.run(`
+      await DatabaseAdapter.run(`
         UPDATE assessment_sessions SET user_id = ? WHERE id = ?
       `, [userId, session.id]);
 
@@ -207,7 +207,7 @@ export class AssessmentServiceDB {
    */
   static async getUserSessions(userId: number): Promise<AssessmentSession[]> {
     try {
-      const sessions = await DatabaseService.all<AssessmentSession>(`
+      const sessions = await DatabaseAdapter.all<AssessmentSession>(`
         SELECT * FROM assessment_sessions 
         WHERE user_id = ? 
         ORDER BY started_at DESC
@@ -225,7 +225,7 @@ export class AssessmentServiceDB {
    */
   static async cleanupExpiredSessions(): Promise<number> {
     try {
-      const result = await DatabaseService.run(`
+      const result = await DatabaseAdapter.run(`
         DELETE FROM assessment_sessions 
         WHERE expires_at < CURRENT_TIMESTAMP
       `);
@@ -247,7 +247,7 @@ export class AssessmentServiceDB {
    */
   static async getSessionStats(): Promise<any> {
     try {
-      const stats = await DatabaseService.get(`
+      const stats = await DatabaseAdapter.get(`
         SELECT 
           COUNT(*) as total_sessions,
           COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_sessions,

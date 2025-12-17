@@ -1,4 +1,4 @@
-import { DatabaseService } from './databaseService';
+import { DatabaseAdapter } from './databaseAdapter';
 import { CareerMatch, AIRecommendations } from '../types';
 
 export interface CareerRecommendationRecord {
@@ -69,7 +69,7 @@ export class CareerPlanService {
     academicPlan?: any
   ): Promise<CareerRecommendationRecord> {
     try {
-      const result = await DatabaseService.run(`
+      const result = await DatabaseAdapter.run(`
         INSERT INTO career_recommendations (
           session_id, user_id, career_matches, ai_recommendations, 
           local_job_market, academic_plan
@@ -106,7 +106,7 @@ export class CareerPlanService {
    */
   static async getCareerRecommendationById(id: number): Promise<CareerRecommendationRecord | null> {
     try {
-      const record = await DatabaseService.get<any>(`
+      const record = await DatabaseAdapter.get<any>(`
         SELECT * FROM career_recommendations WHERE id = ?
       `, [id]);
 
@@ -132,7 +132,7 @@ export class CareerPlanService {
    */
   static async getUserCareerRecommendations(userId: number): Promise<CareerRecommendationRecord[]> {
     try {
-      const records = await DatabaseService.all<any>(`
+      const records = await DatabaseAdapter.all<any>(`
         SELECT * FROM career_recommendations 
         WHERE user_id = ? 
         ORDER BY generated_at DESC
@@ -166,7 +166,7 @@ export class CareerPlanService {
     createdBy?: number
   ): Promise<ActionPlan> {
     try {
-      const result = await DatabaseService.run(`
+      const result = await DatabaseAdapter.run(`
         INSERT INTO action_plans (
           user_id, career_code, career_title, short_term_goals, 
           medium_term_goals, long_term_goals, skill_gaps, action_items, created_by
@@ -206,7 +206,7 @@ export class CareerPlanService {
    */
   static async getActionPlanById(id: number): Promise<ActionPlan | null> {
     try {
-      const plan = await DatabaseService.get<any>(`
+      const plan = await DatabaseAdapter.get<any>(`
         SELECT * FROM action_plans WHERE id = ?
       `, [id]);
 
@@ -234,7 +234,7 @@ export class CareerPlanService {
    */
   static async getUserActionPlans(userId: number): Promise<ActionPlan[]> {
     try {
-      const plans = await DatabaseService.all<any>(`
+      const plans = await DatabaseAdapter.all<any>(`
         SELECT * FROM action_plans 
         WHERE user_id = ? 
         ORDER BY created_at DESC
@@ -275,7 +275,7 @@ export class CareerPlanService {
         updated_at: new Date().toISOString()
       }];
 
-      await DatabaseService.run(`
+      await DatabaseAdapter.run(`
         UPDATE action_plans 
         SET progress_notes = ?, updated_at = CURRENT_TIMESTAMP 
         WHERE id = ?
@@ -302,7 +302,7 @@ export class CareerPlanService {
     isSharedWithStudent: boolean = true
   ): Promise<CounselorNote> {
     try {
-      const result = await DatabaseService.run(`
+      const result = await DatabaseAdapter.run(`
         INSERT INTO counselor_notes (
           counselor_id, student_id, note_type, title, content, 
           is_shared_with_parent, is_shared_with_student
@@ -340,7 +340,7 @@ export class CareerPlanService {
    */
   static async getCounselorNoteById(id: number): Promise<CounselorNote | null> {
     try {
-      const note = await DatabaseService.get<CounselorNote>(`
+      const note = await DatabaseAdapter.get<CounselorNote>(`
         SELECT * FROM counselor_notes WHERE id = ?
       `, [id]);
 
@@ -373,7 +373,7 @@ export class CareerPlanService {
         params.push(viewerId);
       }
 
-      const notes = await DatabaseService.all<CounselorNote>(`
+      const notes = await DatabaseAdapter.all<CounselorNote>(`
         SELECT * FROM counselor_notes 
         ${whereClause}
         ORDER BY created_at DESC
@@ -401,7 +401,7 @@ export class CareerPlanService {
     recordedBy?: number
   ): Promise<StudentProgress> {
     try {
-      const result = await DatabaseService.run(`
+      const result = await DatabaseAdapter.run(`
         INSERT INTO student_progress (
           student_id, action_plan_id, milestone_type, milestone_description,
           target_date, completion_date, status, notes, recorded_by
@@ -441,7 +441,7 @@ export class CareerPlanService {
    */
   static async getStudentProgressById(id: number): Promise<StudentProgress | null> {
     try {
-      const progress = await DatabaseService.get<StudentProgress>(`
+      const progress = await DatabaseAdapter.get<StudentProgress>(`
         SELECT * FROM student_progress WHERE id = ?
       `, [id]);
 
@@ -457,7 +457,7 @@ export class CareerPlanService {
    */
   static async getStudentProgress(studentId: number): Promise<StudentProgress[]> {
     try {
-      const progress = await DatabaseService.all<StudentProgress>(`
+      const progress = await DatabaseAdapter.all<StudentProgress>(`
         SELECT * FROM student_progress 
         WHERE student_id = ? 
         ORDER BY created_at DESC

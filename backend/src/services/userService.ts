@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt';
-import { DatabaseService } from './databaseService';
+import { DatabaseAdapter } from './databaseAdapter';
 import { User, StudentProfile, CounselorProfile, ParentProfile, UserRole } from '../types';
 
 export interface CreateUserData {
@@ -54,7 +54,7 @@ export class UserService {
       const passwordHash = await bcrypt.hash(userData.password, saltRounds);
 
       // Insert user
-      const result = await DatabaseService.run(`
+      const result = await DatabaseAdapter.run(`
         INSERT INTO users (email, password_hash, first_name, last_name, role, phone)
         VALUES (?, ?, ?, ?, ?, ?)
       `, [
@@ -90,7 +90,7 @@ export class UserService {
    */
   static async getUserById(userId: number): Promise<User | null> {
     try {
-      const user = await DatabaseService.get<User>(`
+      const user = await DatabaseAdapter.get<User>(`
         SELECT id, email, first_name, last_name, role, phone, created_at, updated_at, is_active
         FROM users WHERE id = ?
       `, [userId]);
@@ -107,7 +107,7 @@ export class UserService {
    */
   static async getUserByEmail(email: string): Promise<User | null> {
     try {
-      const user = await DatabaseService.get<User>(`
+      const user = await DatabaseAdapter.get<User>(`
         SELECT id, email, first_name, last_name, role, phone, created_at, updated_at, is_active
         FROM users WHERE email = ?
       `, [email]);
@@ -124,7 +124,7 @@ export class UserService {
    */
   static async authenticateUser(email: string, password: string): Promise<User | null> {
     try {
-      const user = await DatabaseService.get<any>(`
+      const user = await DatabaseAdapter.get<any>(`
         SELECT id, email, password_hash, first_name, last_name, role, phone, created_at, updated_at, is_active
         FROM users WHERE email = ? AND is_active = 1
       `, [email]);
@@ -181,7 +181,7 @@ export class UserService {
       updateFields.push('updated_at = CURRENT_TIMESTAMP');
       updateValues.push(userId);
 
-      await DatabaseService.run(`
+      await DatabaseAdapter.run(`
         UPDATE users SET ${updateFields.join(', ')} WHERE id = ?
       `, updateValues);
 
@@ -197,7 +197,7 @@ export class UserService {
    */
   static async createStudentProfile(userId: number, profileData: CreateStudentProfileData): Promise<StudentProfile> {
     try {
-      const result = await DatabaseService.run(`
+      const result = await DatabaseAdapter.run(`
         INSERT INTO student_profiles (
           user_id, grade, school_name, zip_code, interests, skills, 
           education_goal, work_environment, gpa, extracurricular_activities, career_aspirations
@@ -239,7 +239,7 @@ export class UserService {
    */
   static async getStudentProfile(userId: number): Promise<StudentProfile | null> {
     try {
-      const profile = await DatabaseService.get<any>(`
+      const profile = await DatabaseAdapter.get<any>(`
         SELECT * FROM student_profiles WHERE user_id = ?
       `, [userId]);
 
@@ -316,7 +316,7 @@ export class UserService {
       updateFields.push('updated_at = CURRENT_TIMESTAMP');
       updateValues.push(userId);
 
-      await DatabaseService.run(`
+      await DatabaseAdapter.run(`
         UPDATE student_profiles SET ${updateFields.join(', ')} WHERE user_id = ?
       `, updateValues);
 
@@ -332,7 +332,7 @@ export class UserService {
    */
   static async createCounselorProfile(userId: number, profileData: CreateCounselorProfileData): Promise<CounselorProfile> {
     try {
-      const result = await DatabaseService.run(`
+      const result = await DatabaseAdapter.run(`
         INSERT INTO counselor_profiles (
           user_id, school_district, specializations, years_experience, license_number, bio
         ) VALUES (?, ?, ?, ?, ?, ?)
@@ -363,7 +363,7 @@ export class UserService {
    */
   static async getCounselorProfile(userId: number): Promise<CounselorProfile | null> {
     try {
-      const profile = await DatabaseService.get<any>(`
+      const profile = await DatabaseAdapter.get<any>(`
         SELECT * FROM counselor_profiles WHERE user_id = ?
       `, [userId]);
 
@@ -386,7 +386,7 @@ export class UserService {
    */
   static async createParentProfile(userId: number, profileData: CreateParentProfileData): Promise<ParentProfile> {
     try {
-      const result = await DatabaseService.run(`
+      const result = await DatabaseAdapter.run(`
         INSERT INTO parent_profiles (user_id, occupation, education_level)
         VALUES (?, ?, ?)
       `, [
@@ -413,7 +413,7 @@ export class UserService {
    */
   static async getParentProfile(userId: number): Promise<ParentProfile | null> {
     try {
-      const profile = await DatabaseService.get<ParentProfile>(`
+      const profile = await DatabaseAdapter.get<ParentProfile>(`
         SELECT * FROM parent_profiles WHERE user_id = ?
       `, [userId]);
 
@@ -429,7 +429,7 @@ export class UserService {
    */
   static async getUsersByRole(role: UserRole): Promise<User[]> {
     try {
-      const users = await DatabaseService.all<User>(`
+      const users = await DatabaseAdapter.all<User>(`
         SELECT id, email, first_name, last_name, role, phone, created_at, updated_at, is_active
         FROM users WHERE role = ? AND is_active = 1
         ORDER BY first_name, last_name

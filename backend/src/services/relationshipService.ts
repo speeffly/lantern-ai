@@ -1,4 +1,4 @@
-import { DatabaseService } from './databaseService';
+import { DatabaseAdapter } from './databaseAdapter';
 import { User } from '../types';
 
 export interface UserRelationship {
@@ -33,7 +33,7 @@ export class RelationshipService {
         throw new Error('Relationship already exists');
       }
 
-      const result = await DatabaseService.run(`
+      const result = await DatabaseAdapter.run(`
         INSERT INTO user_relationships (primary_user_id, secondary_user_id, relationship_type, created_by)
         VALUES (?, ?, ?, ?)
       `, [primaryUserId, secondaryUserId, relationshipType, createdBy || null]);
@@ -61,7 +61,7 @@ export class RelationshipService {
    */
   static async getRelationshipById(relationshipId: number): Promise<UserRelationship | null> {
     try {
-      const relationship = await DatabaseService.get<UserRelationship>(`
+      const relationship = await DatabaseAdapter.get<UserRelationship>(`
         SELECT * FROM user_relationships WHERE id = ?
       `, [relationshipId]);
 
@@ -81,7 +81,7 @@ export class RelationshipService {
     relationshipType: 'parent_child' | 'counselor_student'
   ): Promise<UserRelationship | null> {
     try {
-      const relationship = await DatabaseService.get<UserRelationship>(`
+      const relationship = await DatabaseAdapter.get<UserRelationship>(`
         SELECT * FROM user_relationships 
         WHERE primary_user_id = ? AND secondary_user_id = ? AND relationship_type = ?
       `, [primaryUserId, secondaryUserId, relationshipType]);
@@ -98,7 +98,7 @@ export class RelationshipService {
    */
   static async getStudentsForCounselor(counselorId: number): Promise<User[]> {
     try {
-      const students = await DatabaseService.all<User>(`
+      const students = await DatabaseAdapter.all<User>(`
         SELECT u.id, u.email, u.first_name, u.last_name, u.role, u.phone, u.created_at, u.updated_at, u.is_active
         FROM users u
         INNER JOIN user_relationships ur ON u.id = ur.secondary_user_id
@@ -121,7 +121,7 @@ export class RelationshipService {
    */
   static async getChildrenForParent(parentId: number): Promise<User[]> {
     try {
-      const children = await DatabaseService.all<User>(`
+      const children = await DatabaseAdapter.all<User>(`
         SELECT u.id, u.email, u.first_name, u.last_name, u.role, u.phone, u.created_at, u.updated_at, u.is_active
         FROM users u
         INNER JOIN user_relationships ur ON u.id = ur.secondary_user_id
@@ -144,7 +144,7 @@ export class RelationshipService {
    */
   static async getCounselorForStudent(studentId: number): Promise<User | null> {
     try {
-      const counselor = await DatabaseService.get<User>(`
+      const counselor = await DatabaseAdapter.get<User>(`
         SELECT u.id, u.email, u.first_name, u.last_name, u.role, u.phone, u.created_at, u.updated_at, u.is_active
         FROM users u
         INNER JOIN user_relationships ur ON u.id = ur.primary_user_id
@@ -166,7 +166,7 @@ export class RelationshipService {
    */
   static async getParentsForStudent(studentId: number): Promise<User[]> {
     try {
-      const parents = await DatabaseService.all<User>(`
+      const parents = await DatabaseAdapter.all<User>(`
         SELECT u.id, u.email, u.first_name, u.last_name, u.role, u.phone, u.created_at, u.updated_at, u.is_active
         FROM users u
         INNER JOIN user_relationships ur ON u.id = ur.primary_user_id
@@ -192,7 +192,7 @@ export class RelationshipService {
     status: 'active' | 'inactive' | 'pending'
   ): Promise<UserRelationship | null> {
     try {
-      await DatabaseService.run(`
+      await DatabaseAdapter.run(`
         UPDATE user_relationships SET status = ? WHERE id = ?
       `, [status, relationshipId]);
 
@@ -208,7 +208,7 @@ export class RelationshipService {
    */
   static async deleteRelationship(relationshipId: number): Promise<boolean> {
     try {
-      const result = await DatabaseService.run(`
+      const result = await DatabaseAdapter.run(`
         DELETE FROM user_relationships WHERE id = ?
       `, [relationshipId]);
 
@@ -224,7 +224,7 @@ export class RelationshipService {
    */
   static async getRelationshipsForUser(userId: number): Promise<RelationshipWithUsers[]> {
     try {
-      const relationships = await DatabaseService.all<any>(`
+      const relationships = await DatabaseAdapter.all<any>(`
         SELECT 
           ur.*,
           u1.id as primary_user_id, u1.email as primary_email, u1.first_name as primary_first_name, 
@@ -285,7 +285,7 @@ export class RelationshipService {
       }
 
       // Check if there's an active relationship
-      const relationship = await DatabaseService.get(`
+      const relationship = await DatabaseAdapter.get(`
         SELECT id FROM user_relationships 
         WHERE ((primary_user_id = ? AND secondary_user_id = ?) OR 
                (primary_user_id = ? AND secondary_user_id = ?))
