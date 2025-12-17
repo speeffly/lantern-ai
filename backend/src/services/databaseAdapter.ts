@@ -42,6 +42,7 @@ export class DatabaseAdapter {
     if (this.usePostgreSQL) {
       // Convert SQLite syntax to PostgreSQL if needed
       const pgSql = this.convertSqlToPostgreSQL(sql);
+      console.log('🔄 SQL Conversion:', { original: sql, converted: pgSql, params });
       return DatabaseServicePG.get<T>(pgSql, params);
     } else {
       return DatabaseService.get<T>(sql, params);
@@ -54,6 +55,7 @@ export class DatabaseAdapter {
   static async all<T = any>(sql: string, params: any[] = []): Promise<T[]> {
     if (this.usePostgreSQL) {
       const pgSql = this.convertSqlToPostgreSQL(sql);
+      console.log('🔄 SQL Conversion:', { original: sql, converted: pgSql, params });
       return DatabaseServicePG.all<T>(pgSql, params);
     } else {
       return DatabaseService.all<T>(sql, params);
@@ -66,6 +68,7 @@ export class DatabaseAdapter {
   static async run(sql: string, params: any[] = []): Promise<any> {
     if (this.usePostgreSQL) {
       const pgSql = this.convertSqlToPostgreSQL(sql);
+      console.log('🔄 SQL Conversion:', { original: sql, converted: pgSql, params });
       return DatabaseServicePG.run(pgSql, params);
     } else {
       return DatabaseService.run(sql, params);
@@ -138,14 +141,19 @@ export class DatabaseAdapter {
   private static convertSqlToPostgreSQL(sql: string): string {
     let pgSql = sql;
 
+    // Convert SQLite parameter placeholders (?) to PostgreSQL ($1, $2, etc.)
+    let paramIndex = 1;
+    pgSql = pgSql.replace(/\?/g, () => `$${paramIndex++}`);
+
     // Convert SQLite AUTOINCREMENT to PostgreSQL SERIAL (handled in schema)
     // Convert SQLite datetime functions
     pgSql = pgSql.replace(/datetime\(([^)]+)\)/g, 'to_timestamp($1)');
     pgSql = pgSql.replace(/CURRENT_TIMESTAMP/g, 'CURRENT_TIMESTAMP');
     
     // Convert SQLite LIMIT syntax (already compatible)
-    // Convert SQLite boolean values
-    pgSql = pgSql.replace(/\b1\b/g, 'true').replace(/\b0\b/g, 'false');
+    // Convert SQLite boolean values in WHERE clauses
+    pgSql = pgSql.replace(/= 1(?=\s|$)/g, '= true');
+    pgSql = pgSql.replace(/= 0(?=\s|$)/g, '= false');
     
     // Convert SQLite string concatenation
     pgSql = pgSql.replace(/\|\|/g, '||'); // Already compatible
@@ -158,8 +166,8 @@ export class DatabaseAdapter {
    */
   static async insertWithId(sql: string, params: any[] = []): Promise<number> {
     if (this.usePostgreSQL) {
-      // Add RETURNING id to PostgreSQL INSERT statements
-      let pgSql = sql;
+      // Convert SQL and add RETURNING id to PostgreSQL INSERT statements
+      let pgSql = this.convertSqlToPostgreSQL(sql);
       if (!pgSql.toLowerCase().includes('returning')) {
         pgSql = pgSql.replace(/;?\s*$/, ' RETURNING id;');
       }
