@@ -15,41 +15,70 @@ export class DatabaseService {
   static async initialize(): Promise<void> {
     if (this.isInitialized) return;
 
+    console.log('🔧 Starting database initialization...');
+    
     try {
-      // Render-optimized database path
+      // Environment-specific database path with proper directory handling
       let dbPath: string;
+      let dbDir: string;
       
       if (process.env.RENDER) {
         // On Render, use /tmp for ephemeral storage (persists during session)
         dbPath = '/tmp/lantern_ai.db';
         console.log('🚀 Render deployment: Using /tmp for SQLite database');
       } else if (process.env.NODE_ENV === 'production') {
-        // Other production environments
-        dbPath = './lantern_ai.db';
-        console.log('🏭 Production: Using current directory for SQLite database');
-      } else {
-        // Development environment
-        const dbDir = './data';
-        if (!fs.existsSync(dbDir)) {
-          fs.mkdirSync(dbDir, { recursive: true });
+        // Other production environments - ensure directory exists
+        dbDir = './database';
+        try {
+          if (!fs.existsSync(dbDir)) {
+            fs.mkdirSync(dbDir, { recursive: true });
+            console.log('📁 Created database directory:', dbDir);
+          }
+          dbPath = path.join(dbDir, 'lantern_ai.db');
+          console.log('🏭 Production: Using database directory for SQLite database');
+        } catch (error) {
+          console.warn('⚠️ Could not create database directory, using current directory');
+          dbPath = './lantern_ai.db';
         }
-        dbPath = path.join(dbDir, 'lantern_ai.db');
-        console.log('💻 Development: Using ./data directory for SQLite database');
+      } else {
+        // Development environment - ensure data directory exists
+        dbDir = path.join(process.cwd(), 'data');
+        try {
+          if (!fs.existsSync(dbDir)) {
+            fs.mkdirSync(dbDir, { recursive: true });
+            console.log('📁 Created data directory:', dbDir);
+          }
+          dbPath = path.join(dbDir, 'lantern_ai.db');
+          console.log('💻 Development: Using ./data directory for SQLite database');
+        } catch (error) {
+          console.warn('⚠️ Could not create data directory, using current directory');
+          dbPath = './lantern_ai_dev.db';
+        }
       }
 
       console.log('🗄️ Initializing SQLite database at:', dbPath);
 
-      // Create database connection with Render optimizations
-      this.db = new sqlite.Database(dbPath, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, (err) => {
-        if (err) {
-          console.error('❌ Error opening SQLite database:', err);
-          console.error('❌ Database path:', dbPath);
-          console.error('❌ Environment:', process.env.NODE_ENV);
-          console.error('❌ Render:', !!process.env.RENDER);
-          throw err;
+      // Ensure parent directory exists and is writable
+      const parentDir = path.dirname(dbPath);
+      if (parentDir !== '.' && parentDir !== '/tmp') {
+        try {
+          if (!fs.existsSync(parentDir)) {
+            fs.mkdirSync(parentDir, { recursive: true });
+            console.log('📁 Created parent directory:', parentDir);
+          }
+          // Test write permissions
+          const testFile = path.join(parentDir, '.write_test');
+          fs.writeFileSync(testFile, 'test');
+          fs.unlinkSync(testFile);
+          console.log('✅ Directory is writable:', parentDir);
+        } catch (error) {
+          console.warn('⚠️ Directory permission issue, falling back to memory database');
+          dbPath = ':memory:';
         }
-        console.log('✅ Connected to SQLite database successfully');
-      });
+      }
+
+      // Create database connection with proper async handling
+      await this.createDatabaseConnection(dbPath);
 
       // SQLite optimizations for Render deployment
       await this.run('PRAGMA foreign_keys = ON');
@@ -69,6 +98,38 @@ export class DatabaseService {
       console.error('❌ Database initialization failed:', error);
       throw error;
     }
+  }
+
+  /**
+   * Create database connection with fallback handling
+   */
+  private static async createDatabaseConnection(dbPath: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      // Try to create the database connection
+      const db = new sqlite.Database(dbPath, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, (err) => {
+        if (err) {
+          console.error('❌ Error opening SQLite database:', err);
+          console.error('❌ Database path:', dbPath);
+          console.log('🔄 Falling back to in-memory database...');
+          
+          // Fallback to memory database
+          const memDb = new sqlite.Database(':memory:', (memErr) => {
+            if (memErr) {
+              console.error('❌ Failed to create memory database:', memErr);
+              reject(memErr);
+            } else {
+              console.log('✅ Connected to in-memory SQLite database');
+              this.db = memDb;
+              resolve();
+            }
+          });
+        } else {
+          console.log('✅ Connected to SQLite database successfully at:', dbPath);
+          this.db = db;
+          resolve();
+        }
+      });
+    });
   }
 
   /**
