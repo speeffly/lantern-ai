@@ -1,5 +1,3 @@
-import path from 'path';
-import path from 'path';
 import sqlite3 from 'sqlite3';
 
 // Enable verbose mode for debugging
@@ -16,13 +14,8 @@ export class DatabaseService {
     if (this.isInitialized) return;
 
     try {
-      // Create database directory if it doesn't exist
-      const dbDir = path.join(__dirname, '../../data');
-      if (!fs.existsSync(dbDir)) {
-        fs.mkdirSync(dbDir, { recursive: true });
-      }
-
-      const dbPath = path.join(dbDir, 'lantern_ai.db');
+      // Use simple database path for production deployment
+      const dbPath = './data/lantern_ai.db';
       console.log('🗄️ Initializing database at:', dbPath);
 
       // Create database connection
@@ -53,6 +46,7 @@ export class DatabaseService {
    */
   private static async createTables(): Promise<void> {
     try {
+      console.log('🔧 Using embedded database schema (no file dependencies)');
       // Embedded schema to avoid file path issues in production deployment
       const schema = `
 -- Lantern AI Database Schema
