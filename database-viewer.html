@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lantern AI Database Viewer</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            background: #f8fafc;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .section { 
+            margin: 20px 0; 
+            padding: 20px; 
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .stats { border-left: 4px solid #3b82f6; }
+        .users { border-left: 4px solid #10b981; }
+        .sessions { border-left: 4px solid #f59e0b; }
+        .query { border-left: 4px solid #8b5cf6; }
+        
+        pre { 
+            background: #f1f5f9; 
+            padding: 15px; 
+            border-radius: 8px; 
+            overflow-x: auto; 
+            font-size: 12px;
+            line-height: 1.4;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        button { 
+            padding: 10px 20px; 
+            margin: 5px; 
+            background: #2563eb; 
+            color: white; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        button:hover { background: #1d4ed8; }
+        button:disabled { background: #94a3b8; cursor: not-allowed; }
+        
+        input[type="text"] {
+            width: 100%;
+            max-width: 500px;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        
+        .loading {
+            color: #6b7280;
+            font-style: italic;
+        }
+        
+        .error {
+            color: #dc2626;
+            background: #fef2f2;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #fecaca;
+        }
+        
+        .success {
+            color: #059669;
+            background: #f0fdf4;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #bbf7d0;
+        }
+        
+        .quick-queries {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .quick-queries button {
+            background: #6b7280;
+            font-size: 12px;
+            padding: 6px 12px;
+        }
+        .quick-queries button:hover {
+            background: #4b5563;
+        }
+        
+        h2 {
+            margin-top: 0;
+            color: #1f2937;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-online { background: #10b981; }
+        .status-offline { background: #ef4444; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Lantern AI Database Viewer</h1>
+            <p>Real-time SQLite Database Monitoring & Query Tool</p>
+            <div id="connection-status">
+                <span class="status-indicator status-offline"></span>
+                <span>Checking connection...</span>
+            </div>
+        </div>
+        
+        <div class="section stats">
+            <h2>📊 Database Statistics</h2>
+            <button onclick="loadStats()">🔄 Refresh Stats</button>
+            <pre id="stats-output">Click "Refresh Stats" to view database statistics</pre>
+        </div>
+        
+        <div class="section users">
+            <h2>👥 Users & Profiles</h2>
+            <button onclick="loadUsers()">👤 Load All Users</button>
+            <button onclick="loadUsersByRole('student')">🎓 Students Only</button>
+            <button onclick="loadUsersByRole('counselor')">👨‍🏫 Counselors Only</button>
+            <button onclick="loadUsersByRole('parent')">👨‍👩‍👧‍👦 Parents Only</button>
+            <pre id="users-output">Click a button above to view users</pre>
+        </div>
+        
+        <div class="section sessions">
+            <h2>📝 Assessment Sessions</h2>
+            <button onclick="loadSessions()">📋 Load Recent Sessions</button>
+            <button onclick="loadCompletedSessions()">✅ Completed Only</button>
+            <pre id="sessions-output">Click "Load Recent Sessions" to view assessment activity</pre>
+        </div>
+        
+        <div class="section query">
+            <h2>🔍 Custom SQL Query</h2>
+            <input type="text" id="custom-query" placeholder="SELECT * FROM users LIMIT 5">
+            <br>
+            <button onclick="runQuery()">▶️ Run Query</button>
+            <button onclick="clearQuery()">🗑️ Clear</button>
+            
+            <div class="quick-queries">
+                <strong>Quick Queries:</strong>
+                <button onclick="setQuery('SELECT COUNT(*) as total_users FROM users')">User Count</button>
+                <button onclick="setQuery('SELECT role, COUNT(*) as count FROM users GROUP BY role')">Users by Role</button>
+                <button onclick="setQuery('SELECT * FROM users ORDER BY created_at DESC LIMIT 10')">Recent Users</button>
+                <button onclick="setQuery('SELECT u.email, sp.grade, sp.school_name FROM users u JOIN student_profiles sp ON u.id = sp.user_id')">Student Profiles</button>
+                <button onclick="setQuery('SELECT name FROM sqlite_master WHERE type=\\'table\\'')">All Tables</button>
+            </div>
+            
+            <pre id="query-output">Enter a SELECT query above or use quick queries</pre>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://lantern-ai.onrender.com/api/database';
+        
+        // Check API connection on load
+        window.onload = function() {
+            checkConnection();
+        };
+        
+        async function checkConnection() {
+            try {
+                const response = await fetch(`${API_BASE}/stats`);
+                if (response.ok) {
+                    document.getElementById('connection-status').innerHTML = 
+                        '<span class="status-indicator status-online"></span><span>Connected to Lantern AI Database</span>';
+                } else {
+                    throw new Error('API not responding');
+                }
+            } catch (error) {
+                document.getElementById('connection-status').innerHTML = 
+                    '<span class="status-indicator status-offline"></span><span>Connection failed - Check if backend is running</span>';
+            }
+        }
+        
+        async function loadStats() {
+            const output = document.getElementById('stats-output');
+            output.innerHTML = '<div class="loading">Loading database statistics...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/stats`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    output.innerHTML = `<div class="success">✅ Database Statistics Retrieved</div>\n${JSON.stringify(data.data, null, 2)}`;
+                } else {
+                    output.innerHTML = `<div class="error">❌ Error: ${data.error}</div>`;
+                }
+            } catch (error) {
+                output.innerHTML = `<div class="error">❌ Network Error: ${error.message}</div>`;
+            }
+        }
+        
+        async function loadUsers() {
+            const output = document.getElementById('users-output');
+            output.innerHTML = '<div class="loading">Loading users...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/users`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    output.innerHTML = `<div class="success">✅ Found ${data.data.length} users</div>\n${JSON.stringify(data.data, null, 2)}`;
+                } else {
+                    output.innerHTML = `<div class="error">❌ Error: ${data.error}</div>`;
+                }
+            } catch (error) {
+                output.innerHTML = `<div class="error">❌ Network Error: ${error.message}</div>`;
+            }
+        }
+        
+        async function loadUsersByRole(role) {
+            const output = document.getElementById('users-output');
+            output.innerHTML = `<div class="loading">Loading ${role}s...</div>`;
+            
+            try {
+                const query = `SELECT * FROM users WHERE role = '${role}' ORDER BY created_at DESC`;
+                const response = await fetch(`${API_BASE}/query?sql=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    output.innerHTML = `<div class="success">✅ Found ${data.data.length} ${role}s</div>\n${JSON.stringify(data.data, null, 2)}`;
+                } else {
+                    output.innerHTML = `<div class="error">❌ Error: ${data.error}</div>`;
+                }
+            } catch (error) {
+                output.innerHTML = `<div class="error">❌ Network Error: ${error.message}</div>`;
+            }
+        }
+        
+        async function loadSessions() {
+            const output = document.getElementById('sessions-output');
+            output.innerHTML = '<div class="loading">Loading assessment sessions...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/sessions`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    output.innerHTML = `<div class="success">✅ Found ${data.data.length} sessions</div>\n${JSON.stringify(data.data, null, 2)}`;
+                } else {
+                    output.innerHTML = `<div class="error">❌ Error: ${data.error}</div>`;
+                }
+            } catch (error) {
+                output.innerHTML = `<div class="error">❌ Network Error: ${error.message}</div>`;
+            }
+        }
+        
+        async function loadCompletedSessions() {
+            const output = document.getElementById('sessions-output');
+            output.innerHTML = '<div class="loading">Loading completed sessions...</div>';
+            
+            try {
+                const query = "SELECT * FROM assessment_sessions WHERE status = 'completed' ORDER BY completed_at DESC LIMIT 20";
+                const response = await fetch(`${API_BASE}/query?sql=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    output.innerHTML = `<div class="success">✅ Found ${data.data.length} completed sessions</div>\n${JSON.stringify(data.data, null, 2)}`;
+                } else {
+                    output.innerHTML = `<div class="error">❌ Error: ${data.error}</div>`;
+                }
+            } catch (error) {
+                output.innerHTML = `<div class="error">❌ Network Error: ${error.message}</div>`;
+            }
+        }
+        
+        async function runQuery() {
+            const query = document.getElementById('custom-query').value;
+            const output = document.getElementById('query-output');
+            
+            if (!query.trim()) {
+                output.innerHTML = '<div class="error">❌ Please enter a query</div>';
+                return;
+            }
+            
+            output.innerHTML = '<div class="loading">Executing query...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/query?sql=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const resultCount = Array.isArray(data.data) ? data.data.length : 1;
+                    output.innerHTML = `<div class="success">✅ Query executed successfully (${resultCount} results)</div>\n${JSON.stringify(data.data, null, 2)}`;
+                } else {
+                    output.innerHTML = `<div class="error">❌ Query Error: ${data.error}</div>`;
+                }
+            } catch (error) {
+                output.innerHTML = `<div class="error">❌ Network Error: ${error.message}</div>`;
+            }
+        }
+        
+        function setQuery(query) {
+            document.getElementById('custom-query').value = query;
+        }
+        
+        function clearQuery() {
+            document.getElementById('custom-query').value = '';
+            document.getElementById('query-output').textContent = 'Enter a SELECT query above or use quick queries';
+        }
+    </script>
+</body>
+</html>

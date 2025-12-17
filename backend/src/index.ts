@@ -11,7 +11,7 @@ import authDBRoutes from './routes/authDB';
 import actionPlansRoutes from './routes/actionPlans';
 import counselorAssessmentRoutes from './routes/counselorAssessment';
 import jobsRoutes from './routes/jobs';
-import { DatabaseService } from './services/databaseService';
+import { DatabaseAdapter } from './services/databaseAdapter';
 
 // Load environment variables
 dotenv.config();
@@ -137,14 +137,36 @@ app.get('/', (req, res) => {
 
 // Health check
 app.get('/health', (req, res) => {
+  const dbInfo = DatabaseAdapter.getDatabaseInfo();
   res.json({
     status: 'OK',
     message: 'Lantern AI API is running',
     timestamp: new Date().toISOString(),
     version: '1.0.0',
-    database: DatabaseService.isReady() ? 'Connected' : 'Disconnected',
+    database: {
+      status: DatabaseAdapter.isReady() ? 'Connected' : 'Disconnected',
+      type: dbInfo.type,
+      connectionInfo: dbInfo.connectionInfo
+    },
     environment: process.env.NODE_ENV || 'development'
   });
+});
+
+// Database info endpoint
+app.get('/api/database/info', (req, res) => {
+  try {
+    const dbInfo = DatabaseAdapter.getDatabaseInfo();
+    res.json({
+      success: true,
+      data: dbInfo,
+      message: 'Database information retrieved successfully'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get database info'
+    });
+  }
 });
 
 // API routes
@@ -156,6 +178,227 @@ app.use('/api/counselor-assessment', counselorAssessmentRoutes); // New counselo
 app.use('/api/careers', careersRoutes);
 app.use('/api/jobs', jobsRoutes); // Job listings
 app.use('/api/action-plans', actionPlansRoutes);
+
+// Database viewing endpoints (for debugging and monitoring)
+app.get('/api/database/stats', async (req, res) => {
+  try {
+    const stats = await DatabaseAdapter.getStats();
+    res.json({
+      success: true,
+      data: stats,
+      message: 'Database statistics retrieved successfully'
+    });
+  } catch (error) {
+    console.error('Database stats error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve database statistics'
+    });
+  }
+});
+
+app.get('/api/database/tables', async (req, res) => {
+  try {
+    const tables = await DatabaseAdapter.all(`
+      SELECT name, sql FROM sqlite_master 
+      WHERE type='table' AND name NOT LIKE 'sqlite_%'
+      ORDER BY name
+    `);
+    
+    res.json({
+      success: true,
+      data: tables,
+      message: 'Database tables retrieved successfully'
+    });
+  } catch (error) {
+    console.error('Database tables error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve database tables'
+    });
+  }
+});
+
+app.get('/api/database/query', async (req, res) => {
+  try {
+    const { sql } = req.query;
+    
+    if (!sql || typeof sql !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: 'SQL query parameter is required'
+      });
+    }
+
+    // Security: Only allow SELECT statements
+    const trimmedSql = sql.trim().toLowerCase();
+    if (!trimmedSql.startsWith('select')) {
+      return res.status(400).json({
+        success: false,
+        error: 'Only SELECT queries are allowed'
+      });
+    }
+
+    const results = await DatabaseAdapter.all(sql as string);
+    
+    res.json({
+      success: true,
+      data: results,
+      message: 'Query executed successfully'
+    });
+  } catch (error) {
+    console.error('Database query error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Query execution failed: ' + (error as Error).message
+    });
+  }
+});
+
+app.get('/api/database/users', async (req, res) => {
+  try {
+    const users = await DatabaseAdapter.all(`
+      SELECT 
+        u.id,
+        u.email,
+        u.first_name,
+        u.last_name,
+        u.role,
+        u.created_at,
+        u.is_active,
+        CASE 
+          WHEN u.role = 'student' THEN sp.grade
+          WHEN u.role = 'counselor' THEN cp.years_experience
+          ELSE NULL
+        END as additional_info
+      FROM users u
+      LEFT JOIN student_profiles sp ON u.id = sp.user_id AND u.role = 'student'
+      LEFT JOIN counselor_profiles cp ON u.id = cp.user_id AND u.role = 'counselor'
+      ORDER BY u.created_at DESC
+    `);
+    
+    res.json({
+      success: true,
+      data: users,
+      message: 'Users retrieved successfully'
+    });
+  } catch (error) {
+    console.error('Database users error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve users'
+    });
+  }
+});
+
+app.get('/api/database/sessions', async (req, res) => {
+  try {
+    const sessions = await DatabaseAdapter.all(`
+      SELECT 
+        ass.id,
+        ass.session_token,
+        ass.zip_code,
+        ass.status,
+        ass.started_at,
+        ass.completed_at,
+        u.email as user_email,
+        u.role as user_role,
+        COUNT(aa.id) as answer_count
+      FROM assessment_sessions ass
+      LEFT JOIN users u ON ass.user_id = u.id
+      LEFT JOIN assessment_answers aa ON ass.id = aa.session_id
+      GROUP BY ass.id
+      ORDER BY ass.started_at DESC
+      LIMIT 20
+    `);
+    
+    res.json({
+      success: true,
+      data: sessions,
+      message: 'Assessment sessions retrieved successfully'
+    });
+  } catch (error) {
+    console.error('Database sessions error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve sessions'
+    });
+  }
+});
+
+// Database download endpoint (for backup/analysis)
+app.get('/api/database/download', async (req, res) => {
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    
+    let dbPath: string;
+    if (process.env.RENDER) {
+      dbPath = '/tmp/lantern_ai.db';
+    } else if (process.env.NODE_ENV === 'production') {
+      dbPath = './lantern_ai.db';
+    } else {
+      dbPath = path.join(process.cwd(), 'data', 'lantern_ai.db');
+    }
+    
+    console.log('🔍 Attempting to download database from:', dbPath);
+    
+    if (fs.existsSync(dbPath)) {
+      const stats = fs.statSync(dbPath);
+      console.log('✅ Database file found, size:', stats.size, 'bytes');
+      
+      res.setHeader('Content-Disposition', 'attachment; filename="lantern_ai_backup.db"');
+      res.setHeader('Content-Type', 'application/octet-stream');
+      res.download(dbPath, 'lantern_ai_backup.db', (err) => {
+        if (err) {
+          console.error('❌ Download error:', err);
+        } else {
+          console.log('✅ Database download completed');
+        }
+      });
+    } else {
+      console.log('❌ Database file not found at:', dbPath);
+      res.status(404).json({ 
+        success: false,
+        error: 'Database file not found',
+        searchedPath: dbPath
+      });
+    }
+  } catch (error) {
+    console.error('❌ Database download error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to download database: ' + (error as Error).message
+    });
+  }
+});
+
+// Database backup endpoint (create backup in /tmp)
+app.get('/api/database/backup', async (req, res) => {
+  try {
+    const backupPath = process.env.RENDER ? '/tmp/backup.db' : './backup.db';
+    
+    await DatabaseAdapter.run(`ATTACH DATABASE '${backupPath}' AS backup`);
+    await DatabaseAdapter.run(`CREATE TABLE backup.users AS SELECT * FROM users`);
+    await DatabaseAdapter.run(`CREATE TABLE backup.student_profiles AS SELECT * FROM student_profiles`);
+    await DatabaseAdapter.run(`CREATE TABLE backup.assessment_sessions AS SELECT * FROM assessment_sessions`);
+    await DatabaseAdapter.run(`CREATE TABLE backup.assessment_answers AS SELECT * FROM assessment_answers`);
+    await DatabaseAdapter.run(`DETACH DATABASE backup`);
+    
+    res.json({
+      success: true,
+      message: 'Database backup created successfully',
+      backupPath: backupPath,
+      downloadUrl: '/api/database/download-backup'
+    });
+  } catch (error) {
+    console.error('❌ Database backup error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create backup: ' + (error as Error).message
+    });
+  }
+});
 
 app.get('/api', (req, res) => {
   res.json({
@@ -193,7 +436,7 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 async function startServer() {
   try {
     // Initialize database
-    await DatabaseService.initialize();
+    await DatabaseAdapter.initialize();
     
     // Start server
     app.listen(PORT, () => {
