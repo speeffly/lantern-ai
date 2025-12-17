@@ -192,7 +192,7 @@ router.get('/related-users', async (req, res) => {
       } as ApiResponse);
     }
 
-    const relatedUsers = await AuthServiceDB.getRelatedUsers(user.id, user.role);
+    const relatedUsers = await AuthServiceDB.getRelatedUsers(parseInt(user.id), user.role);
 
     res.json({
       success: true,

@@ -1,52 +1,9 @@
 import OpenAI from 'openai';
-import { StudentProfile, AssessmentAnswer, CareerMatch } from '../types';
+import { StudentProfile, AssessmentAnswer, CareerMatch, AIRecommendations, LocalJobOpportunity, CourseRecommendation } from '../types';
 
-export interface CourseRecommendation {
-  subject: string;
-  courseName: string;
-  year: number;
-  semester: 'Fall' | 'Spring' | 'Both';
-  priority: 'High' | 'Medium' | 'Low';
-  reasoning: string;
-  prerequisites?: string[];
-  careerRelevance: string[];
-}
+// Using CourseRecommendation and LocalJobOpportunity interfaces from types/index.ts
 
-export interface LocalJobOpportunity {
-  title: string;
-  company: string;
-  location: string;
-  distance: number; // miles from student
-  salaryRange: { min: number; max: number };
-  requirements: string[];
-  description: string;
-  matchScore: number;
-}
-
-export interface AIRecommendations {
-  academicPlan: {
-    currentYear: CourseRecommendation[];
-    nextYear: CourseRecommendation[];
-    longTerm: CourseRecommendation[];
-  };
-  localJobs: LocalJobOpportunity[];
-  careerPathway: {
-    shortTerm: string[]; // 1-2 years
-    mediumTerm: string[]; // 3-5 years
-    longTerm: string[]; // 5+ years
-  };
-  skillGaps: {
-    skill: string;
-    importance: 'Critical' | 'Important' | 'Beneficial';
-    howToAcquire: string;
-  }[];
-  actionItems: {
-    priority: 'High' | 'Medium' | 'Low';
-    action: string;
-    timeline: string;
-    category: 'Academic' | 'Skills' | 'Experience' | 'Networking';
-  }[];
-}
+// Using AIRecommendations interface from types/index.ts
 
 export class AIRecommendationService {
   /**
@@ -260,7 +217,15 @@ Keep all text simple and avoid special characters.`;
               nextYear: [],
               longTerm: []
             },
-            ...simpleExtraction
+            careerPathway: (simpleExtraction.careerPathway && 'steps' in simpleExtraction.careerPathway) 
+              ? simpleExtraction.careerPathway 
+              : {
+                  steps: [],
+                  timeline: '2-4 years',
+                  requirements: []
+                },
+            skillGaps: simpleExtraction.skillGaps || [],
+            actionItems: simpleExtraction.actionItems || []
           };
         }
       } catch (extractError) {
@@ -289,15 +254,15 @@ Keep all text simple and avoid special characters.`;
       
       const shortTerm = shortTermMatch ? 
         shortTermMatch[1].split(',').map(s => s.replace(/"/g, '').trim()).filter(s => s) :
-        this.getDefaultCareerPathway(careerMatches).shortTerm;
+        ['Complete high school with strong grades'];
       
       const mediumTerm = mediumTermMatch ? 
         mediumTermMatch[1].split(',').map(s => s.replace(/"/g, '').trim()).filter(s => s) :
-        this.getDefaultCareerPathway(careerMatches).mediumTerm;
+        ['Pursue relevant training or education'];
       
       const longTerm = longTermMatch ? 
         longTermMatch[1].split(',').map(s => s.replace(/"/g, '').trim()).filter(s => s) :
-        this.getDefaultCareerPathway(careerMatches).longTerm;
+        ['Enter chosen career field'];
       
       return {
         academicPlan: {
@@ -306,9 +271,9 @@ Keep all text simple and avoid special characters.`;
           longTerm: []
         },
         careerPathway: {
-          shortTerm,
-          mediumTerm,
-          longTerm
+          steps: [...shortTerm, ...mediumTerm, ...longTerm],
+          timeline: '2-4 years',
+          requirements: []
         },
         skillGaps: this.getDefaultSkillGaps(careerMatches),
         actionItems: this.getDefaultActionItems(profile)
@@ -337,13 +302,10 @@ Keep all text simple and avoid special characters.`;
         company: `Local ${match.career.sector === 'healthcare' ? 'Hospital' : 'Company'} ${index + 1}`,
         location: `${distance} miles from ZIP ${zipCode}`,
         distance,
-        salaryRange: {
-          min: Math.round(match.career.averageSalary * 0.8),
-          max: Math.round(match.career.averageSalary * 1.2)
-        },
+        salary: `$${Math.round(match.career.averageSalary * 0.8 / 1000)}k - $${Math.round(match.career.averageSalary * 1.2 / 1000)}k`,
         requirements: match.career.certifications || ['High school diploma'],
-        description: `Entry-level ${match.career.title} position with growth opportunities`,
-        matchScore: match.matchScore
+        description: `Entry-level ${match.career.title} position with growth opportunities (${match.matchScore}% match)`,
+        source: 'Local job market analysis'
       });
     });
 
@@ -391,53 +353,58 @@ Keep all text simple and avoid special characters.`;
       if (isHealthcareInterested) {
         courses.push(
           {
-            subject: 'Science',
+            courseCode: 'BIO101',
             courseName: 'Biology',
-            year: grade,
+            description: 'Essential foundation for healthcare careers',
+            credits: 1,
+            prerequisites: [],
+            provider: 'High School',
             semester: 'Both',
-            priority: 'High',
-            reasoning: 'Essential foundation for healthcare careers',
-            careerRelevance: ['Registered Nurse', 'Medical Assistant']
+            priority: 'high'
           },
           {
-            subject: 'Science',
+            courseCode: 'CHEM101',
             courseName: 'Chemistry',
-            year: grade,
+            description: 'Required for nursing and medical programs',
+            credits: 1,
+            prerequisites: ['BIO101'],
+            provider: 'High School',
             semester: 'Both',
-            priority: 'High',
-            reasoning: 'Required for nursing and medical programs',
-            careerRelevance: ['Registered Nurse', 'LPN']
+            priority: 'high'
           },
           {
-            subject: 'Mathematics',
+            courseCode: 'MATH102',
             courseName: 'Algebra II',
-            year: grade,
+            description: 'Needed for dosage calculations and statistics',
+            credits: 1,
+            prerequisites: [],
+            provider: 'High School',
             semester: 'Both',
-            priority: 'Medium',
-            reasoning: 'Needed for dosage calculations and statistics',
-            careerRelevance: ['Healthcare careers']
+            priority: 'medium'
           }
         );
       } else {
         // Infrastructure/trades focus
         courses.push(
           {
-            subject: 'Mathematics',
+            courseCode: 'MATH201',
             courseName: 'Geometry',
-            year: grade,
+            description: 'Essential for construction and electrical work',
+            credits: 1,
+            prerequisites: [],
+            provider: 'High School',
             semester: 'Both',
-            priority: 'High',
-            reasoning: 'Essential for construction and electrical work',
-            careerRelevance: ['Electrician', 'Plumber', 'Construction']
+            priority: 'high'
           },
           {
-            subject: 'Technology',
+            courseCode: 'TECH101',
             courseName: 'Shop/Industrial Arts',
-            year: grade,
+            description: 'Hands-on experience with tools and materials',
+            credits: 1,
+            prerequisites: [],
+            provider: 'High School',
             semester: 'Both',
-            priority: 'High',
-            reasoning: 'Hands-on experience with tools and materials',
-            careerRelevance: ['All trades careers']
+            priority: 'high'
           }
         );
       }
@@ -453,28 +420,27 @@ Keep all text simple and avoid special characters.`;
     const topCareer = careerMatches[0]?.career;
     if (!topCareer) {
       return {
-        shortTerm: ['Complete high school', 'Explore career options'],
-        mediumTerm: ['Pursue relevant training or education'],
-        longTerm: ['Enter chosen career field']
+        steps: ['Complete high school', 'Explore career options', 'Pursue relevant training or education', 'Enter chosen career field'],
+        timeline: '2-4 years',
+        requirements: ['High school diploma']
       };
     }
 
+    const steps = [
+      'Complete high school with strong grades',
+      `Research ${topCareer.title} requirements`,
+      'Gain relevant experience through volunteering',
+      `Complete ${topCareer.requiredEducation} program`,
+      `Obtain required certifications: ${topCareer.certifications?.join(', ') || 'None specified'}`,
+      'Apply for entry-level positions',
+      'Gain experience and additional certifications',
+      'Consider advancement or specialization opportunities'
+    ];
+
     return {
-      shortTerm: [
-        'Complete high school with strong grades',
-        `Research ${topCareer.title} requirements`,
-        'Gain relevant experience through volunteering'
-      ],
-      mediumTerm: [
-        `Complete ${topCareer.requiredEducation} program`,
-        `Obtain required certifications: ${topCareer.certifications?.join(', ')}`,
-        'Apply for entry-level positions'
-      ],
-      longTerm: [
-        `Work as ${topCareer.title}`,
-        'Gain experience and additional certifications',
-        'Consider advancement or specialization opportunities'
-      ]
+      steps,
+      timeline: '2-4 years',
+      requirements: [topCareer.requiredEducation, ...(topCareer.certifications || [])]
     };
   }
 
@@ -513,28 +479,28 @@ Keep all text simple and avoid special characters.`;
   private static getDefaultActionItems(profile: Partial<StudentProfile>) {
     return [
       {
-        priority: 'High' as const,
-        action: 'Meet with school counselor to discuss career goals',
-        timeline: 'This week',
-        category: 'Academic' as const
+        title: 'Meet with school counselor',
+        description: 'Meet with school counselor to discuss career goals',
+        priority: 'high',
+        timeline: 'This week'
       },
       {
-        priority: 'High' as const,
-        action: 'Research local training programs and colleges',
-        timeline: 'This month',
-        category: 'Academic' as const
+        title: 'Research training programs',
+        description: 'Research local training programs and colleges',
+        priority: 'high',
+        timeline: 'This month'
       },
       {
-        priority: 'Medium' as const,
-        action: 'Look for volunteer opportunities in your field of interest',
-        timeline: 'Next month',
-        category: 'Experience' as const
+        title: 'Find volunteer opportunities',
+        description: 'Look for volunteer opportunities in your field of interest',
+        priority: 'medium',
+        timeline: 'Next month'
       },
       {
-        priority: 'Medium' as const,
-        action: 'Connect with professionals in your chosen field',
-        timeline: 'Next 3 months',
-        category: 'Networking' as const
+        title: 'Network with professionals',
+        description: 'Connect with professionals in your chosen field',
+        priority: 'medium',
+        timeline: 'Next 3 months'
       }
     ];
   }

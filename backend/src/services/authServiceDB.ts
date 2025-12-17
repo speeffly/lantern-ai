@@ -68,7 +68,7 @@ export class AuthServiceDB {
             educationGoal: data.educationGoal,
             workEnvironment: data.workEnvironment
           };
-          await UserService.createStudentProfile(user.id, studentProfileData);
+          await UserService.createStudentProfile(parseInt(user.id), studentProfileData);
           break;
 
         case 'counselor':
@@ -79,7 +79,7 @@ export class AuthServiceDB {
             licenseNumber: data.licenseNumber,
             bio: data.bio
           };
-          await UserService.createCounselorProfile(user.id, counselorProfileData);
+          await UserService.createCounselorProfile(parseInt(user.id), counselorProfileData);
           break;
 
         case 'parent':
@@ -87,7 +87,7 @@ export class AuthServiceDB {
             occupation: data.occupation,
             educationLevel: data.educationLevel
           };
-          await UserService.createParentProfile(user.id, parentProfileData);
+          await UserService.createParentProfile(parseInt(user.id), parentProfileData);
           break;
       }
 
