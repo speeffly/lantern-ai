@@ -54,15 +54,62 @@ export default function CounselorAssessmentPage() {
 
   const fetchQuestions = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/counselor-assessment/questions`);
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      console.log('Fetching counselor questions from:', `${apiUrl}/api/counselor-assessment/questions`);
+      
+      const response = await fetch(`${apiUrl}/api/counselor-assessment/questions`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
       if (data.success) {
         setQuestions(data.data.sort((a: CounselorQuestion, b: CounselorQuestion) => a.order - b.order));
         setIsLoading(false);
+      } else {
+        throw new Error(data.error || 'Failed to load questions');
       }
     } catch (error) {
       console.error('Error fetching counselor questions:', error);
-      alert('Failed to load assessment questions');
+      
+      // Fallback to demo questions if API fails
+      console.log('Falling back to demo questions...');
+      const demoQuestions: CounselorQuestion[] = [
+        {
+          id: "1",
+          order: 1,
+          text: "What is the student's current grade level and ZIP code?",
+          type: "combined",
+          category: "basic_info",
+          fields: {
+            grade: {
+              type: "select",
+              options: ["9", "10", "11", "12"],
+              required: true
+            },
+            zipCode: {
+              type: "text",
+              placeholder: "Enter ZIP code",
+              maxLength: 5,
+              required: true
+            }
+          }
+        },
+        {
+          id: "2",
+          order: 2,
+          text: "What are the student's main interests and hobbies?",
+          type: "free_text",
+          category: "interests",
+          placeholder: "Describe the student's interests, hobbies, and activities they enjoy...",
+          minLength: 20,
+          maxLength: 500
+        }
+      ];
+      
+      setQuestions(demoQuestions);
+      setIsLoading(false);
     }
   };
 

@@ -4,22 +4,164 @@ import { AssessmentServiceDB } from '../services/assessmentServiceDB';
 import { CareerPlanService } from '../services/careerPlanService';
 import { ApiResponse } from '../types';
 import { authenticateToken } from '../middleware/auth';
-import fs from 'fs';
-import path from 'path';
+// File system imports removed - using embedded questions instead
 
 const router = express.Router();
 
 // GET /api/counselor-assessment/questions
 router.get('/questions', (req, res) => {
   try {
-    // Load counselor questions from JSON file
-    const questionsPath = path.join(__dirname, '../data/counselor-questions.json');
-    const questionsData = JSON.parse(fs.readFileSync(questionsPath, 'utf8'));
+    // Embedded counselor questions to avoid file path issues in deployment
+    const questions = [
+      {
+        "id": "location_grade",
+        "order": 1,
+        "text": "What grade are you currently in, and what's your ZIP code? This helps me find opportunities near you.",
+        "type": "combined",
+        "category": "basic_info",
+        "fields": {
+          "grade": {
+            "type": "select",
+            "options": ["9", "10", "11", "12"],
+            "required": true
+          },
+          "zipCode": {
+            "type": "text",
+            "placeholder": "12345",
+            "maxLength": 5,
+            "required": true
+          }
+        }
+      },
+      {
+        "id": "work_environment",
+        "order": 2,
+        "text": "Where do you see yourself working? Choose what appeals to you most:",
+        "type": "single_choice",
+        "category": "work_preferences",
+        "options": [
+          "Outdoors - construction sites, farms, parks",
+          "Indoors - offices, hospitals, schools",
+          "Mixed - some indoor, some outdoor work",
+          "From home - remote or home-based work",
+          "Traveling - different locations regularly"
+        ]
+      },
+      {
+        "id": "hands_on_preference",
+        "order": 3,
+        "text": "How do you prefer to work with your hands and tools?",
+        "type": "single_choice",
+        "category": "work_style",
+        "options": [
+          "Love working with tools and building things",
+          "Prefer working with people and helping them",
+          "Enjoy working with computers and technology",
+          "Like working with numbers and data",
+          "Prefer creative work like art or design"
+        ]
+      },
+      {
+        "id": "problem_solving",
+        "order": 4,
+        "text": "What kind of problems do you enjoy solving?",
+        "type": "single_choice",
+        "category": "thinking_style",
+        "options": [
+          "Fixing things that are broken",
+          "Helping people with their challenges",
+          "Figuring out how things work",
+          "Creating new solutions or ideas",
+          "Organizing and planning projects"
+        ]
+      },
+      {
+        "id": "helping_others",
+        "order": 5,
+        "text": "How important is helping others in your future career?",
+        "type": "single_choice",
+        "category": "values",
+        "options": [
+          "Very important - I want to directly help people",
+          "Somewhat important - I'd like to help but it's not the main focus",
+          "Not very important - I prefer other types of work",
+          "I'm not sure yet"
+        ]
+      },
+      {
+        "id": "education_commitment",
+        "order": 6,
+        "text": "How much additional education or training are you willing to pursue after high school?",
+        "type": "single_choice",
+        "category": "education",
+        "options": [
+          "I want to start working right after high school",
+          "A few months to 2 years of training/certification",
+          "2-4 years of college or technical school",
+          "4+ years of college and possibly graduate school",
+          "I'm not sure yet"
+        ]
+      },
+      {
+        "id": "income_importance",
+        "order": 7,
+        "text": "How important is having a high income in your career choice?",
+        "type": "single_choice",
+        "category": "values",
+        "options": [
+          "Very important - I want to earn as much as possible",
+          "Somewhat important - I want a comfortable living",
+          "Not very important - I care more about job satisfaction",
+          "I'm not sure yet"
+        ]
+      },
+      {
+        "id": "job_security",
+        "order": 8,
+        "text": "How important is job security and stability to you?",
+        "type": "single_choice",
+        "category": "values",
+        "options": [
+          "Very important - I want a stable, secure job",
+          "Somewhat important - Some stability would be nice",
+          "Not very important - I'm okay with some uncertainty",
+          "I prefer variety and change over security"
+        ]
+      },
+      {
+        "id": "subjects_strengths",
+        "order": 9,
+        "text": "Which school subjects are you strongest in? (Select all that apply)",
+        "type": "multiple_choice",
+        "category": "academic_strengths",
+        "options": [
+          "Math",
+          "Science (Biology, Chemistry, Physics)",
+          "English/Language Arts",
+          "Social Studies/History",
+          "Art/Creative subjects",
+          "Physical Education/Health",
+          "Technology/Computer Science",
+          "Foreign Languages",
+          "Business/Economics"
+        ]
+      },
+      {
+        "id": "interests_passions",
+        "order": 10,
+        "text": "Tell me about your interests, hobbies, and what you're passionate about. This helps me understand what might motivate you in a career.",
+        "type": "free_text",
+        "category": "interests",
+        "placeholder": "Describe your interests, hobbies, activities you enjoy, things you're curious about, or causes you care about...",
+        "minLength": 20,
+        "maxLength": 500
+      }
+    ];
     
     res.json({
       success: true,
-      data: questionsData.questions,
-      message: `Retrieved ${questionsData.questions.length} counselor assessment questions`
+      data: questions,
+      message: `Retrieved ${questions.length} counselor assessment questions`
     } as ApiResponse);
   } catch (error) {
     console.error('Error loading counselor questions:', error);
