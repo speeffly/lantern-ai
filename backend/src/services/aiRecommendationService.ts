@@ -67,7 +67,7 @@ export class AIRecommendationService {
   }
 
   /**
-   * Prepare context for AI prompt
+   * Prepare comprehensive context for AI prompt
    */
   private static prepareAIContext(
     profile: Partial<StudentProfile>,
@@ -76,85 +76,215 @@ export class AIRecommendationService {
     zipCode: string,
     currentGrade?: number
   ): string {
-    const topCareers = careerMatches.slice(0, 3).map(m => m.career.title).join(', ');
-    const interests = profile.interests?.join(', ') || 'General exploration';
-    const skills = profile.skills?.join(', ') || 'Developing foundational skills';
     const grade = currentGrade || 11;
+    const interests = profile.interests?.join(', ') || 'Exploring career options';
+    const skills = profile.skills?.join(', ') || 'Developing foundational skills';
     
     return `
-Student Profile:
+COMPREHENSIVE STUDENT PROFILE ANALYSIS:
+
+Personal Information:
 - Current Grade: ${grade}
-- Location: ZIP ${zipCode}
-- Interests: ${interests}
-- Skills: ${skills}
-- Education Goal: ${profile.educationGoal || 'certificate'}
-- Work Environment Preference: ${profile.workEnvironment || 'mixed'}
+- Location: ZIP Code ${zipCode} (Rural area)
+- Age Range: ${14 + (grade - 9)} years old
 
-Top Career Matches:
-${careerMatches.slice(0, 3).map(m => 
-  `- ${m.career.title} (${m.matchScore}% match): ${m.career.description}`
-).join('\n')}
+Interest & Preference Profile:
+- Primary Interests: ${interests}
+- Work Environment Preference: ${profile.workEnvironment || 'Mixed indoor/outdoor'}
+- Team vs Individual Work: ${profile.teamPreference || 'Both'}
+- Education Commitment Level: ${profile.educationGoal || 'Certificate/Associate degree'}
 
-Assessment Responses Summary:
-${answers.slice(0, 5).map(a => `Q: ${a.questionId} - A: ${a.answer}`).join('\n')}
+Detailed Assessment Responses:
+${answers.map((answer, index) => {
+  return `${index + 1}. Question: ${answer.questionId}
+   Response: ${answer.answer}
+   Context: This indicates ${this.interpretAssessmentAnswer(answer.questionId, answer.answer)}`;
+}).join('\n\n')}
 
-Please provide specific, actionable recommendations for this rural student.
+Top Career Matches Analysis:
+${careerMatches.slice(0, 5).map((match, index) => {
+  return `${index + 1}. ${match.career.title} (${match.matchScore}% match)
+   - Sector: ${match.career.sector}
+   - Education Required: ${match.career.requiredEducation}
+   - Average Salary: $${match.career.averageSalary.toLocaleString()}
+   - Key Responsibilities: ${match.career.responsibilities?.slice(0, 3).join(', ') || 'Various duties'}
+   - Required Certifications: ${match.career.certifications?.join(', ') || 'None specified'}
+   - Growth Outlook: ${match.career.growthOutlook || 'Stable'}
+   - Match Reasons: ${match.reasoningFactors?.join(', ') || 'Strong alignment with interests'}
+   - Local Demand: ${match.localDemand}`;
+}).join('\n\n')}
+
+Rural Context Considerations:
+- Limited local training options may require online/distance learning
+- Transportation challenges for education and work opportunities
+- Strong community connections and family considerations important
+- Opportunities in agriculture, healthcare, and infrastructure sectors
+- Potential for entrepreneurship and small business development
+- Need for practical, hands-on career preparation paths
+- Community college and trade school accessibility
+- Local apprenticeship and mentorship opportunities
     `;
   }
 
   /**
-   * Call OpenAI API for recommendations
+   * Interpret assessment answers to provide context
+   */
+  private static interpretAssessmentAnswer(questionId: string, answer: string | number): string {
+    const interpretations: { [key: string]: { [key: string]: string } } = {
+      'interests': {
+        'Hands-on Work': 'strong preference for practical, manual tasks and building/fixing things',
+        'Healthcare': 'desire to help others and work in medical/health-related fields',
+        'Technology': 'interest in computers, digital tools, and technical problem-solving',
+        'Community Impact': 'motivation to make a difference in their local community'
+      },
+      'work_environment': {
+        'Outdoors': 'preference for outdoor work environments and physical activity',
+        'Indoors': 'comfort with office or indoor work settings',
+        'Mixed': 'flexibility and adaptability to various work environments'
+      },
+      'education': {
+        'certificate': 'preference for shorter-term, practical training programs',
+        'associate': 'willingness to pursue 2-year college programs',
+        'bachelor': 'commitment to 4-year university education'
+      }
+    };
+
+    const category = interpretations[questionId];
+    if (category && typeof answer === 'string' && category[answer]) {
+      return category[answer];
+    }
+    
+    return `student preference or characteristic: ${answer}`;
+  }
+
+  /**
+   * Call OpenAI API for comprehensive recommendations
    */
   private static async callOpenAI(context: string): Promise<string> {
-    // Initialize OpenAI client with current environment variable
     console.log('🔑 Initializing OpenAI client with key length:', process.env.OPENAI_API_KEY?.length || 0);
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY || '',
     });
-    const prompt = `You are a career counselor for rural students. Based on this profile, provide recommendations in valid JSON format only.
 
-${context}
+    const systemPrompt = `You are Dr. Sarah Martinez, a certified career counselor with 15 years of experience specializing in rural career development and youth guidance. You have:
 
-Return only this JSON structure with no extra text or formatting:
+- Master's degree in Career Counseling and Development
+- Certification in Career Development Facilitator (CDF)
+- Expertise in rural job markets and economic opportunities
+- Extensive experience with high school students aged 14-18
+- Deep knowledge of healthcare and infrastructure career pathways
+- Understanding of local training programs, apprenticeships, and community colleges
+- Experience with rural family dynamics and community considerations
+
+Your counseling approach is:
+- Practical and immediately actionable
+- Encouraging and confidence-building
+- Focused on realistic rural opportunities
+- Age-appropriate for high school students
+- Evidence-based with clear reasoning
+- Culturally sensitive to rural communities and values
+- Comprehensive yet easy to understand
+
+You always provide specific, detailed recommendations with clear reasoning, actionable next steps, and consideration of rural challenges and opportunities.`;
+
+    const userPrompt = `${context}
+
+Based on this comprehensive student profile, provide detailed career guidance in the following JSON format. Be specific, practical, and actionable:
 
 {
-"careerPathway": {
-"shortTerm": ["Complete high school", "Volunteer in field"],
-"mediumTerm": ["Get training", "Earn certifications"],
-"longTerm": ["Start career", "Advance position"]
-},
-"skillGaps": [
-{
-"skill": "Communication",
-"importance": "Critical",
-"howToAcquire": "Practice speaking"
-}
-],
-"actionItems": [
-{
-"priority": "High",
-"action": "Meet school counselor",
-"timeline": "This week",
-"category": "Academic"
-}
-]
+  "academicPlan": {
+    "currentYear": [
+      {
+        "courseName": "Specific course name",
+        "reasoning": "Detailed explanation of why this course is essential for their career goals",
+        "careerConnection": "How this directly connects to their top career matches",
+        "skillsDeveloped": ["specific skill 1", "specific skill 2"],
+        "priority": "Essential|Highly Recommended|Recommended",
+        "localAvailability": "How to access this course locally or online"
+      }
+    ],
+    "nextYear": [
+      {
+        "courseName": "Advanced course building on current year",
+        "reasoning": "Why this progression is important",
+        "careerConnection": "Career pathway connection",
+        "skillsDeveloped": ["skill 1", "skill 2"],
+        "priority": "Essential|Highly Recommended|Recommended",
+        "localAvailability": "Access information"
+      }
+    ],
+    "longTerm": [
+      {
+        "option": "Post-secondary education or training option",
+        "description": "Detailed description of the program",
+        "duration": "Time required",
+        "cost": "Estimated cost range",
+        "location": "Where available (local, regional, online)",
+        "careerOutcomes": "What careers this leads to"
+      }
+    ]
+  },
+  "careerPathway": {
+    "steps": [
+      "Immediate step 1 (next 6 months)",
+      "Short-term step 2 (6 months - 2 years)",
+      "Medium-term step 3 (2-5 years)",
+      "Long-term step 4 (5+ years)"
+    ],
+    "timeline": "Overall timeline from high school to career",
+    "requirements": ["Key requirement 1", "Key requirement 2"],
+    "ruralConsiderations": "Specific considerations for rural students",
+    "financialPlanning": "Cost estimates and funding strategies"
+  },
+  "skillGaps": [
+    {
+      "skill": "Specific skill name",
+      "importance": "Critical|Important|Beneficial",
+      "howToAcquire": "Detailed, specific methods to develop this skill",
+      "timeline": "How long it takes to develop",
+      "resources": "Specific resources (online courses, local programs, etc.)",
+      "practiceOpportunities": "Where to practice this skill"
+    }
+  ],
+  "actionItems": [
+    {
+      "title": "Specific action title",
+      "description": "Detailed description of what to do",
+      "priority": "high|medium|low",
+      "timeline": "Specific timeframe (this week, this month, etc.)",
+      "category": "Academic|Career Exploration|Skill Development|Networking",
+      "steps": ["Step 1", "Step 2", "Step 3"],
+      "resources": "What resources are needed",
+      "successMetrics": "How to measure completion"
+    }
+  ],
+  "localOpportunities": [
+    {
+      "type": "Volunteer|Internship|Part-time Job|Mentorship",
+      "organization": "Likely local organization name",
+      "description": "What the opportunity involves",
+      "skills": "Skills gained from this opportunity",
+      "careerRelevance": "How this connects to career goals",
+      "howToApply": "Steps to pursue this opportunity"
+    }
+  ]
 }
 
-Keep all text simple and avoid special characters.`;
+Provide comprehensive, detailed recommendations that are specifically tailored to this rural student's profile, interests, and career goals. Make all recommendations practical and achievable in a rural setting.`;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
         {
           role: "system",
-          content: "You are an expert career counselor for rural students. Provide specific, actionable guidance."
+          content: systemPrompt
         },
         {
           role: "user",
-          content: prompt
+          content: userPrompt
         }
       ],
-      max_tokens: 2000,
+      max_tokens: 3000,
       temperature: 0.7,
     });
 
