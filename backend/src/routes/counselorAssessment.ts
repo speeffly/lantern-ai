@@ -244,7 +244,7 @@ router.post('/submit', async (req, res) => {
             },
             localEmployers: job.localOpportunities.topEmployers
           })),
-          undefined, // AI recommendations
+          counselorRecommendation.aiRecommendations, // AI recommendations
           counselorRecommendation.topJobMatches.map(job => job.localOpportunities), // local job market
           counselorRecommendation.fourYearPlan // academic plan
         );

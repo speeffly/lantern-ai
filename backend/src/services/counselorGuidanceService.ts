@@ -1,5 +1,6 @@
 import { CareerService } from './careerService';
-import { CareerMatch } from '../types';
+import { CareerMatch, AssessmentAnswer } from '../types';
+import { AIRecommendationService } from './aiRecommendationService';
 
 export interface CounselorAssessmentResponse {
   grade?: number;
@@ -96,6 +97,13 @@ export interface CounselorRecommendation {
   };
   topJobMatches: JobRecommendation[];
   fourYearPlan: FourYearActionPlan;
+  aiRecommendations?: {
+    academicPlan: any;
+    localJobs: any[];
+    careerPathway: any;
+    skillGaps: any[];
+    actionItems: any[];
+  };
   parentSummary: {
     overview: string;
     keyRecommendations: string[];
@@ -152,6 +160,25 @@ export class CounselorGuidanceService {
         responses
       );
 
+      // Generate AI-powered recommendations
+      console.log('🤖 Calling AI recommendation service from counselor assessment...');
+      let aiRecommendations = null;
+      try {
+        // Convert responses to assessment answers format for AI service
+        const assessmentAnswers = this.convertToAssessmentAnswers(responses);
+        
+        aiRecommendations = await AIRecommendationService.generateRecommendations(
+          studentProfile,
+          assessmentAnswers,
+          topMatches,
+          responses.zipCode || '',
+          responses.grade || 11
+        );
+        console.log('✅ AI recommendations generated successfully for counselor assessment');
+      } catch (aiError) {
+        console.error('⚠️ AI recommendations failed, continuing with counselor-only recommendations:', aiError);
+      }
+
       // Create counselor notes
       const counselorNotes = this.createCounselorNotes(
         responses,
@@ -169,6 +196,7 @@ export class CounselorGuidanceService {
         },
         topJobMatches: jobRecommendations,
         fourYearPlan,
+        aiRecommendations,
         parentSummary,
         counselorNotes
       };
@@ -176,6 +204,72 @@ export class CounselorGuidanceService {
       console.error('❌ Error generating counselor recommendations:', error);
       throw error;
     }
+  }
+
+  /**
+   * Convert counselor responses to assessment answers format for AI service
+   */
+  private static convertToAssessmentAnswers(responses: CounselorAssessmentResponse): AssessmentAnswer[] {
+    const answers: AssessmentAnswer[] = [];
+    
+    // Convert each response to an assessment answer
+    if (responses.grade) {
+      answers.push({
+        questionId: 'grade',
+        answer: responses.grade.toString(),
+        timestamp: new Date()
+      });
+    }
+    
+    if (responses.zipCode) {
+      answers.push({
+        questionId: 'zip_code',
+        answer: responses.zipCode,
+        timestamp: new Date()
+      });
+    }
+    
+    if (responses.workEnvironment) {
+      answers.push({
+        questionId: 'work_environment',
+        answer: responses.workEnvironment,
+        timestamp: new Date()
+      });
+    }
+    
+    if (responses.handsOnPreference) {
+      answers.push({
+        questionId: 'interests',
+        answer: responses.handsOnPreference,
+        timestamp: new Date()
+      });
+    }
+    
+    if (responses.subjectsStrengths) {
+      answers.push({
+        questionId: 'skills',
+        answer: responses.subjectsStrengths.join(', '),
+        timestamp: new Date()
+      });
+    }
+    
+    if (responses.educationCommitment) {
+      answers.push({
+        questionId: 'education',
+        answer: responses.educationCommitment,
+        timestamp: new Date()
+      });
+    }
+    
+    if (responses.interestsPassions) {
+      answers.push({
+        questionId: 'interests_detailed',
+        answer: responses.interestsPassions,
+        timestamp: new Date()
+      });
+    }
+    
+    return answers;
   }
 
   /**
