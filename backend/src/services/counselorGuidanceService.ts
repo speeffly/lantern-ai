@@ -193,8 +193,22 @@ export class CounselorGuidanceService {
         
         console.log('✅ AI recommendations generated successfully for counselor assessment');
       } catch (aiError) {
-        console.error('⚠️ AI recommendations failed, continuing with counselor-only recommendations:', aiError);
-        aiRecommendations = undefined;
+        const useRealAI = process.env.USE_REAL_AI === 'true';
+        
+        if (useRealAI) {
+          console.error('❌ Real AI mode failed - OpenAI integration required:', aiError);
+          // Set error state to show real AI is expected but failed
+          aiRecommendations = {
+            academicPlan: { error: 'Real AI mode enabled but OpenAI integration failed' },
+            localJobs: [],
+            careerPathway: { error: 'Real AI mode enabled but OpenAI integration failed' },
+            skillGaps: [],
+            actionItems: []
+          };
+        } else {
+          console.log('⚠️ AI recommendations failed, but fallback mode should have handled this:', aiError);
+          aiRecommendations = undefined;
+        }
       }
 
       // Create counselor notes

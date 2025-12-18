@@ -21,9 +21,23 @@ export class AIRecommendationService {
       console.log('🔑 OpenAI API Key present:', !!process.env.OPENAI_API_KEY);
       console.log('🔑 API Key length:', process.env.OPENAI_API_KEY?.length || 0);
 
-      // If OpenAI API key is not available, return fallback recommendations
-      if (!process.env.OPENAI_API_KEY) {
-        console.warn('⚠️ OpenAI API key not found, using fallback recommendations');
+      // Check if we should use real OpenAI or fallback mode
+      const useRealAI = process.env.USE_REAL_AI === 'true';
+      const hasOpenAIKey = !!process.env.OPENAI_API_KEY;
+      
+      console.log('🔧 AI Mode Configuration:');
+      console.log('   - USE_REAL_AI flag:', useRealAI);
+      console.log('   - OpenAI API key present:', hasOpenAIKey);
+      
+      // If real AI is requested but no API key, throw error
+      if (useRealAI && !hasOpenAIKey) {
+        console.error('❌ Real AI requested but OpenAI API key is missing');
+        throw new Error('Real AI mode enabled but OpenAI API key is required. Please configure OPENAI_API_KEY environment variable.');
+      }
+      
+      // If not using real AI, use fallback recommendations
+      if (!useRealAI) {
+        console.log('🔄 Using fallback AI recommendations (USE_REAL_AI=false)');
         return this.generateFallbackRecommendations(profile, careerMatches, zipCode, currentGrade);
       }
 
@@ -39,7 +53,15 @@ export class AIRecommendationService {
       return recommendations;
     } catch (error) {
       console.error('❌ AI recommendation generation failed:', error);
-      // Fallback to rule-based recommendations
+      
+      // If real AI is enabled, re-throw error
+      const useRealAI = process.env.USE_REAL_AI === 'true';
+      if (useRealAI) {
+        throw new Error(`Real AI recommendation service failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+      
+      // Otherwise, fallback to rule-based recommendations
+      console.log('🔄 Falling back to rule-based recommendations due to error');
       return this.generateFallbackRecommendations(profile, careerMatches, zipCode, currentGrade);
     }
   }
