@@ -179,6 +179,23 @@ app.use('/api/careers', careersRoutes);
 app.use('/api/jobs', jobsRoutes); // Job listings
 app.use('/api/action-plans', actionPlansRoutes);
 
+// Debug endpoints for troubleshooting
+app.get('/api/debug/env', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      NODE_ENV: process.env.NODE_ENV || 'development',
+      DATABASE_URL: process.env.DATABASE_URL ? 'present' : 'missing',
+      OPENAI_API_KEY: process.env.OPENAI_API_KEY ? 'present' : 'missing',
+      OPENAI_KEY_LENGTH: process.env.OPENAI_API_KEY?.length || 0,
+      FRONTEND_URL: process.env.FRONTEND_URL || 'not set',
+      PORT: process.env.PORT || 3002,
+      RENDER: process.env.RENDER ? 'true' : 'false'
+    },
+    message: 'Environment variables checked'
+  });
+});
+
 // Database viewing endpoints (for debugging and monitoring)
 app.get('/api/database/stats', async (req, res) => {
   try {

@@ -329,4 +329,224 @@ function buildProfileFromAnswers(answers: AssessmentAnswer[]): any {
   return profile;
 }
 
+// Debug endpoints for troubleshooting AI recommendations
+router.get('/debug/:sessionId', async (req, res) => {
+  const { sessionId } = req.params;
+  
+  console.log('🔍 DEBUG: Looking for session:', sessionId);
+  
+  try {
+    // Try database session
+    const dbSession = await AssessmentServiceDB.getSessionByToken(sessionId);
+    console.log('📊 DEBUG: Database session found:', !!dbSession);
+    
+    let answers: AssessmentAnswer[] = [];
+    let profileData: any = null;
+    
+    if (dbSession) {
+      console.log('📊 DEBUG: Database session details:', {
+        id: dbSession.id,
+        status: dbSession.status,
+        zipCode: dbSession.zipCode
+      });
+      
+      answers = await AssessmentServiceDB.getAnswers(sessionId);
+      console.log('📝 DEBUG: Answers count:', answers.length);
+      console.log('📝 DEBUG: Sample answers:', answers.slice(0, 3));
+      
+      profileData = buildProfileFromAnswers(answers);
+      console.log('🔧 DEBUG: Built profile:', profileData);
+    }
+    
+    // Try memory session
+    const memSession = SessionService.getSession(sessionId);
+    console.log('💾 DEBUG: Memory session found:', !!memSession);
+    
+    if (memSession) {
+      console.log('💾 DEBUG: Memory session details:', {
+        hasProfileData: !!memSession.profileData,
+        hasAnswers: !!memSession.assessmentAnswers
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: {
+        sessionId,
+        databaseSession: !!dbSession,
+        databaseSessionDetails: dbSession ? {
+          id: dbSession.id,
+          status: dbSession.status,
+          zipCode: dbSession.zipCode
+        } : null,
+        memorySession: !!memSession,
+        answersCount: answers.length,
+        profileBuilt: !!profileData,
+        profileSample: profileData ? {
+          interests: profileData.interests,
+          skills: profileData.skills,
+          educationGoal: profileData.educationGoal
+        } : null
+      },
+      message: 'Debug information retrieved',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('❌ DEBUG Error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      sessionId 
+    });
+  }
+});
+
+router.post('/debug/ai-test', async (req, res) => {
+  const { interests = ['Healthcare', 'Technology'], zipCode = '12345' } = req.body;
+  
+  console.log('🤖 DEBUG: Testing AI service directly');
+  console.log('🤖 DEBUG: Test interests:', interests);
+  console.log('🔑 DEBUG: OpenAI API Key present:', !!process.env.OPENAI_API_KEY);
+  console.log('🔑 DEBUG: API Key length:', process.env.OPENAI_API_KEY?.length || 0);
+  
+  try {
+    // Create mock profile and answers
+    const mockProfile = {
+      interests,
+      skills: ['Communication', 'Problem solving'],
+      educationGoal: 'certificate',
+      workEnvironment: 'mixed',
+      grade: 11
+    };
+    
+    const mockAnswers: AssessmentAnswer[] = [
+      { questionId: 'interests', answer: interests.join(', '), sessionId: 'debug-session' },
+      { questionId: 'skills', answer: 'Communication, Problem solving', sessionId: 'debug-session' }
+    ];
+    
+    // Get some career matches
+    const matches = CareerService.getCareerMatches(mockProfile, zipCode);
+    console.log('🎯 DEBUG: Found career matches:', matches.length);
+    
+    // Test AI service
+    const aiRecommendations = await AIRecommendationService.generateRecommendations(
+      mockProfile,
+      mockAnswers,
+      matches,
+      zipCode,
+      11
+    );
+    
+    console.log('✅ DEBUG: AI recommendations generated successfully');
+    
+    res.json({
+      success: true,
+      data: {
+        mockProfile,
+        careerMatches: matches.length,
+        aiRecommendations: {
+          hasCareerPathway: !!aiRecommendations.careerPathway,
+          hasSkillGaps: !!aiRecommendations.skillGaps,
+          hasActionItems: !!aiRecommendations.actionItems,
+          hasLocalJobs: !!aiRecommendations.localJobs
+        },
+        openaiKeyPresent: !!process.env.OPENAI_API_KEY
+      },
+      message: 'AI service test completed successfully'
+    });
+  } catch (error) {
+    console.error('❌ DEBUG: AI service test failed:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      openaiKeyPresent: !!process.env.OPENAI_API_KEY
+    });
+  }
+});
+
+router.get('/debug/flow/:sessionId', async (req, res) => {
+  const { sessionId } = req.params;
+  const zipCode = '12345'; // Default for testing
+  
+  console.log('🔄 DEBUG: Testing complete flow for session:', sessionId);
+  
+  try {
+    // Step 1: Look for session
+    console.log('🔍 DEBUG STEP 1: Looking for session');
+    let session = await AssessmentServiceDB.getSessionByToken(sessionId);
+    let answers: AssessmentAnswer[] = [];
+    let profileData: any = null;
+
+    if (session) {
+      console.log('✅ DEBUG STEP 1: Found database session:', session.id);
+      
+      // Step 2: Get answers
+      console.log('📝 DEBUG STEP 2: Getting assessment answers');
+      answers = await AssessmentServiceDB.getAnswers(sessionId);
+      console.log('📝 DEBUG STEP 2: Found answers:', answers.length);
+      
+      // Step 3: Build profile
+      console.log('🔧 DEBUG STEP 3: Building profile from answers');
+      profileData = buildProfileFromAnswers(answers);
+      console.log('👤 DEBUG STEP 3: Built profile:', profileData);
+    } else {
+      console.log('🔄 DEBUG STEP 1: Trying memory session...');
+      const memorySession = SessionService.getSession(sessionId);
+      if (memorySession && memorySession.profileData) {
+        console.log('✅ DEBUG STEP 1: Found memory session');
+        profileData = memorySession.profileData;
+        answers = memorySession.assessmentAnswers || [];
+      } else {
+        console.log('❌ DEBUG STEP 1: No session found');
+        return res.json({
+          success: false,
+          error: 'No session found',
+          step: 1,
+          sessionId
+        });
+      }
+    }
+
+    // Step 4: Get career matches
+    console.log('🎯 DEBUG STEP 4: Getting career matches');
+    const matches = CareerService.getCareerMatches(profileData, zipCode);
+    console.log('🎯 DEBUG STEP 4: Found matches:', matches.length);
+
+    // Step 5: Call AI service
+    console.log('🤖 DEBUG STEP 5: Calling AI recommendation service');
+    const aiRecommendations = await AIRecommendationService.generateRecommendations(
+      profileData,
+      answers,
+      matches,
+      zipCode,
+      profileData.grade || 11
+    );
+    console.log('✅ DEBUG STEP 5: AI recommendations completed');
+
+    res.json({
+      success: true,
+      data: {
+        step1_sessionFound: !!session || !!SessionService.getSession(sessionId),
+        step2_answersCount: answers.length,
+        step3_profileBuilt: !!profileData,
+        step4_matchesFound: matches.length,
+        step5_aiCompleted: !!aiRecommendations,
+        sessionType: session ? 'database' : 'memory',
+        profileSample: profileData ? {
+          interests: profileData.interests,
+          skills: profileData.skills
+        } : null
+      },
+      message: 'Complete flow test completed successfully'
+    });
+  } catch (error) {
+    console.error('❌ DEBUG: Flow test failed:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      sessionId
+    });
+  }
+});
+
 export default router;
