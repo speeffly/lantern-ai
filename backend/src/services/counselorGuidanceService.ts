@@ -162,21 +162,39 @@ export class CounselorGuidanceService {
 
       // Generate AI-powered recommendations
       console.log('🤖 Calling AI recommendation service from counselor assessment...');
-      let aiRecommendations = null;
+      let aiRecommendations: {
+        academicPlan: any;
+        localJobs: any[];
+        careerPathway: any;
+        skillGaps: any[];
+        actionItems: any[];
+      } | undefined = undefined;
+      
       try {
         // Convert responses to assessment answers format for AI service
         const assessmentAnswers = this.convertToAssessmentAnswers(responses);
         
-        aiRecommendations = await AIRecommendationService.generateRecommendations(
+        const aiResult = await AIRecommendationService.generateRecommendations(
           studentProfile,
           assessmentAnswers,
           topMatches,
           responses.zipCode || '',
           responses.grade || 11
         );
+        
+        // Convert AIRecommendations to the expected format
+        aiRecommendations = {
+          academicPlan: aiResult.academicPlan,
+          localJobs: aiResult.localJobs || [],
+          careerPathway: aiResult.careerPathway,
+          skillGaps: aiResult.skillGaps || [],
+          actionItems: aiResult.actionItems || []
+        };
+        
         console.log('✅ AI recommendations generated successfully for counselor assessment');
       } catch (aiError) {
         console.error('⚠️ AI recommendations failed, continuing with counselor-only recommendations:', aiError);
+        aiRecommendations = undefined;
       }
 
       // Create counselor notes
