@@ -39,8 +39,32 @@ export default function DashboardPage() {
       });
 
       const data = await response.json();
+      console.log('🔍 Dashboard - Profile data received:', data);
+      
       if (data.success) {
-        setUser(data.data);
+        // Check if enhanced assessment was completed
+        const hasEnhancedResults = !!localStorage.getItem('counselorAssessmentResults');
+        const hasQuickResults = !!localStorage.getItem('sessionId');
+        
+        console.log('🔍 Dashboard - Assessment status:', {
+          hasEnhancedResults,
+          hasQuickResults,
+          profileData: data.data
+        });
+        
+        // Set user data with assessment completion status
+        const userData = {
+          ...data.data,
+          profileCompleted: hasEnhancedResults || hasQuickResults,
+          // Ensure we have the basic user fields
+          firstName: data.data.firstName || data.data.first_name,
+          lastName: data.data.lastName || data.data.last_name,
+          grade: data.data.profile?.grade || data.data.grade,
+          zipCode: data.data.profile?.zip_code || data.data.zipCode
+        };
+        
+        console.log('🔍 Dashboard - Final user data:', userData);
+        setUser(userData);
       } else {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
@@ -182,30 +206,43 @@ export default function DashboardPage() {
                 : "Complete an assessment first to see your personalized career matches."
               }
             </p>
-            {user.profileCompleted ? (
-              <div className="space-y-2">
-                <Link
-                  href="/counselor-results"
-                  className="block w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-center"
-                >
-                  📊 Enhanced Results
-                </Link>
-                <Link
-                  href="/results"
-                  className="block w-full bg-blue-100 text-blue-700 py-2 px-4 rounded-lg hover:bg-blue-200 transition-colors text-center text-sm"
-                >
-                  Quick Results
-                </Link>
-              </div>
-            ) : (
-              <button
-                onClick={() => router.push('/counselor-assessment')}
-                className="w-full bg-gray-400 text-white py-2 px-4 rounded-lg cursor-not-allowed"
-                disabled
-              >
-                Complete Assessment First
-              </button>
-            )}
+            {(() => {
+              const hasEnhancedResults = !!localStorage.getItem('counselorAssessmentResults');
+              const hasQuickResults = !!localStorage.getItem('sessionId');
+              
+              if (hasEnhancedResults || hasQuickResults) {
+                return (
+                  <div className="space-y-2">
+                    {hasEnhancedResults && (
+                      <Link
+                        href="/counselor-results"
+                        className="block w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-center"
+                      >
+                        📊 Enhanced Results
+                      </Link>
+                    )}
+                    {hasQuickResults && (
+                      <Link
+                        href="/results"
+                        className="block w-full bg-blue-100 text-blue-700 py-2 px-4 rounded-lg hover:bg-blue-200 transition-colors text-center text-sm"
+                      >
+                        Quick Results
+                      </Link>
+                    )}
+                  </div>
+                );
+              } else {
+                return (
+                  <button
+                    onClick={() => router.push('/counselor-assessment')}
+                    className="w-full bg-gray-400 text-white py-2 px-4 rounded-lg cursor-not-allowed"
+                    disabled
+                  >
+                    Complete Assessment First
+                  </button>
+                );
+              }
+            })()}
           </div>
 
           {/* Profile Card */}
@@ -259,30 +296,47 @@ export default function DashboardPage() {
         <div className="mt-8 bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Status</h3>
           <div className="space-y-3">
-            <div className="flex items-center">
-              <div className={`w-4 h-4 rounded-full mr-3 ${
-                user.profileCompleted ? 'bg-green-500' : 'bg-gray-300'
-              }`} />
-              <span className="text-gray-700">
-                Assessment {user.profileCompleted ? 'Completed' : 'Not Started'}
-              </span>
-            </div>
-            <div className="flex items-center">
-              <div className={`w-4 h-4 rounded-full mr-3 ${
-                user.zipCode ? 'bg-green-500' : 'bg-gray-300'
-              }`} />
-              <span className="text-gray-700">
-                Location {user.zipCode ? `(${user.zipCode})` : 'Not Set'}
-              </span>
-            </div>
-            <div className="flex items-center">
-              <div className={`w-4 h-4 rounded-full mr-3 ${
-                user.grade ? 'bg-green-500' : 'bg-gray-300'
-              }`} />
-              <span className="text-gray-700">
-                Grade Level {user.grade ? `(${user.grade}th Grade)` : 'Not Set'}
-              </span>
-            </div>
+            {(() => {
+              const hasEnhancedResults = !!localStorage.getItem('counselorAssessmentResults');
+              const hasQuickResults = !!localStorage.getItem('sessionId');
+              
+              return (
+                <>
+                  <div className="flex items-center">
+                    <div className={`w-4 h-4 rounded-full mr-3 ${
+                      hasEnhancedResults ? 'bg-green-500' : 'bg-gray-300'
+                    }`} />
+                    <span className="text-gray-700">
+                      Enhanced Assessment {hasEnhancedResults ? 'Completed ✅' : 'Not Started'}
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className={`w-4 h-4 rounded-full mr-3 ${
+                      hasQuickResults ? 'bg-green-500' : 'bg-gray-300'
+                    }`} />
+                    <span className="text-gray-700">
+                      Quick Assessment {hasQuickResults ? 'Completed ✅' : 'Not Started'}
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className={`w-4 h-4 rounded-full mr-3 ${
+                      user.zipCode ? 'bg-green-500' : 'bg-gray-300'
+                    }`} />
+                    <span className="text-gray-700">
+                      Location {user.zipCode ? `(${user.zipCode}) ✅` : 'Not Set'}
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className={`w-4 h-4 rounded-full mr-3 ${
+                      user.grade ? 'bg-green-500' : 'bg-gray-300'
+                    }`} />
+                    <span className="text-gray-700">
+                      Grade Level {user.grade ? `(${user.grade}th Grade) ✅` : 'Not Set'}
+                    </span>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
       </div>
