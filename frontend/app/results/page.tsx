@@ -90,13 +90,17 @@ export default function ResultsPage() {
     const token = localStorage.getItem('token');
 
     // Check if user is logged in but doesn't have session data
+    console.log('🔍 Results page - Session check:', { sessionId: !!sessionId, zipCode: !!zipCode, token: !!token });
+    
     if (!sessionId || !zipCode) {
       if (token) {
         // Logged in user without assessment data - redirect to dashboard
+        console.log('❌ Logged in user missing session data, redirecting to dashboard');
         alert('Please complete the career assessment first to see your results.');
         router.push('/dashboard');
       } else {
         // Anonymous user without session - redirect to home
+        console.log('❌ Anonymous user without session, redirecting to home');
         router.push('/');
       }
       return;
@@ -410,7 +414,7 @@ export default function ResultsPage() {
                   {localJobMarket.jobOpportunities?.slice(0, 5).map((job: LocalJobListing, index: number) => (
                     <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                       <div className="flex justify-between items-start mb-3">
-                        <div>
+                        <div className="flex-1">
                           <h4 className="font-semibold text-lg">{job.title}</h4>
                           <p className="text-gray-600">{job.company}</p>
                           <p className="text-sm text-gray-500">
@@ -424,6 +428,26 @@ export default function ResultsPage() {
                           <div className="text-sm text-gray-500">Annual</div>
                           <div className="text-sm font-medium text-blue-600">{job.matchScore}% Match</div>
                         </div>
+                      </div>
+                      <div className="flex space-x-2 mt-3">
+                        <button
+                          onClick={() => {
+                            const searchQuery = encodeURIComponent(`${job.title} ${job.company} ${job.location.city}`);
+                            router.push(`/jobs?search=${searchQuery}`);
+                          }}
+                          className="flex-1 px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+                        >
+                          Find Similar Jobs
+                        </button>
+                        <button
+                          onClick={() => {
+                            const searchQuery = encodeURIComponent(`${job.title} ${job.location.city}`);
+                            window.open(`https://www.indeed.com/jobs?q=${searchQuery}`, '_blank');
+                          }}
+                          className="px-3 py-2 border border-gray-300 text-gray-700 text-sm rounded hover:bg-gray-50 transition-colors"
+                        >
+                          Search Indeed
+                        </button>
                       </div>
                     </div>
                   ))}

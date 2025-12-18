@@ -28,6 +28,18 @@ export default function Header({ showAuthButtons = true, title }: HeaderProps) {
 
   const checkAuth = async () => {
     const token = localStorage.getItem('token');
+    const storedUser = localStorage.getItem('user');
+    
+    // First try to use stored user data for immediate display
+    if (storedUser) {
+      try {
+        const userData = JSON.parse(storedUser);
+        setUser(userData);
+      } catch (error) {
+        console.error('Error parsing stored user data:', error);
+      }
+    }
+    
     if (!token) {
       setIsLoading(false);
       return;
@@ -43,14 +55,22 @@ export default function Header({ showAuthButtons = true, title }: HeaderProps) {
       const data = await response.json();
       if (data.success) {
         setUser(data.data);
+        // Update stored user data
+        localStorage.setItem('user', JSON.stringify(data.data));
       } else {
+        console.log('Auth check failed:', data.error);
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        setUser(null);
       }
     } catch (error) {
       console.error('Auth check failed:', error);
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      // Don't clear user data on network errors, keep showing cached data
+      if (!storedUser) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setUser(null);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -145,13 +165,16 @@ export default function Header({ showAuthButtons = true, title }: HeaderProps) {
             {showAuthButtons && (
               <>
                 {isLoading ? (
-                  <div className="w-20 h-8 bg-gray-200 animate-pulse rounded"></div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-16 h-6 bg-gray-200 animate-pulse rounded"></div>
+                    <div className="w-20 h-8 bg-gray-200 animate-pulse rounded"></div>
+                  </div>
                 ) : user ? (
                   <div className="flex items-center space-x-4">
                     {getRoleBadge()}
                     <div className="flex items-center space-x-2">
                       <span className="text-sm text-gray-700">
-                        Welcome, {user.firstName}!
+                        Welcome, {user.firstName || user.email?.split('@')[0] || 'User'}!
                       </span>
                       <div className="flex space-x-2">
                         <Link

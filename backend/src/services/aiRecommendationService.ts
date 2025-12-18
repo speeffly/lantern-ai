@@ -81,27 +81,34 @@ export class AIRecommendationService {
     const skills = profile.skills?.join(', ') || 'Developing foundational skills';
     
     return `
-COMPREHENSIVE STUDENT PROFILE ANALYSIS:
+COMPREHENSIVE STUDENT PROFILE FOR CAREER COUNSELING SESSION:
 
-Personal Information:
-- Current Grade: ${grade}
-- Location: ZIP Code ${zipCode} (Rural area)
-- Age Range: ${14 + (grade - 9)} years old
+STUDENT DEMOGRAPHICS & CONTEXT:
 
-Interest & Preference Profile:
-- Primary Interests: ${interests}
-- Work Environment Preference: ${profile.workEnvironment || 'Mixed indoor/outdoor'}
-- Team vs Individual Work: ${profile.teamPreference || 'Both'}
-- Education Commitment Level: ${profile.educationGoal || 'Certificate/Associate degree'}
+- Current Academic Level: Grade ${grade} (Age: ${14 + (grade - 9)} years old)
+- Geographic Location: ZIP Code ${zipCode} (Rural community setting)
+- Academic Timeline: ${grade === 12 ? 'Senior year - immediate post-graduation planning needed' : 
+                     grade === 11 ? 'Junior year - critical planning period for post-secondary decisions' :
+                     grade === 10 ? 'Sophomore year - foundation building and exploration phase' :
+                     'Freshman year - early career awareness and academic foundation'}
 
-Detailed Assessment Responses:
+DETAILED INTEREST & PREFERENCE ANALYSIS:
+- Primary Interest Areas: ${interests}
+- Demonstrated Skills & Strengths: ${skills}
+- Preferred Work Environment: ${profile.workEnvironment || 'Mixed indoor/outdoor settings'}
+- Collaboration Style: ${profile.teamPreference || 'Comfortable with both team and individual work'}
+- Educational Commitment Level: ${profile.educationGoal || 'Open to certificate through associate degree programs'}
+
+COMPREHENSIVE ASSESSMENT RESPONSE ANALYSIS:
 ${answers.map((answer, index) => {
-  return `${index + 1}. Question: ${answer.questionId}
-   Response: ${answer.answer}
-   Context: This indicates ${this.interpretAssessmentAnswer(answer.questionId, answer.answer)}`;
+  const interpretation = this.interpretAssessmentAnswer(answer.questionId, answer.answer);
+  return `${index + 1}. Assessment Area: ${answer.questionId}
+   Student Response: "${answer.answer}"
+   Professional Interpretation: ${interpretation}
+   Career Development Notes: This response suggests strong potential for careers requiring ${this.getCareerDevelopmentNotes(answer.questionId, answer.answer)}`;
 }).join('\n\n')}
 
-Top Career Matches Analysis:
+TOP CAREER MATCHES - DETAILED PROFESSIONAL ANALYSIS:
 ${careerMatches.slice(0, 5).map((match, index) => {
   return `${index + 1}. ${match.career.title} (${match.matchScore}% match)
    - Sector: ${match.career.sector}
@@ -114,15 +121,49 @@ ${careerMatches.slice(0, 5).map((match, index) => {
    - Local Demand: ${match.localDemand}`;
 }).join('\n\n')}
 
-Rural Context Considerations:
-- Limited local training options may require online/distance learning
-- Transportation challenges for education and work opportunities
-- Strong community connections and family considerations important
-- Opportunities in agriculture, healthcare, and infrastructure sectors
-- Potential for entrepreneurship and small business development
-- Need for practical, hands-on career preparation paths
-- Community college and trade school accessibility
-- Local apprenticeship and mentorship opportunities
+RURAL COMMUNITY CONTEXT & STRATEGIC CONSIDERATIONS:
+
+Geographic & Economic Environment:
+- Rural location with unique opportunities and challenges
+- Lower cost of living but potentially adjusted wage scales
+- Strong community networks and relationship-based opportunities
+- Limited public transportation - personal vehicle typically essential
+- Seasonal employment patterns in agriculture and tourism sectors
+
+Educational Access & Training Resources:
+- Community college likely within 30-50 mile radius
+- Online and distance learning increasingly important for skill development
+- Dual enrollment opportunities may be available through high school
+- Regional trade schools and vocational training centers
+- Apprenticeship programs through local employers and unions
+- Professional development through agricultural extension and community organizations
+
+Career Development Landscape:
+- Healthcare sector expansion due to aging rural populations
+- Infrastructure maintenance and development needs
+- Agricultural technology and precision farming opportunities
+- Small business and entrepreneurship potential with lower startup costs
+- Remote work possibilities in technology and professional services
+- Government and public service positions with stability
+- Tourism, recreation, and outdoor industry growth potential
+
+Family & Community Dynamics:
+- Strong family ties and multi-generational considerations
+- Community leadership and civic engagement opportunities
+- Local mentorship through established professionals
+- Word-of-mouth networking and relationship-based hiring
+- Potential family business involvement or succession planning
+- Community values alignment important for career satisfaction
+
+COUNSELING SESSION FOCUS AREAS:
+This comprehensive profile indicates the need for detailed guidance on:
+1. Strategic academic planning for remaining high school years
+2. Post-secondary education and training pathway optimization
+3. Skill development priorities with rural resource considerations
+4. Local and regional career opportunity identification
+5. Financial planning for education and career preparation
+6. Professional networking strategies in rural communities
+7. Specific, measurable action steps with realistic timelines and accountability measures
     `;
   }
 
@@ -168,112 +209,139 @@ Rural Context Considerations:
 
     const systemPrompt = `You are Dr. Sarah Martinez, a certified career counselor with 15 years of experience specializing in rural career development and youth guidance. You have:
 
+CREDENTIALS:
 - Master's degree in Career Counseling and Development
 - Certification in Career Development Facilitator (CDF)
-- Expertise in rural job markets and economic opportunities
-- Extensive experience with high school students aged 14-18
-- Deep knowledge of healthcare and infrastructure career pathways
-- Understanding of local training programs, apprenticeships, and community colleges
-- Experience with rural family dynamics and community considerations
+- Licensed Professional Counselor (LPC)
+- Certified Career Services Provider (CCSP)
 
-Your counseling approach is:
-- Practical and immediately actionable
-- Encouraging and confidence-building
-- Focused on realistic rural opportunities
-- Age-appropriate for high school students
-- Evidence-based with clear reasoning
-- Culturally sensitive to rural communities and values
-- Comprehensive yet easy to understand
+EXPERTISE:
+- Rural job markets and economic development patterns
+- High school students aged 14-18 career development
+- Healthcare and infrastructure career pathways in rural areas
+- Local training programs, apprenticeships, and community college systems
+- Rural family dynamics and community considerations
+- Agricultural, healthcare, and small business opportunities in rural communities
+- Transportation challenges and solutions for rural career development
+- Online and distance learning options for rural students
 
-You always provide specific, detailed recommendations with clear reasoning, actionable next steps, and consideration of rural challenges and opportunities.`;
+COUNSELING APPROACH:
+- Practical and immediately actionable with specific next steps
+- Encouraging and confidence-building while being realistic
+- Focused on authentic rural opportunities and challenges
+- Age-appropriate language and expectations for high school students
+- Evidence-based recommendations with clear reasoning
+- Culturally sensitive to rural community values and family dynamics
+- Comprehensive analysis while remaining accessible and understandable
+- Emphasis on local resources and community connections
+
+You always provide specific, detailed recommendations with clear reasoning, actionable next steps, realistic timelines, and thorough consideration of rural challenges and unique opportunities.`;
 
     const userPrompt = `${context}
 
-Based on this comprehensive student profile, provide detailed career guidance in the following JSON format. Be specific, practical, and actionable:
+As Dr. Sarah Martinez, provide comprehensive career guidance for this rural high school student. Your recommendations should be detailed, practical, and specifically tailored to their rural context. Use your 15 years of experience to provide professional-quality guidance.
+
+Provide your analysis in the following JSON format with detailed, specific recommendations:
 
 {
   "academicPlan": {
     "currentYear": [
       {
-        "courseName": "Specific course name",
-        "reasoning": "Detailed explanation of why this course is essential for their career goals",
-        "careerConnection": "How this directly connects to their top career matches",
-        "skillsDeveloped": ["specific skill 1", "specific skill 2"],
+        "courseName": "Specific course name (e.g., 'Advanced Biology with Lab')",
+        "reasoning": "Detailed professional explanation of why this course is essential for their specific career goals, including how it builds foundational knowledge",
+        "careerConnection": "Specific explanation of how this course directly connects to their top career matches and future opportunities",
+        "skillsDeveloped": ["specific technical skill", "specific soft skill", "specific academic skill"],
         "priority": "Essential|Highly Recommended|Recommended",
-        "localAvailability": "How to access this course locally or online"
+        "localAvailability": "Detailed information about how to access this course (high school offering, dual enrollment, online options, community college)",
+        "prerequisites": "Any required previous courses or skills",
+        "timeCommitment": "Expected hours per week and semester length"
       }
     ],
     "nextYear": [
       {
-        "courseName": "Advanced course building on current year",
-        "reasoning": "Why this progression is important",
-        "careerConnection": "Career pathway connection",
-        "skillsDeveloped": ["skill 1", "skill 2"],
+        "courseName": "Advanced course building on current year foundation",
+        "reasoning": "Professional explanation of why this progression is important for career development",
+        "careerConnection": "How this advanced course enhances career pathway preparation",
+        "skillsDeveloped": ["advanced skill 1", "advanced skill 2", "leadership skill"],
         "priority": "Essential|Highly Recommended|Recommended",
-        "localAvailability": "Access information"
+        "localAvailability": "Access information including backup options",
+        "prerequisites": "Required foundation from current year",
+        "timeCommitment": "Expected commitment level"
       }
     ],
     "longTerm": [
       {
-        "option": "Post-secondary education or training option",
-        "description": "Detailed description of the program",
-        "duration": "Time required",
-        "cost": "Estimated cost range",
-        "location": "Where available (local, regional, online)",
-        "careerOutcomes": "What careers this leads to"
+        "option": "Specific post-secondary education or training program name",
+        "description": "Detailed description of the program, curriculum, and outcomes",
+        "duration": "Specific time required (e.g., '18-month certificate program')",
+        "cost": "Realistic cost range including tuition, fees, materials",
+        "location": "Specific information about where available (local community college name, regional options, reputable online programs)",
+        "careerOutcomes": "Specific careers this leads to with salary ranges",
+        "admissionRequirements": "What's needed to get accepted",
+        "financialAid": "Available scholarships, grants, and funding options"
       }
     ]
   },
   "careerPathway": {
     "steps": [
-      "Immediate step 1 (next 6 months)",
-      "Short-term step 2 (6 months - 2 years)",
-      "Medium-term step 3 (2-5 years)",
-      "Long-term step 4 (5+ years)"
+      "Specific immediate action for next 6 months with clear deliverables",
+      "Detailed short-term goal for 6 months - 2 years with measurable outcomes",
+      "Comprehensive medium-term objective for 2-5 years with career milestones",
+      "Long-term vision for 5+ years with advancement opportunities"
     ],
-    "timeline": "Overall timeline from high school to career",
-    "requirements": ["Key requirement 1", "Key requirement 2"],
-    "ruralConsiderations": "Specific considerations for rural students",
-    "financialPlanning": "Cost estimates and funding strategies"
+    "timeline": "Detailed timeline from high school graduation to established career with key milestones",
+    "requirements": ["Specific educational requirement", "Specific certification requirement", "Specific experience requirement"],
+    "ruralConsiderations": "Detailed analysis of rural-specific factors including transportation, family considerations, local opportunities, and community connections",
+    "financialPlanning": "Comprehensive cost analysis including education expenses, living costs, expected salary progression, and ROI timeline",
+    "alternativePathways": "Backup options and alternative routes to similar career outcomes"
   },
   "skillGaps": [
     {
-      "skill": "Specific skill name",
+      "skill": "Specific skill name (e.g., 'Medical Terminology and Documentation')",
       "importance": "Critical|Important|Beneficial",
-      "howToAcquire": "Detailed, specific methods to develop this skill",
-      "timeline": "How long it takes to develop",
-      "resources": "Specific resources (online courses, local programs, etc.)",
-      "practiceOpportunities": "Where to practice this skill"
+      "currentLevel": "Assessment of student's current ability in this area",
+      "targetLevel": "What level they need to reach for career success",
+      "howToAcquire": "Detailed, specific methods to develop this skill including courses, programs, and self-study options",
+      "timeline": "Realistic timeframe for skill development with milestones",
+      "resources": "Specific resources including online courses, local programs, books, mentors",
+      "practiceOpportunities": "Concrete ways to practice and apply this skill in real situations",
+      "assessmentMethods": "How to measure progress and competency",
+      "ruralChallenges": "Specific challenges for developing this skill in a rural area and solutions"
     }
   ],
   "actionItems": [
     {
-      "title": "Specific action title",
-      "description": "Detailed description of what to do",
+      "title": "Specific, actionable title (e.g., 'Schedule Meeting with School Counselor About Dual Enrollment')",
+      "description": "Detailed description of exactly what to do, why it's important, and expected outcomes",
       "priority": "high|medium|low",
-      "timeline": "Specific timeframe (this week, this month, etc.)",
-      "category": "Academic|Career Exploration|Skill Development|Networking",
-      "steps": ["Step 1", "Step 2", "Step 3"],
-      "resources": "What resources are needed",
-      "successMetrics": "How to measure completion"
+      "timeline": "Specific timeframe with deadlines (e.g., 'Complete by end of this week')",
+      "category": "Academic|Career Exploration|Skill Development|Networking|Financial Planning",
+      "steps": ["Detailed step 1 with specific actions", "Detailed step 2 with specific actions", "Detailed step 3 with specific actions"],
+      "resources": "Specific resources needed including contact information, websites, materials",
+      "successMetrics": "Clear, measurable ways to determine completion and success",
+      "potentialObstacles": "Likely challenges and how to overcome them",
+      "followUpActions": "What to do after completing this action item"
     }
   ],
   "localOpportunities": [
     {
-      "type": "Volunteer|Internship|Part-time Job|Mentorship",
-      "organization": "Likely local organization name",
-      "description": "What the opportunity involves",
-      "skills": "Skills gained from this opportunity",
-      "careerRelevance": "How this connects to career goals",
-      "howToApply": "Steps to pursue this opportunity"
+      "type": "Volunteer|Internship|Part-time Job|Mentorship|Job Shadow",
+      "organization": "Realistic local organization name and type (e.g., 'County General Hospital', 'Local Construction Company')",
+      "description": "Detailed description of what the opportunity involves and time commitment",
+      "skills": "Specific skills that will be gained from this opportunity",
+      "careerRelevance": "Detailed explanation of how this connects to their career goals and builds their resume",
+      "howToApply": "Step-by-step process for pursuing this opportunity including contact methods",
+      "requirements": "Any age, skill, or other requirements",
+      "benefits": "What the student will gain beyond just experience",
+      "timeline": "When to apply and typical duration of opportunity"
     }
   ]
 }
 
-Provide comprehensive, detailed recommendations that are specifically tailored to this rural student's profile, interests, and career goals. Make all recommendations practical and achievable in a rural setting.`;
+Remember: You are providing professional career counseling to a rural high school student. Your recommendations should be comprehensive, realistic, and specifically tailored to their rural context while maintaining the high standards of professional career guidance. Include specific details that demonstrate your expertise and provide genuine value to help this student succeed in their chosen career path.`;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4",
       messages: [
         {
           role: "system",
@@ -284,7 +352,7 @@ Provide comprehensive, detailed recommendations that are specifically tailored t
           content: userPrompt
         }
       ],
-      max_tokens: 3000,
+      max_tokens: 4000,
       temperature: 0.7,
     });
 
@@ -655,5 +723,76 @@ Provide comprehensive, detailed recommendations that are specifically tailored t
         timeline: 'Next 3 months'
       }
     ];
+  }
+
+  /**
+   * Get career development notes for assessment answers
+   */
+  private static getCareerDevelopmentNotes(questionId: string, answer: string | number): string {
+    const notes: { [key: string]: { [key: string]: string } } = {
+      'interests': {
+        'Hands-on Work': 'practical skills, technical training, and applied learning environments',
+        'Healthcare': 'interpersonal skills, scientific knowledge, and service-oriented careers',
+        'Technology': 'analytical thinking, continuous learning, and digital literacy',
+        'Community Impact': 'leadership development, public service, and social responsibility'
+      },
+      'work_environment': {
+        'Outdoors': 'physical stamina, environmental awareness, and field-based careers',
+        'Indoors': 'focused concentration, detail-oriented tasks, and office-based skills',
+        'Mixed': 'adaptability, versatility, and diverse skill development'
+      },
+      'education': {
+        'certificate': 'hands-on training, immediate job entry, and practical skill focus',
+        'associate': 'balanced academic and practical preparation, community college pathway',
+        'bachelor': 'comprehensive education, research skills, and professional development'
+      }
+    };
+
+    const category = notes[questionId];
+    if (category && typeof answer === 'string' && category[answer]) {
+      return category[answer];
+    }
+    
+    return `specialized skills and knowledge in ${answer}`;
+  }
+
+  /**
+   * Assess rural viability for career sectors
+   */
+  private static assessRuralViability(sector: string): string {
+    const viability: { [key: string]: string } = {
+      'healthcare': 'High - Growing demand due to aging rural populations and healthcare access needs',
+      'infrastructure': 'High - Ongoing need for maintenance, utilities, and construction in rural areas',
+      'agriculture': 'High - Core rural industry with modern technology integration opportunities',
+      'education': 'Moderate - Local schools and community colleges provide stable opportunities',
+      'technology': 'Moderate - Remote work opportunities increasing, but may require reliable internet',
+      'business': 'Moderate - Small business and entrepreneurship opportunities with lower startup costs',
+      'government': 'Moderate - Local government and public service positions available',
+      'manufacturing': 'Variable - Depends on local industrial presence and transportation access'
+    };
+
+    return viability[sector.toLowerCase()] || 'Variable - Depends on local economic conditions and market demand';
+  }
+
+  /**
+   * Analyze skill gaps between career requirements and student profile
+   */
+  private static analyzeSkillGaps(career: any, profile: Partial<StudentProfile>): string {
+    const studentSkills = profile.skills || [];
+    const careerSector = career.sector?.toLowerCase() || '';
+    
+    if (careerSector.includes('healthcare')) {
+      const healthcareSkills = ['communication', 'empathy', 'attention to detail', 'medical knowledge'];
+      const gaps = healthcareSkills.filter(skill => !studentSkills.some(s => s.toLowerCase().includes(skill)));
+      return gaps.length > 0 ? `Focus on developing: ${gaps.join(', ')}` : 'Strong skill alignment with healthcare requirements';
+    }
+    
+    if (careerSector.includes('technology')) {
+      const techSkills = ['problem-solving', 'analytical thinking', 'technical skills', 'continuous learning'];
+      const gaps = techSkills.filter(skill => !studentSkills.some(s => s.toLowerCase().includes(skill)));
+      return gaps.length > 0 ? `Develop technical competencies: ${gaps.join(', ')}` : 'Good foundation for technology careers';
+    }
+    
+    return 'Continue developing both technical and soft skills relevant to this career path';
   }
 }
