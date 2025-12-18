@@ -1,10 +1,11 @@
 import express from 'express';
 import { CareerService } from '../services/careerService';
 import { SessionService } from '../services/sessionService';
+import { AssessmentServiceDB } from '../services/assessmentServiceDB';
 import { AIRecommendationService } from '../services/aiRecommendationService';
 import { LocalJobMarketService } from '../services/localJobMarketService';
 import { CourseRecommendationService } from '../services/courseRecommendationService';
-import { ApiResponse } from '../types';
+import { ApiResponse, AssessmentAnswer } from '../types';
 
 const router = express.Router();
 
@@ -69,9 +70,35 @@ router.post('/matches', async (req, res) => {
       } as ApiResponse);
     }
 
-    // Get session with profile
-    const session = SessionService.getSession(sessionId);
-    if (!session || !session.profileData) {
+    console.log('🔍 Looking for session:', sessionId);
+
+    // Try database sessions first (new system)
+    let session = await AssessmentServiceDB.getSessionByToken(sessionId);
+    let answers: AssessmentAnswer[] = [];
+    let profileData: any = null;
+
+    if (session) {
+      console.log('✅ Found database session:', session.id);
+      // Get assessment answers from database
+      answers = await AssessmentServiceDB.getAnswers(sessionId);
+      console.log('📝 Found assessment answers:', answers.length);
+      
+      // Build profile from assessment answers
+      profileData = buildProfileFromAnswers(answers);
+      console.log('👤 Built profile from answers:', profileData);
+    } else {
+      // Fallback to memory sessions (legacy system)
+      console.log('🔄 Trying memory session...');
+      const memorySession = SessionService.getSession(sessionId);
+      if (memorySession && memorySession.profileData) {
+        console.log('✅ Found memory session');
+        profileData = memorySession.profileData;
+        answers = memorySession.assessmentAnswers || [];
+      }
+    }
+
+    if (!profileData) {
+      console.log('❌ No session or profile found');
       return res.status(404).json({
         success: false,
         error: 'Session or profile not found. Please complete the assessment first.'
@@ -79,23 +106,28 @@ router.post('/matches', async (req, res) => {
     }
 
     // Get career matches
-    const matches = CareerService.getCareerMatches(session.profileData, zipCode);
+    console.log('🎯 Getting career matches for profile...');
+    const matches = CareerService.getCareerMatches(profileData, zipCode);
+    console.log('🎯 Found career matches:', matches.length);
 
     // Generate AI-powered recommendations
+    console.log('🤖 Calling AI recommendation service...');
     const aiRecommendations = await AIRecommendationService.generateRecommendations(
-      session.profileData,
-      session.assessmentAnswers || [],
+      profileData,
+      answers,
       matches,
       zipCode,
-      11 // Default grade, could be enhanced to get from user profile
+      profileData.grade || 11
     );
 
     // Get local job market data
+    console.log('🌍 Getting local job market data...');
     const localJobMarket = await LocalJobMarketService.getLocalJobMarket(zipCode, matches);
 
     // Generate academic plan
+    console.log('📚 Getting course recommendations...');
     const academicPlan = CourseRecommendationService.generateAcademicPlan(
-      session.profileData,
+      profileData,
       matches,
       11 // Default grade, could be enhanced to get from user profile
     );
@@ -104,7 +136,7 @@ router.post('/matches', async (req, res) => {
       success: true,
       data: {
         matches,
-        profile: session.profileData,
+        profile: profileData,
         totalMatches: matches.length,
         aiRecommendations,
         localJobMarket,
@@ -211,5 +243,90 @@ router.get('/:id/pathway', (req, res) => {
     } as ApiResponse);
   }
 });
+
+/**
+ * Build profile data from assessment answers
+ */
+function buildProfileFromAnswers(answers: AssessmentAnswer[]): any {
+  const profile: any = {
+    interests: [],
+    skills: [],
+    educationGoal: 'certificate',
+    workEnvironment: 'mixed',
+    grade: 11
+  };
+
+  // Extract data from assessment answers
+  answers.forEach(answer => {
+    switch (answer.questionId) {
+      case 'interests':
+      case 'q1': // Interests question
+        if (typeof answer.answer === 'string') {
+          // Handle comma-separated interests
+          profile.interests = answer.answer.split(',').map(s => s.trim()).filter(s => s);
+        } else if (Array.isArray(answer.answer)) {
+          profile.interests = answer.answer;
+        }
+        break;
+        
+      case 'skills':
+      case 'q2': // Skills question
+        if (typeof answer.answer === 'string') {
+          profile.skills = answer.answer.split(',').map(s => s.trim()).filter(s => s);
+        } else if (Array.isArray(answer.answer)) {
+          profile.skills = answer.answer;
+        }
+        break;
+        
+      case 'education':
+      case 'q3': // Education goal
+        profile.educationGoal = answer.answer;
+        break;
+        
+      case 'work_environment':
+      case 'q4': // Work environment
+        profile.workEnvironment = answer.answer;
+        break;
+        
+      case 'grade':
+      case 'q5': // Grade level
+        profile.grade = parseInt(answer.answer as string) || 11;
+        break;
+        
+      case 'zip_code':
+        profile.zipCode = answer.answer;
+        break;
+        
+      default:
+        // Handle other questions by mapping to interests or skills
+        if (answer.questionId.includes('interest') || answer.questionId.includes('like')) {
+          if (!profile.interests.includes(answer.answer)) {
+            profile.interests.push(answer.answer);
+          }
+        }
+        break;
+    }
+  });
+
+  // Ensure we have some default interests if none found
+  if (profile.interests.length === 0) {
+    profile.interests = ['General exploration'];
+  }
+
+  // Ensure we have some default skills if none found
+  if (profile.skills.length === 0) {
+    profile.skills = ['Communication', 'Problem solving'];
+  }
+
+  console.log('🔧 Built profile:', {
+    interests: profile.interests,
+    skills: profile.skills,
+    educationGoal: profile.educationGoal,
+    workEnvironment: profile.workEnvironment,
+    grade: profile.grade
+  });
+
+  return profile;
+}
 
 export default router;
