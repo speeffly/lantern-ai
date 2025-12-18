@@ -42,13 +42,48 @@ export class AIRecommendationService {
       }
 
       // Prepare context for AI
+      console.log('\n' + '='.repeat(80));
+      console.log('📊 PREPARING STUDENT CONTEXT FOR AI');
+      console.log('='.repeat(80));
+      console.log('Student Profile:', JSON.stringify(profile, null, 2));
+      console.log('Assessment Answers Count:', answers.length);
+      console.log('Career Matches Count:', careerMatches.length);
+      console.log('ZIP Code:', zipCode);
+      console.log('Current Grade:', currentGrade);
+      console.log('='.repeat(80));
+      
       const context = this.prepareAIContext(profile, answers, careerMatches, zipCode, currentGrade);
+      
+      console.log('\n📋 GENERATED CONTEXT FOR AI:');
+      console.log('-'.repeat(50));
+      console.log(context);
+      console.log('='.repeat(80) + '\n');
       
       // Generate recommendations using OpenAI
       const aiResponse = await this.callOpenAI(context);
       
       // Parse and structure the AI response
+      console.log('\n' + '='.repeat(80));
+      console.log('🔄 PARSING AI RESPONSE INTO STRUCTURED RECOMMENDATIONS');
+      console.log('='.repeat(80));
+      
       const recommendations = this.parseAIResponse(aiResponse, profile, careerMatches, zipCode);
+      
+      console.log('\n📊 FINAL STRUCTURED RECOMMENDATIONS:');
+      console.log('-'.repeat(50));
+      console.log('Academic Plan Items:', recommendations.academicPlan?.currentYear?.length || 0);
+      console.log('Local Jobs:', recommendations.localJobs?.length || 0);
+      console.log('Career Pathway Steps:', recommendations.careerPathway?.steps?.length || 0);
+      console.log('Skill Gaps:', recommendations.skillGaps?.length || 0);
+      console.log('Action Items:', recommendations.actionItems?.length || 0);
+      
+      console.log('\n📋 COMPLETE RECOMMENDATIONS OBJECT:');
+      console.log('-'.repeat(50));
+      console.log(JSON.stringify(recommendations, null, 2));
+      console.log('='.repeat(80));
+      
+      console.log('\n✅ AI RECOMMENDATION GENERATION COMPLETE');
+      console.log('='.repeat(80) + '\n');
       
       return recommendations;
     } catch (error) {
@@ -340,6 +375,32 @@ Provide your analysis in the following JSON format with detailed, specific recom
 
 Remember: You are providing professional career counseling to a rural high school student. Your recommendations should be comprehensive, realistic, and specifically tailored to their rural context while maintaining the high standards of professional career guidance. Include specific details that demonstrate your expertise and provide genuine value to help this student succeed in their chosen career path.`;
 
+    // Log the complete prompts being sent to OpenAI
+    console.log('\n' + '='.repeat(80));
+    console.log('🤖 OPENAI API CALL - PROMPT LOGGING');
+    console.log('='.repeat(80));
+    
+    console.log('\n📋 SYSTEM PROMPT (Career Counselor Persona):');
+    console.log('-'.repeat(50));
+    console.log(systemPrompt);
+    
+    console.log('\n📝 USER PROMPT (Student Context & Instructions):');
+    console.log('-'.repeat(50));
+    console.log(userPrompt);
+    
+    console.log('\n⚙️ API CONFIGURATION:');
+    console.log('-'.repeat(50));
+    console.log('Model: gpt-4');
+    console.log('Max Tokens: 4000');
+    console.log('Temperature: 0.7');
+    console.log('Context Length:', context.length, 'characters');
+    console.log('System Prompt Length:', systemPrompt.length, 'characters');
+    console.log('User Prompt Length:', userPrompt.length, 'characters');
+    console.log('Total Prompt Length:', (systemPrompt.length + userPrompt.length), 'characters');
+    
+    console.log('\n🚀 Sending request to OpenAI...');
+    console.log('='.repeat(80));
+
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
@@ -356,7 +417,21 @@ Remember: You are providing professional career counseling to a rural high schoo
       temperature: 0.7,
     });
 
-    return completion.choices[0]?.message?.content || '';
+    const response = completion.choices[0]?.message?.content || '';
+    
+    console.log('\n' + '='.repeat(80));
+    console.log('✅ OPENAI API RESPONSE RECEIVED');
+    console.log('='.repeat(80));
+    console.log('Response Length:', response.length, 'characters');
+    console.log('Tokens Used:', completion.usage?.total_tokens || 'unknown');
+    console.log('Model Used:', completion.model);
+    
+    console.log('\n📄 RAW AI RESPONSE:');
+    console.log('-'.repeat(50));
+    console.log(response);
+    console.log('='.repeat(80) + '\n');
+
+    return response;
   }
 
   /**

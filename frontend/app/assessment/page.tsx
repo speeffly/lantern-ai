@@ -11,6 +11,7 @@ interface Question {
   type: string;
   options?: string[];
   category: string;
+  placeholder?: string;
 }
 
 export default function AssessmentPage() {
@@ -47,8 +48,14 @@ export default function AssessmentPage() {
   };
 
   const handleNext = () => {
-    if (!selectedAnswer) {
-      alert('Please select an answer');
+    if (!selectedAnswer || selectedAnswer.trim() === '') {
+      alert('Please provide an answer');
+      return;
+    }
+    
+    // For text questions, require at least 10 characters
+    if (currentQuestion.type === 'text' && selectedAnswer.trim().length < 10) {
+      alert('Please provide a more detailed answer (at least 10 characters)');
       return;
     }
 
@@ -172,19 +179,34 @@ export default function AssessmentPage() {
           <h2 className="text-2xl font-semibold mb-6">{currentQuestion.text}</h2>
           
           <div className="space-y-3">
-            {currentQuestion.options?.map((option, index) => (
-              <button
-                key={index}
-                onClick={() => setSelectedAnswer(option)}
-                className={`w-full text-left px-6 py-4 rounded-lg border-2 transition-all ${
-                  selectedAnswer === option
-                    ? 'border-blue-600 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                {option}
-              </button>
-            ))}
+            {currentQuestion.type === 'text' ? (
+              <div>
+                <textarea
+                  value={selectedAnswer}
+                  onChange={(e) => setSelectedAnswer(e.target.value)}
+                  placeholder={currentQuestion.placeholder || "Please share your thoughts..."}
+                  rows={4}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg resize-none focus:border-blue-500 focus:outline-none"
+                />
+                <div className="text-sm text-gray-500 mt-2">
+                  {selectedAnswer.length} characters
+                </div>
+              </div>
+            ) : (
+              currentQuestion.options?.map((option, index) => (
+                <button
+                  key={index}
+                  onClick={() => setSelectedAnswer(option)}
+                  className={`w-full text-left px-6 py-4 rounded-lg border-2 transition-all ${
+                    selectedAnswer === option
+                      ? 'border-blue-600 bg-blue-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  {option}
+                </button>
+              ))
+            )}
           </div>
 
           <div className="mt-8 flex justify-between">
