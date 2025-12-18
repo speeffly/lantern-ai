@@ -136,8 +136,9 @@ export default function CounselorAssessmentPage() {
         return;
       }
     } else if (currentQuestion.type === 'free_text') {
-      if (!currentAnswer || currentAnswer.length < (currentQuestion.minLength || 10)) {
-        alert(`Please provide a more detailed response (minimum ${currentQuestion.minLength || 10} characters)`);
+      const minLength = currentQuestion.minLength || 10;
+      if (!currentAnswer || currentAnswer.length < minLength) {
+        alert(`Please provide a more detailed response about your interests and hobbies. You need at least ${minLength} characters (currently ${(currentAnswer || '').length}). Be specific about what you enjoy doing!`);
         return;
       }
     } else {
@@ -314,6 +315,11 @@ export default function CounselorAssessmentPage() {
     }
 
     if (question.type === 'free_text') {
+      const currentLength = (currentAnswer || '').length;
+      const minLength = question.minLength || 10;
+      const maxLength = question.maxLength || 500;
+      const isValid = currentLength >= minLength;
+      
       return (
         <div>
           <textarea
@@ -321,17 +327,46 @@ export default function CounselorAssessmentPage() {
             onChange={(e) => handleAnswerChange(question.id, e.target.value)}
             placeholder={question.placeholder}
             rows={6}
-            maxLength={question.maxLength}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg resize-none"
+            maxLength={maxLength}
+            className={`w-full px-4 py-3 border-2 rounded-lg resize-none transition-colors ${
+              currentLength > 0 
+                ? isValid 
+                  ? 'border-green-300 focus:border-green-500' 
+                  : 'border-yellow-300 focus:border-yellow-500'
+                : 'border-gray-300 focus:border-blue-500'
+            }`}
           />
-          <div className="text-sm text-gray-500 mt-2">
-            {(currentAnswer || '').length} / {question.maxLength} characters
-            {question.minLength && (
-              <span className="ml-2">
-                (minimum {question.minLength} characters)
-              </span>
-            )}
+          <div className="flex justify-between items-center mt-2">
+            <div className={`text-sm font-medium ${
+              currentLength === 0 
+                ? 'text-gray-500'
+                : isValid 
+                  ? 'text-green-600' 
+                  : 'text-yellow-600'
+            }`}>
+              {currentLength === 0 && (
+                <span>💡 Please share your interests and hobbies (minimum {minLength} characters)</span>
+              )}
+              {currentLength > 0 && !isValid && (
+                <span>📝 Keep writing... {minLength - currentLength} more characters needed</span>
+              )}
+              {isValid && (
+                <span>✅ Great! You can proceed to the next question</span>
+              )}
+            </div>
+            <div className={`text-sm ${
+              currentLength > maxLength * 0.9 ? 'text-red-500' : 'text-gray-500'
+            }`}>
+              {currentLength} / {maxLength}
+            </div>
           </div>
+          {!isValid && currentLength > 0 && (
+            <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-800">
+                <strong>Tip:</strong> Be specific about what you enjoy! For example: "I love working on cars with my dad, I'm fascinated by how the human body works, I enjoy helping younger kids with their homework..."
+              </p>
+            </div>
+          )}
         </div>
       );
     }
