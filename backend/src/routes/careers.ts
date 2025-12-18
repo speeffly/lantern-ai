@@ -5,7 +5,7 @@ import { AssessmentServiceDB } from '../services/assessmentServiceDB';
 import { AIRecommendationService } from '../services/aiRecommendationService';
 import { LocalJobMarketService } from '../services/localJobMarketService';
 import { CourseRecommendationService } from '../services/courseRecommendationService';
-import { ApiResponse, AssessmentAnswer } from '../types';
+import { ApiResponse, AssessmentAnswer, StudentProfile, EducationLevel } from '../types';
 
 const router = express.Router();
 
@@ -347,7 +347,7 @@ router.get('/debug/:sessionId', async (req, res) => {
       console.log('📊 DEBUG: Database session details:', {
         id: dbSession.id,
         status: dbSession.status,
-        zipCode: dbSession.zipCode
+        zipCode: dbSession.zip_code
       });
       
       answers = await AssessmentServiceDB.getAnswers(sessionId);
@@ -377,7 +377,7 @@ router.get('/debug/:sessionId', async (req, res) => {
         databaseSessionDetails: dbSession ? {
           id: dbSession.id,
           status: dbSession.status,
-          zipCode: dbSession.zipCode
+          zipCode: dbSession.zip_code
         } : null,
         memorySession: !!memSession,
         answersCount: answers.length,
@@ -411,17 +411,17 @@ router.post('/debug/ai-test', async (req, res) => {
   
   try {
     // Create mock profile and answers
-    const mockProfile = {
+    const mockProfile: Partial<StudentProfile> = {
       interests,
       skills: ['Communication', 'Problem solving'],
-      educationGoal: 'certificate',
-      workEnvironment: 'mixed',
-      grade: 11
+      educationGoal: 'certificate' as EducationLevel,
+      workEnvironment: 'mixed' as const,
+      zipCode: zipCode
     };
     
     const mockAnswers: AssessmentAnswer[] = [
-      { questionId: 'interests', answer: interests.join(', '), sessionId: 'debug-session' },
-      { questionId: 'skills', answer: 'Communication, Problem solving', sessionId: 'debug-session' }
+      { questionId: 'interests', answer: interests.join(', '), timestamp: new Date() },
+      { questionId: 'skills', answer: 'Communication, Problem solving', timestamp: new Date() }
     ];
     
     // Get some career matches
