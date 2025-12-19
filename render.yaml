@@ -21,4 +21,7 @@ services:
       - key: USE_REAL_AI
         value: "true"
       - key: BLS_API_KEY
-        value: d4f3e185f79f410984c5f5b380e1bfbd
+        value: d4f3e185f79f410984c5f5b380e1bfbds
+      - key: BLS_API_KEY1
+        value: d4f3e185f79f410984c5f5b380e1bfbds
+
