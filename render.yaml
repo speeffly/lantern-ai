@@ -16,12 +16,5 @@ services:
         value: https://main.d2ymtj6aumrj0m.amplifyapp.com
       - key: JWT_SECRET
         value: lantern-ai-production-secret-key-2025
-      - key: OPENAI_API_KEY
-        value: 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
       - key: USE_REAL_AI
-        value: "true"
-      - key: BLS_API_KEY
-        value: d4f3e185f79f410984c5f5b380e1bfbds
-      - key: BLS_API_KEY1
-        value: d4f3e185f79f410984c5f5b380e1bfbds
-
+        value: "true"      
