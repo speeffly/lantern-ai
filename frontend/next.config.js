@@ -1,14 +1,19 @@
 /** @type {import('next').NextConfig} */
+const isProduction = process.env.NODE_ENV === 'production';
+const defaultApiUrl = process.env.NEXT_PUBLIC_API_URL || (isProduction
+  ? 'https://lantern-ai-backend.onrender.com'
+  : 'http://localhost:3002');
+
 const nextConfig = {
   output: 'export',
   trailingSlash: true,
   images: {
     unoptimized: true
   },
-  // Environment variables
+  // Environment variables baked in at build time
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002',
-    NEXT_PUBLIC_ENVIRONMENT: process.env.NEXT_PUBLIC_ENVIRONMENT || 'development',
+    NEXT_PUBLIC_API_URL: defaultApiUrl,
+    NEXT_PUBLIC_ENVIRONMENT: process.env.NEXT_PUBLIC_ENVIRONMENT || (isProduction ? 'production' : 'development'),
     NEXT_PUBLIC_DEMO_MODE: process.env.NEXT_PUBLIC_DEMO_MODE || 'true'
   }
 }

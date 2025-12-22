@@ -23,6 +23,9 @@ interface CounselorQuestion {
   placeholder?: string;
   minLength?: number;
   maxLength?: number;
+  required?: boolean;
+  hasOtherOption?: boolean;
+  otherPlaceholder?: string;
 }
 
 interface CounselorAssessmentResponse {
@@ -37,6 +40,18 @@ interface CounselorAssessmentResponse {
   jobSecurity?: string;
   subjectsStrengths?: string[];
   interestsPassions?: string;
+  workExperience?: string;
+  academicPerformance?: {
+    inputMethod?: string;
+    gradesText?: string;
+    transcriptFile?: File | null;
+  };
+  legacyImpact?: string;
+  personalTraits?: {
+    selected?: string[];
+    other?: string;
+  };
+  inspirationRoleModels?: string;
 }
 
 export default function CounselorAssessmentPage() {
@@ -64,7 +79,10 @@ export default function CounselorAssessmentPage() {
       }
       
       const data = await response.json();
+      console.log('Received questions data:', data);
+      
       if (data.success) {
+        console.log('Number of questions received:', data.data.length);
         setQuestions(data.data.sort((a: CounselorQuestion, b: CounselorQuestion) => a.order - b.order));
         setIsLoading(false);
       } else {
@@ -124,25 +142,58 @@ export default function CounselorAssessmentPage() {
     const currentQuestion = questions[currentIndex];
     const currentAnswer = selectedAnswers[currentQuestion.id];
 
+    // Check if question is optional
+    const isOptional = currentQuestion.required === false;
+
     // Validate required answers
     if (currentQuestion.type === 'combined') {
       if (!currentAnswer?.grade || !currentAnswer?.zipCode) {
         alert('Please fill in both grade and ZIP code');
         return;
       }
+    } else if (currentQuestion.type === 'combined_input') {
+      // For combined_input (academic performance), it's optional
+      const inputMethod = currentAnswer?.inputMethod;
+      if (inputMethod === 'Type grades manually') {
+        const gradesText = currentAnswer?.gradesText?.trim();
+        if (!gradesText) {
+          alert('Please enter your grades or select a different option');
+          return;
+        }
+      } else if (inputMethod === 'Upload transcript file') {
+        if (!currentAnswer?.transcriptFile) {
+          alert('Please upload a transcript file or select a different option');
+          return;
+        }
+      }
+      // If inputMethod is 'skip' or empty, that's fine for optional questions
     } else if (currentQuestion.type === 'multiple_choice') {
-      if (!currentAnswer || currentAnswer.length === 0) {
+      if (!isOptional && (!currentAnswer || currentAnswer.length === 0)) {
         alert('Please select at least one option');
+        return;
+      }
+    } else if (currentQuestion.type === 'multiple_choice_with_other') {
+      const selectedOptions = currentAnswer?.selected || [];
+      const otherText = currentAnswer?.other || '';
+      
+      if (!isOptional && selectedOptions.length === 0 && !otherText.trim()) {
+        alert('Please select at least one trait or describe your own');
         return;
       }
     } else if (currentQuestion.type === 'free_text') {
       const minLength = currentQuestion.minLength || 10;
-      if (!currentAnswer || currentAnswer.length < minLength) {
-        alert(`Please provide a more detailed response about your interests and hobbies. You need at least ${minLength} characters (currently ${(currentAnswer || '').length}). Be specific about what you enjoy doing!`);
+      // For optional questions, allow empty answers or answers that meet minimum length
+      if (!isOptional && (!currentAnswer || currentAnswer.length < minLength)) {
+        alert(`Please provide a more detailed response. You need at least ${minLength} characters (currently ${(currentAnswer || '').length}). Be specific!`);
+        return;
+      }
+      // For optional questions, if they start typing, they should meet minimum length (unless minLength is 0)
+      if (isOptional && currentAnswer && minLength > 0 && currentAnswer.length < minLength) {
+        alert(`If you choose to answer this optional question, please provide at least ${minLength} characters (currently ${currentAnswer.length}). You can also skip this question.`);
         return;
       }
     } else {
-      if (!currentAnswer) {
+      if (!isOptional && !currentAnswer) {
         alert('Please select an answer');
         return;
       }
@@ -172,6 +223,16 @@ export default function CounselorAssessmentPage() {
       newResponses.subjectsStrengths = Array.isArray(currentAnswer) ? currentAnswer : [currentAnswer];
     } else if (currentQuestion.id === 'interests_passions') {
       newResponses.interestsPassions = currentAnswer;
+    } else if (currentQuestion.id === 'work_experience') {
+      newResponses.workExperience = currentAnswer;
+    } else if (currentQuestion.id === 'academic_performance') {
+      newResponses.academicPerformance = currentAnswer;
+    } else if (currentQuestion.id === 'legacy_impact') {
+      newResponses.legacyImpact = currentAnswer;
+    } else if (currentQuestion.id === 'personal_traits') {
+      newResponses.personalTraits = currentAnswer;
+    } else if (currentQuestion.id === 'inspiration_role_models') {
+      newResponses.inspirationRoleModels = currentAnswer;
     }
 
     setResponses(newResponses);
@@ -191,18 +252,48 @@ export default function CounselorAssessmentPage() {
       const token = localStorage.getItem('token');
       const userId = localStorage.getItem('userId');
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/counselor-assessment/submit`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
-        body: JSON.stringify({ 
-          sessionId, 
-          responses: finalResponses,
-          userId: userId ? parseInt(userId) : null
-        })
-      });
+      // Check if there's a file to upload
+      const hasFile = finalResponses.academicPerformance?.transcriptFile;
+      
+      let response;
+      
+      if (hasFile) {
+        // Use FormData for file upload
+        const formData = new FormData();
+        formData.append('sessionId', sessionId || '');
+        formData.append('userId', userId || '');
+        formData.append('responses', JSON.stringify({
+          ...finalResponses,
+          academicPerformance: {
+            ...finalResponses.academicPerformance,
+            transcriptFile: null // Remove file from JSON, it's in FormData
+          }
+        }));
+        formData.append('transcriptFile', finalResponses.academicPerformance.transcriptFile);
+
+        response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/counselor-assessment/submit`, {
+          method: 'POST',
+          headers: { 
+            ...(token && { 'Authorization': `Bearer ${token}` })
+            // Don't set Content-Type for FormData, browser will set it with boundary
+          },
+          body: formData
+        });
+      } else {
+        // Regular JSON submission
+        response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/counselor-assessment/submit`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` })
+          },
+          body: JSON.stringify({ 
+            sessionId, 
+            responses: finalResponses,
+            userId: userId ? parseInt(userId) : null
+          })
+        });
+      }
 
       const data = await response.json();
       if (data.success) {
@@ -314,6 +405,184 @@ export default function CounselorAssessmentPage() {
       );
     }
 
+    if (question.type === 'multiple_choice_with_other') {
+      const currentAnswer = selectedAnswers[question.id] || { selected: [], other: '' };
+      const selectedOptions = Array.isArray(currentAnswer.selected) ? currentAnswer.selected : [];
+      const otherText = currentAnswer.other || '';
+
+      return (
+        <div className="space-y-4">
+          {/* Predefined options */}
+          <div className="space-y-3">
+            {question.options?.map((option, index) => (
+              <label key={index} className="flex items-center space-x-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={selectedOptions.includes(option)}
+                  onChange={(e) => {
+                    const newSelected = e.target.checked
+                      ? [...selectedOptions, option]
+                      : selectedOptions.filter(item => item !== option);
+                    
+                    handleAnswerChange(question.id, {
+                      ...currentAnswer,
+                      selected: newSelected
+                    });
+                  }}
+                  className="w-4 h-4 text-blue-600"
+                />
+                <span>{option}</span>
+              </label>
+            ))}
+          </div>
+
+          {/* Other option */}
+          {question.hasOtherOption && (
+            <div className="border-t pt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Other traits (describe in your own words):
+              </label>
+              <textarea
+                value={otherText}
+                onChange={(e) => {
+                  handleAnswerChange(question.id, {
+                    ...currentAnswer,
+                    other: e.target.value
+                  });
+                }}
+                placeholder={question.otherPlaceholder || "Describe other traits..."}
+                rows={3}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg resize-none focus:border-blue-500 focus:outline-none"
+              />
+              <div className="text-sm text-gray-500 mt-1">
+                {otherText.length} characters
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    if (question.type === 'combined_input' && question.fields) {
+      const currentAnswer = selectedAnswers[question.id] || {};
+      const inputMethod = currentAnswer.inputMethod || '';
+      
+      return (
+        <div className="space-y-6">
+          {/* Input method selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              How would you like to share your academic information?
+            </label>
+            <div className="space-y-2">
+              {question.fields.inputMethod?.options?.map((option, index) => (
+                <label key={index} className="flex items-center space-x-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name={`${question.id}_method`}
+                    value={option}
+                    checked={inputMethod === option}
+                    onChange={(e) => {
+                      const newValue = {
+                        ...selectedAnswers[question.id],
+                        inputMethod: e.target.value,
+                        // Clear the other field when switching methods
+                        gradesText: e.target.value === 'Type grades manually' ? (selectedAnswers[question.id]?.gradesText || '') : '',
+                        transcriptFile: e.target.value === 'Upload transcript file' ? (selectedAnswers[question.id]?.transcriptFile || null) : null
+                      };
+                      handleAnswerChange(question.id, newValue);
+                    }}
+                    className="w-4 h-4 text-blue-600"
+                  />
+                  <span className="text-gray-700">{option}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Text input for manual entry */}
+          {inputMethod === 'Type grades manually' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Enter your grades or academic performance:
+              </label>
+              <textarea
+                value={currentAnswer.gradesText || ''}
+                onChange={(e) => {
+                  const newValue = {
+                    ...selectedAnswers[question.id],
+                    gradesText: e.target.value
+                  };
+                  handleAnswerChange(question.id, newValue);
+                }}
+                placeholder={question.fields?.gradesText?.placeholder}
+                maxLength={question.fields?.gradesText?.maxLength}
+                rows={4}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg resize-none focus:border-blue-500 focus:outline-none"
+              />
+              <div className="text-sm text-gray-500 mt-1">
+                {(currentAnswer.gradesText || '').length} / {question.fields?.gradesText?.maxLength || 500} characters
+              </div>
+            </div>
+          )}
+
+          {/* File upload for transcript */}
+          {inputMethod === 'Upload transcript file' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Upload your transcript (PDF or CSV format):
+              </label>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                <input
+                  type="file"
+                  accept=".pdf,.csv"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || null;
+                    const newValue = {
+                      ...selectedAnswers[question.id],
+                      transcriptFile: file
+                    };
+                    handleAnswerChange(question.id, newValue);
+                  }}
+                  className="hidden"
+                  id={`file-upload-${question.id}`}
+                />
+                <label htmlFor={`file-upload-${question.id}`} className="cursor-pointer">
+                  <div className="space-y-2">
+                    <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                      <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <div className="text-gray-600">
+                      <span className="font-medium text-blue-600 hover:text-blue-500">Click to upload</span> or drag and drop
+                    </div>
+                    <p className="text-sm text-gray-500">PDF or CSV files only</p>
+                  </div>
+                </label>
+                {currentAnswer.transcriptFile && (
+                  <div className="mt-3 text-sm text-green-600">
+                    ✅ File selected: {currentAnswer.transcriptFile.name}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Skip option */}
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={() => {
+                handleAnswerChange(question.id, { inputMethod: 'skip' });
+              }}
+              className="text-gray-500 hover:text-gray-700 text-sm underline"
+            >
+              Skip this question
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     if (question.type === 'free_text') {
       const currentLength = (currentAnswer || '').length;
       const minLength = question.minLength || 10;
@@ -345,13 +614,18 @@ export default function CounselorAssessmentPage() {
                   : 'text-yellow-600'
             }`}>
               {currentLength === 0 && (
-                <span>💡 Please share your interests and hobbies (minimum {minLength} characters)</span>
+                <span>
+                  {question.required === false 
+                    ? `💡 Optional: Share your ${question.category === 'academics' ? 'grades/academic performance' : 'interests and hobbies'} (minimum ${minLength} characters if you choose to answer)`
+                    : `💡 Please share your interests and hobbies (minimum ${minLength} characters)`
+                  }
+                </span>
               )}
-              {currentLength > 0 && !isValid && (
+              {currentLength > 0 && !isValid && minLength > 0 && (
                 <span>📝 Keep writing... {minLength - currentLength} more characters needed</span>
               )}
-              {isValid && (
-                <span>✅ Great! You can proceed to the next question</span>
+              {(isValid || (question.required === false && minLength === 0)) && (
+                <span>✅ {question.required === false ? 'You can skip this or continue to the next question' : 'Great! You can proceed to the next question'}</span>
               )}
             </div>
             <div className={`text-sm ${
@@ -371,7 +645,16 @@ export default function CounselorAssessmentPage() {
       );
     }
 
-    return null;
+    return (
+      <div>
+        <p className="text-red-600">
+          Error: Unknown question type "{question.type}". Please contact support.
+        </p>
+        <pre className="text-xs text-gray-500 mt-2">
+          {JSON.stringify(question, null, 2)}
+        </pre>
+      </div>
+    );
   };
 
   if (isLoading) {
@@ -402,6 +685,35 @@ export default function CounselorAssessmentPage() {
   const currentQuestion = questions[currentIndex];
   const progress = ((currentIndex + 1) / questions.length) * 100;
 
+  // Debug info
+  console.log('Current questions array:', questions.length, 'questions loaded');
+  console.log('Current question index:', currentIndex);
+  console.log('Current question:', currentQuestion);
+
+  if (!currentQuestion) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header title="Enhanced Career Assessment" />
+        <div className="py-12 px-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+              <h2 className="text-xl font-semibold text-red-600 mb-4">Error: No Question Found</h2>
+              <p className="text-red-600">
+                Question index {currentIndex} not found. Total questions: {questions.length}
+              </p>
+              <details className="mt-4">
+                <summary className="cursor-pointer text-red-600">Show all questions</summary>
+                <pre className="text-xs text-red-500 mt-2 overflow-auto">
+                  {JSON.stringify(questions, null, 2)}
+                </pre>
+              </details>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header title="Enhanced Career Assessment" />
@@ -425,10 +737,34 @@ export default function CounselorAssessmentPage() {
               <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full mb-4">
                 {currentQuestion.category.replace(/_/g, ' ').toUpperCase()}
               </span>
-              <h2 className="text-2xl font-semibold">{currentQuestion.text}</h2>
+              <h2 className="text-2xl font-semibold">
+                {currentQuestion.text}
+                {currentQuestion.required === false && (
+                  <span className="text-lg text-gray-500 font-normal ml-2">(Optional)</span>
+                )}
+              </h2>
             </div>
             
-            {renderQuestionInput(currentQuestion)}
+            {(() => {
+              try {
+                return renderQuestionInput(currentQuestion);
+              } catch (error) {
+                console.error('Error rendering question:', currentQuestion, error);
+                return (
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-red-600 font-medium">Error rendering this question</p>
+                    <p className="text-sm text-red-500 mt-1">Question ID: {currentQuestion.id}</p>
+                    <p className="text-sm text-red-500">Type: {currentQuestion.type}</p>
+                    <details className="mt-2">
+                      <summary className="text-sm text-red-600 cursor-pointer">Show details</summary>
+                      <pre className="text-xs text-red-500 mt-1 overflow-auto">
+                        {JSON.stringify(currentQuestion, null, 2)}
+                      </pre>
+                    </details>
+                  </div>
+                );
+              }
+            })()}
 
             <div className="mt-8 flex justify-between">
               <button

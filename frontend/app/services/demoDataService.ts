@@ -65,6 +65,14 @@ export const demoDataService = {
         "Job stability and benefits",
         "Opportunities for advancement"
       ]
+    },
+    {
+      id: "6",
+      order: 6,
+      text: "What previous work or volunteer experience do you have? (Include part-time jobs, internships, volunteer work, family business, etc.)",
+      type: "text",
+      category: "experience",
+      placeholder: "Example: I worked at a local restaurant as a server, volunteered at the animal shelter on weekends, helped with my family's farm during summers..."
     }
   ],
 

@@ -16,6 +16,18 @@ import { DatabaseAdapter } from './services/databaseAdapter';
 // Load environment variables
 dotenv.config();
 
+// Build CORS allowlist from env first, then sensible defaults
+const allowedOrigins = [
+  ...(process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',').map(url => url.trim()) : []),
+  ...(process.env.NODE_ENV === 'production'
+    ? [
+        'https://main.d2ymtj6aumrj0m.amplifyapp.com',
+        'https://d2ymtj6aumrj0m.amplifyapp.com',
+        'https://*.amplifyapp.com'
+      ]
+    : ['http://localhost:3000', 'http://localhost:3001'])
+].filter(Boolean);
+
 // Debug: Check if OpenAI API key is loaded
 console.log('🔑 Environment check - OpenAI API key loaded:', !!process.env.OPENAI_API_KEY);
 console.log('🔑 Environment check - API key length:', process.env.OPENAI_API_KEY?.length || 0);
@@ -25,6 +37,7 @@ console.log('🌐 CORS configuration:');
 console.log('   - Environment:', process.env.NODE_ENV);
 console.log('   - Frontend URL:', process.env.FRONTEND_URL);
 console.log('   - Port:', process.env.PORT || 3002);
+console.log('   - Allowed origins:', allowedOrigins);
 
 // Initialize database
 
@@ -34,13 +47,7 @@ const PORT = process.env.PORT || 3002;
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || process.env.NODE_ENV === 'production' 
-    ? [
-        'https://main.d2ymtj6aumrj0m.amplifyapp.com', 
-        'https://d2ymtj6aumrj0m.amplifyapp.com',
-        'https://*.amplifyapp.com' // Allow all Amplify domains
-      ]
-    : ['http://localhost:3000', 'http://localhost:3001'],
+  origin: allowedOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']

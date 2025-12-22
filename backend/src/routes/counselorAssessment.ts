@@ -1,4 +1,6 @@
 import express from 'express';
+import multer from 'multer';
+import path from 'path';
 import { CounselorGuidanceService, CounselorAssessmentResponse } from '../services/counselorGuidanceService';
 import { AssessmentServiceDB } from '../services/assessmentServiceDB';
 import { CareerPlanService } from '../services/careerPlanService';
@@ -7,6 +9,32 @@ import { authenticateToken } from '../middleware/auth';
 // File system imports removed - using embedded questions instead
 
 const router = express.Router();
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/transcripts/'); // Make sure this directory exists
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'transcript-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['.pdf', '.csv'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowedTypes.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only PDF and CSV files are allowed'));
+    }
+  }
+});
+
 
 // GET /api/counselor-assessment/questions
 router.get('/questions', (req, res) => {
@@ -155,6 +183,89 @@ router.get('/questions', (req, res) => {
         "placeholder": "Describe your interests, hobbies, activities you enjoy, things you're curious about, or causes you care about...",
         "minLength": 20,
         "maxLength": 500
+      },
+      {
+        "id": "work_experience",
+        "order": 11,
+        "text": "What previous work or volunteer experience do you have? Include any part-time jobs, internships, volunteer work, family business involvement, or other hands-on experience. If you don't have any yet, just write 'None yet' and tell us what you'd like to try.",
+        "type": "free_text",
+        "category": "experience",
+        "placeholder": "Example: I worked at a local restaurant as a server for 6 months, volunteered at the animal shelter on weekends, helped with my family's farm during summers, or 'None yet, but I'm interested in trying retail or healthcare volunteering'...",
+        "minLength": 20,
+        "maxLength": 500
+      },
+      {
+        "id": "academic_performance",
+        "order": 12,
+        "text": "Share your grades or academic performance (Optional). This helps me understand your academic strengths and suggest careers that match your abilities.",
+        "type": "combined_input",
+        "category": "academics",
+        "fields": {
+          "inputMethod": {
+            "type": "radio",
+            "options": ["Type grades manually", "Upload transcript file"],
+            "required": false
+          },
+          "gradesText": {
+            "type": "textarea",
+            "placeholder": "Example: 'Math: A, Science: B+, English: A-, GPA: 3.4' or 'Strong in STEM classes, struggle with writing, honor roll last semester'...",
+            "maxLength": 500,
+            "required": false
+          },
+          "transcriptFile": {
+            "type": "file",
+            "accept": ".pdf,.csv",
+            "placeholder": "Upload your transcript (PDF or CSV format)",
+            "required": false
+          }
+        },
+        "required": false
+      },
+      {
+        "id": "legacy_impact",
+        "order": 13,
+        "text": "How do you want to be remembered? What kind of impact do you want to have on the world or the people around you?",
+        "type": "free_text",
+        "category": "values",
+        "placeholder": "Think about the legacy you want to leave behind. For example: 'I want to be remembered as someone who helped sick children get better' or 'I want to be known for building things that make people's lives easier' or 'I want to leave the world a little better than I found it'...",
+        "minLength": 30,
+        "maxLength": 500,
+        "required": true
+      },
+      {
+        "id": "personal_traits",
+        "order": 14,
+        "text": "Which personal traits best describe you? (Select all that apply)",
+        "type": "multiple_choice_with_other",
+        "category": "personality",
+        "options": [
+          "Creative and artistic",
+          "Analytical and logical",
+          "Compassionate and caring",
+          "Leadership-oriented",
+          "Detail-oriented and organized",
+          "Adventurous and risk-taking",
+          "Patient and persistent",
+          "Outgoing and social",
+          "Independent and self-reliant",
+          "Collaborative and team-focused",
+          "Curious and inquisitive",
+          "Practical and hands-on"
+        ],
+        "hasOtherOption": true,
+        "otherPlaceholder": "Describe other traits that define you...",
+        "required": true
+      },
+      {
+        "id": "inspiration_role_models",
+        "order": 15,
+        "text": "Who inspires you and why? This could be someone you know personally, a public figure, historical person, or fictional character.",
+        "type": "free_text",
+        "category": "values",
+        "placeholder": "Tell me about someone who inspires you and what qualities they have that you admire. For example: 'My grandmother inspires me because she never gave up despite facing many challenges' or 'I'm inspired by Marie Curie because she broke barriers in science' or 'My coach inspires me because they believe in everyone's potential'...",
+        "minLength": 30,
+        "maxLength": 500,
+        "required": true
       }
     ];
     
@@ -173,15 +284,33 @@ router.get('/questions', (req, res) => {
 });
 
 // POST /api/counselor-assessment/submit
-router.post('/submit', async (req, res) => {
+router.post('/submit', upload.single('transcriptFile'), async (req, res) => {
   try {
-    const { sessionId, responses, userId } = req.body;
+    const { sessionId, userId } = req.body;
+    let responses = req.body.responses;
+    
+    // Parse responses if it's a string (from FormData)
+    if (typeof responses === 'string') {
+      responses = JSON.parse(responses);
+    }
 
     if (!responses) {
       return res.status(400).json({
         success: false,
         error: 'Assessment responses are required'
       } as ApiResponse);
+    }
+
+    // Handle uploaded file
+    if (req.file) {
+      console.log('📁 Transcript file uploaded:', req.file.filename);
+      // Add file info to responses
+      if (!responses.academicPerformance) {
+        responses.academicPerformance = {};
+      }
+      responses.academicPerformance.transcriptFileName = req.file.filename;
+      responses.academicPerformance.transcriptPath = req.file.path;
+      responses.academicPerformance.originalFileName = req.file.originalname;
     }
 
     // Validate required fields
