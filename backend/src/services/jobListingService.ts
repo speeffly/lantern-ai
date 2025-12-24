@@ -1,3 +1,6 @@
+import { RealJobProvider } from './realJobProvider';
+import OpenAI from 'openai';
+
 export interface JobListing {
   id: string;
   title: string;
@@ -25,12 +28,22 @@ export class JobListingService {
     limit: number = 10
   ): Promise<JobListing[]> {
     try {
-      // In a real implementation, this would call job APIs
-      // For demo purposes, we'll return mock data that looks realistic
-      
+      // Prefer real jobs when enabled and available
+      const realJobs = await RealJobProvider.searchJobs({
+        careerTitle,
+        zipCode,
+        radiusMiles,
+        limit
+      });
+
+      if (realJobs.length > 0) {
+        console.log(`🟢 Using real jobs for career "${careerTitle}" in ${zipCode}: ${realJobs.length} found`);
+        return realJobs.slice(0, limit);
+      }
+
+      // Otherwise, return mock data that looks realistic
+      console.log(`🟠 Falling back to mock jobs for career "${careerTitle}" in ${zipCode}`);
       const mockJobs = this.generateMockJobs(careerTitle, zipCode);
-      
-      // Filter and sort by relevance and distance
       return mockJobs
         .filter(job => (job.distanceFromStudent || 0) <= radiusMiles)
         .sort((a, b) => (a.distanceFromStudent || 0) - (b.distanceFromStudent || 0))
@@ -63,97 +76,20 @@ export class JobListingService {
    * Get job templates based on career type
    */
   private static getJobTemplates(careerTitle: string): Omit<JobListing, 'id' | 'location' | 'distanceFromStudent' | 'postedDate' | 'applicationUrl'>[] {
-    const templates: { [key: string]: Omit<JobListing, 'id' | 'location' | 'distanceFromStudent' | 'postedDate' | 'applicationUrl'>[] } = {
-      'Registered Nurse': [
-        {
-          title: 'Registered Nurse - Med/Surg',
-          company: 'Regional Medical Center',
-          salary: '$70,000 - $85,000',
-          description: 'Provide direct patient care in medical-surgical unit. Work with interdisciplinary team to deliver quality healthcare.',
-          requirements: ['RN License', 'BSN preferred', '1+ years experience preferred', 'BLS certification'],
-          source: 'indeed',
-          experienceLevel: 'entry',
-          educationRequired: 'Associate Degree'
-        },
-        {
-          title: 'Staff Nurse - Emergency Department',
-          company: 'Community Hospital',
-          salary: '$75,000 - $90,000',
-          description: 'Fast-paced emergency department seeking compassionate RN. Trauma experience a plus.',
-          requirements: ['RN License', 'ACLS certification', 'Emergency experience preferred', 'Strong communication skills'],
-          source: 'linkedin',
-          experienceLevel: 'entry',
-          educationRequired: 'Associate Degree'
-        },
-        {
-          title: 'New Graduate RN Program',
-          company: 'Rural Health Network',
-          salary: '$65,000 - $75,000',
-          description: 'Comprehensive orientation program for new graduate nurses. Mentorship and continuing education provided.',
-          requirements: ['RN License', 'New graduate or <1 year experience', 'BSN preferred', 'Commitment to rural healthcare'],
-          source: 'local',
-          experienceLevel: 'entry',
-          educationRequired: 'Associate Degree'
-        }
-      ],
-      'Electrician': [
-        {
-          title: 'Apprentice Electrician',
-          company: 'County Electric Co.',
-          salary: '$35,000 - $45,000',
-          description: 'Learn electrical trade through hands-on experience. Work on residential and commercial projects.',
-          requirements: ['High school diploma', 'Valid driver\'s license', 'Physical ability to lift 50lbs', 'Willingness to learn'],
-          source: 'indeed',
-          experienceLevel: 'entry',
-          educationRequired: 'High School'
-        },
-        {
-          title: 'Journeyman Electrician',
-          company: 'Industrial Power Solutions',
-          salary: '$55,000 - $70,000',
-          description: 'Install and maintain electrical systems in industrial facilities. Some travel required.',
-          requirements: ['Journeyman license', '3+ years experience', 'Industrial experience preferred', 'Own tools'],
-          source: 'linkedin',
-          experienceLevel: 'mid',
-          educationRequired: 'Certificate'
-        },
-        {
-          title: 'Electrical Trainee',
-          company: 'Municipal Utilities',
-          salary: '$40,000 - $50,000',
-          description: 'Entry-level position with full benefits. Training provided for power line maintenance.',
-          requirements: ['High school diploma', 'CDL preferred', 'No experience required', 'Physical fitness required'],
-          source: 'government',
-          experienceLevel: 'entry',
-          educationRequired: 'High School'
-        }
-      ],
-      'Medical Assistant': [
-        {
-          title: 'Medical Assistant - Family Practice',
-          company: 'Family Health Clinic',
-          salary: '$32,000 - $38,000',
-          description: 'Support physicians in busy family practice. Patient interaction and clinical duties.',
-          requirements: ['Medical Assistant certification', 'EHR experience preferred', 'Excellent communication', 'Bilingual a plus'],
-          source: 'indeed',
-          experienceLevel: 'entry',
-          educationRequired: 'Certificate'
-        },
-        {
-          title: 'Clinical Medical Assistant',
-          company: 'Specialty Care Associates',
-          salary: '$35,000 - $42,000',
-          description: 'Work in specialty clinic performing clinical and administrative duties.',
-          requirements: ['CMA certification', '1+ years experience', 'Phlebotomy skills', 'Computer proficiency'],
-          source: 'local',
-          experienceLevel: 'entry',
-          educationRequired: 'Certificate'
-        }
-      ]
-    };
-
-    // Return jobs for the specific career, or generic jobs if not found
-    return templates[careerTitle] || templates['Registered Nurse'];
+    // Minimal generic templates to avoid hardcoded manual jobs; rely on real provider whenever possible
+    const title = careerTitle || 'Job Opportunity';
+    return [
+      {
+        title: `${title} - Local Opportunity`,
+        company: 'Local Employer',
+        salary: undefined,
+        description: `Explore ${title} roles in your area.`,
+        requirements: [],
+        source: 'local',
+        experienceLevel: 'entry',
+        educationRequired: 'Not specified'
+      }
+    ];
   }
 
   /**
@@ -217,7 +153,39 @@ export class JobListingService {
     radiusMiles: number = 40,
     limit: number = 20
   ): Promise<JobListing[]> {
-    // In real implementation, this would search across multiple job APIs
+    // Prefer real jobs when enabled and available (try keyword-first)
+    const realJobs = await RealJobProvider.searchJobs({
+      keywords,
+      zipCode,
+      radiusMiles,
+      limit
+    });
+
+    if (realJobs.length > 0) {
+      console.log(`🟢 Using real jobs for search "${keywords}" in ${zipCode}: ${realJobs.length} found`);
+      return realJobs.slice(0, limit);
+    }
+
+    // If no keyword hits, try AI-expanded keywords to broaden real-job search
+    const expandedKeywords = await this.expandKeywords(keywords);
+    const expandedResults: JobListing[] = [];
+    for (const kw of expandedKeywords) {
+      const extra = await RealJobProvider.searchJobs({
+        keywords: kw,
+        zipCode,
+        radiusMiles,
+        limit
+      });
+      expandedResults.push(...extra);
+      if (expandedResults.length >= limit) break;
+    }
+
+    if (expandedResults.length > 0) {
+      console.log(`🟢 Using real jobs for expanded search "${keywords}" -> [${expandedKeywords.join(', ')}] in ${zipCode}: ${expandedResults.length} found`);
+      return this.dedup(expandedResults).slice(0, limit);
+    }
+
+    // If still empty, try inferring careers and searching those (may still hit real jobs inside getJobListings)
     const relevantCareers = this.findRelevantCareers(keywords);
     const allJobs: JobListing[] = [];
 
@@ -226,12 +194,64 @@ export class JobListingService {
       allJobs.push(...jobs);
     }
 
+    if (allJobs.length > 0) {
+      console.log(`🟠 Using fallback/mock jobs for search "${keywords}" in ${zipCode}: ${allJobs.length} found`);
+    } else {
+      console.log(`🔴 No jobs found for search "${keywords}" in ${zipCode} (real provider unreachable or empty)`);
+    }
+
     return allJobs
       .filter(job => 
         job.title.toLowerCase().includes(keywords.toLowerCase()) ||
         job.description.toLowerCase().includes(keywords.toLowerCase())
       )
       .slice(0, limit);
+  }
+
+  /**
+   * Use AI to expand the keyword space (returns real-job results via provider)
+   */
+  private static async expandKeywords(base: string): Promise<string[]> {
+    const useRealAI = process.env.USE_REAL_AI === 'true';
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!useRealAI || !apiKey || !base) return [];
+
+    try {
+      const client = new OpenAI({ apiKey });
+      const prompt = `You are a jobs search assistant. Given a user search phrase, return 5 concise, distinct related search phrases that could find more jobs (titles, skills, or industries), separated by commas. Do NOT include explanations.\nUser phrase: "${base}"\nRelated phrases:`;
+
+      const resp = await client.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 60,
+        temperature: 0.6
+      });
+
+      const text = resp.choices[0]?.message?.content || '';
+      return text
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean)
+        .filter((kw, idx, arr) => arr.indexOf(kw) === idx);
+    } catch (err) {
+      console.error('AI keyword expansion failed, continuing without it:', err);
+      return [];
+    }
+  }
+
+  /**
+   * Deduplicate job listings by applicationUrl/id/title/company combo
+   */
+  private static dedup(jobs: JobListing[]): JobListing[] {
+    const seen = new Set<string>();
+    const out: JobListing[] = [];
+    for (const job of jobs) {
+      const key = (job.applicationUrl || job.id || '') + '|' + job.title + '|' + job.company;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(job);
+    }
+    return out;
   }
 
   /**

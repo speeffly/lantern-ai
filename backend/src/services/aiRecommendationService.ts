@@ -272,9 +272,9 @@ COUNSELING APPROACH:
 
 You always provide specific, detailed recommendations with clear reasoning, actionable next steps, realistic timelines, and thorough consideration of rural challenges and unique opportunities.`;
 
-    const userPrompt = `${context}
+const userPrompt = `${context}
 
-As Dr. Sarah Martinez, provide comprehensive career guidance for this rural high school student. Your recommendations should be detailed, practical, and specifically tailored to their rural context. Use your 15 years of experience to provide professional-quality guidance.
+As Dr. Sarah Martinez, provide comprehensive career guidance for this rural high school student. Your recommendations should be detailed, practical, and specifically tailored to their rural context. Use your 15 years of experience to provide professional-quality guidance. Factor the provided ZIP code into every recommendation (local availability, commuting feasibility, remote or hybrid options).
 
 Provide your analysis in the following JSON format with detailed, specific recommendations:
 
