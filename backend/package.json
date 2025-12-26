@@ -27,7 +27,7 @@
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",
-    "nodemailer": "^6.9.7",
+    "nodemailer": "^7.0.12",
     "openai": "^4.20.1",
     "pdfkit": "^0.13.0",
     "pg": "^8.11.3",

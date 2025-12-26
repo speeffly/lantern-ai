@@ -93,7 +93,7 @@ export class RealJobProvider {
             experienceLevel: 'entry',
             educationRequired: 'Not specified',
             distanceFromStudent: undefined
-          }));
+          } as JobListing));
 
         collected.push(...mapped);
 
