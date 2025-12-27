@@ -32,6 +32,7 @@ const allowedOrigins = [
 console.log('🔑 Environment check - OpenAI API key loaded:', !!process.env.OPENAI_API_KEY);
 console.log('🔑 Environment check - API key length:', process.env.OPENAI_API_KEY?.length || 0);
 console.log('🔧 Environment check - USE_REAL_AI flag:', process.env.USE_REAL_AI || 'not set');
+console.log('💰 Note: If using real AI, ensure OpenAI account has sufficient credits');
 
 // Debug: CORS configuration
 console.log('🌐 CORS configuration:');
@@ -194,7 +195,10 @@ app.get('/api/debug/env', (req, res) => {
       DATABASE_URL: process.env.DATABASE_URL ? 'present' : 'missing',
       OPENAI_API_KEY: process.env.OPENAI_API_KEY ? 'present' : 'missing',
       OPENAI_KEY_LENGTH: process.env.OPENAI_API_KEY?.length || 0,
+      GEMINI_API_KEY: process.env.GEMINI_API_KEY ? 'present' : 'missing',
+      GEMINI_KEY_LENGTH: process.env.GEMINI_API_KEY?.length || 0,
       USE_REAL_AI: process.env.USE_REAL_AI || 'not set',
+      AI_PROVIDER: process.env.AI_PROVIDER || 'openai',
       FRONTEND_URL: process.env.FRONTEND_URL || 'not set',
       PORT: process.env.PORT || 3002,
       RENDER: process.env.RENDER ? 'true' : 'false'

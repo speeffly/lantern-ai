@@ -150,7 +150,7 @@ export default function Header({ showAuthButtons = true, title }: HeaderProps) {
             </Link>
             {user && (
               <>
-                <Link href="/assessment" className="text-gray-700 hover:text-blue-600 transition-colors">
+                <Link href="/counselor-assessment" className="text-gray-700 hover:text-blue-600 transition-colors">
                   📝 Assessment
                 </Link>
                 <Link href="/profile" className="text-gray-700 hover:text-blue-600 transition-colors">

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Header from '../components/Header';
 
 interface CounselorQuestion {
@@ -56,18 +56,220 @@ interface CounselorAssessmentResponse {
 
 export default function CounselorAssessmentPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [questions, setQuestions] = useState<CounselorQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [responses, setResponses] = useState<CounselorAssessmentResponse>({});
   const [selectedAnswers, setSelectedAnswers] = useState<{ [key: string]: any }>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [previousResults, setPreviousResults] = useState<any>(null);
+  const [showPreviousResults, setShowPreviousResults] = useState(false);
+  const [hasRestoredAnswers, setHasRestoredAnswers] = useState(false);
+  const ANSWER_STORAGE_KEY = 'counselorAssessmentAnswers';
+  const ANSWER_STALE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+  const forceRetake = searchParams.get('retake') === 'true';
 
   useEffect(() => {
-    fetchQuestions();
+    checkForPreviousResults();
   }, []);
 
+  // Reapply stored answers once questions are loaded to avoid race conditions on first render
+  useEffect(() => {
+    if (!hasRestoredAnswers && !isLoading && questions.length > 0) {
+      const storedAnswers = loadStoredAnswers();
+      if (storedAnswers) {
+        console.log('✅ Reapplying stored answers after questions loaded');
+        setSelectedAnswers(prev => ({
+          ...storedAnswers.selectedAnswers,
+          ...prev
+        }));
+        setResponses(prev => ({
+          ...storedAnswers.responses,
+          ...prev
+        }));
+      }
+      setHasRestoredAnswers(true);
+    }
+  }, [hasRestoredAnswers, isLoading, questions.length]);
+
+  const serializeWithoutFiles = (data: any) => {
+    try {
+      return JSON.parse(JSON.stringify(data, (_key, value) => {
+        if (typeof File !== 'undefined' && value instanceof File) {
+          return { name: value.name, size: value.size, type: value.type };
+        }
+        return value;
+      }));
+    } catch (error) {
+      console.error('❌ Failed to serialize assessment answers:', error);
+      return null;
+    }
+  };
+
+  const loadStoredAnswers = () => {
+    try {
+      const raw = localStorage.getItem(ANSWER_STORAGE_KEY);
+      if (!raw) return null;
+
+      const stored = JSON.parse(raw);
+      const storedUser = localStorage.getItem('user');
+      const user = storedUser ? JSON.parse(storedUser) : null;
+      const isRecent = stored.timestamp && new Date(stored.timestamp).getTime() > Date.now() - ANSWER_STALE_MS;
+      const userMatches = !stored.userEmail || !user?.email || stored.userEmail === user.email;
+
+      if (!isRecent || !userMatches) {
+        return null;
+      }
+
+      return {
+        selectedAnswers: stored.selectedAnswers || {},
+        responses: stored.responses || {}
+      };
+    } catch (error) {
+      console.error('❌ Error loading stored assessment answers:', error);
+      return null;
+    }
+  };
+
+  const saveStoredAnswers = (finalResponses: CounselorAssessmentResponse) => {
+    try {
+      const sanitizedResponses = serializeWithoutFiles(finalResponses);
+      const sanitizedSelectedAnswers = serializeWithoutFiles(selectedAnswers);
+      if (!sanitizedResponses || !sanitizedSelectedAnswers) return;
+
+      const storedUser = localStorage.getItem('user');
+      const user = storedUser ? JSON.parse(storedUser) : null;
+
+      localStorage.setItem(ANSWER_STORAGE_KEY, JSON.stringify({
+        timestamp: new Date().toISOString(),
+        userEmail: user?.email || null,
+        responses: sanitizedResponses,
+        selectedAnswers: sanitizedSelectedAnswers
+      }));
+    } catch (error) {
+      console.error('❌ Error saving assessment answers for retake:', error);
+    }
+  };
+
+  const checkForPreviousResults = async () => {
+    console.log('🔍 Checking for previous results...');
+    
+    if (forceRetake) {
+      console.log('↩️ Retake requested via URL, skipping previous results view');
+      fetchQuestions();
+      return;
+    }
+    
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.log('❌ No token found, proceeding with normal assessment');
+      fetchQuestions();
+      return;
+    }
+
+    try {
+      // Check for previous results in localStorage first (faster and more reliable)
+      const storedResults = localStorage.getItem('counselorAssessmentResults');
+      const storedUser = localStorage.getItem('user');
+      
+      console.log('📦 Stored results found:', !!storedResults);
+      console.log('👤 Stored user found:', !!storedUser);
+      
+      if (storedResults && storedUser) {
+        console.log('✅ Found previous assessment results in localStorage');
+        const results = JSON.parse(storedResults);
+        const user = JSON.parse(storedUser);
+        
+        console.log('📊 Results data:', {
+          hasRecommendations: !!results.recommendations,
+          hasSummary: !!results.summary,
+          timestamp: results.timestamp,
+          userEmail: results.userEmail
+        });
+        
+        // Check if results are recent (within last 30 days) and belong to current user
+        const resultDate = new Date(results.timestamp || 0);
+        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        
+        console.log('📅 Result date:', resultDate);
+        console.log('📅 Thirty days ago:', thirtyDaysAgo);
+        console.log('📅 Is recent:', resultDate > thirtyDaysAgo);
+        console.log('👤 User match:', results.userEmail === user.email || !results.userEmail);
+        
+        if (resultDate > thirtyDaysAgo && (results.userEmail === user.email || !results.userEmail)) {
+          console.log('✅ Showing previous results');
+          setPreviousResults(results);
+          setShowPreviousResults(true);
+          setIsLoading(false);
+          return;
+        } else {
+          console.log('⚠️ Results are old or belong to different user, removing them');
+          localStorage.removeItem('counselorAssessmentResults');
+        }
+      }
+
+      console.log('📡 No valid localStorage results, checking server...');
+      // Try to fetch from server if available (this is optional)
+      // For now, just proceed with normal assessment since localStorage is more reliable
+      fetchQuestions();
+      
+    } catch (error) {
+      console.error('❌ Error checking previous results:', error);
+      fetchQuestions();
+    }
+  };
+
+  const fetchPreviousResults = async (sessionId: number) => {
+    try {
+      const token = localStorage.getItem('token');
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      
+      const response = await fetch(`${apiUrl}/api/counselor-assessment/results/${sessionId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Previous results fetched:', data);
+        
+        if (data.success && data.data.recommendations) {
+          setPreviousResults(data.data.recommendations);
+          setShowPreviousResults(true);
+          setIsLoading(false);
+          return;
+        }
+      }
+      
+      // Failed to fetch results, proceed with normal assessment
+      fetchQuestions();
+    } catch (error) {
+      console.error('Error fetching previous results:', error);
+      fetchQuestions();
+    }
+  };
+
+  const startNewAssessment = () => {
+    console.log('Starting new assessment...');
+    setShowPreviousResults(false);
+    setPreviousResults(null);
+    setCurrentIndex(0);
+    setResponses({});
+    setSelectedAnswers({});
+    setHasRestoredAnswers(false);
+    setIsLoading(true);
+    // Clear old results from localStorage
+    localStorage.removeItem('counselorAssessmentResults');
+    fetchQuestions();
+  };
+
   const fetchQuestions = async () => {
+    console.log('🔄 fetchQuestions called');
+    setIsLoading(true);
+    
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       console.log('Fetching counselor questions from:', `${apiUrl}/api/counselor-assessment/questions`);
@@ -80,52 +282,96 @@ export default function CounselorAssessmentPage() {
       
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
+        console.log('🔑 Using authentication token');
+      } else {
+        console.log('🔓 No authentication token found');
       }
       
       const response = await fetch(`${apiUrl}/api/counselor-assessment/questions`, {
         headers
       });
       
+      console.log('📡 Response status:', response.status);
+      
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
       const data = await response.json();
-      console.log('Received questions data:', data);
+      console.log('📦 Received questions data:', data);
       
       if (data.success) {
-        console.log('Number of questions received:', data.data.questions.length);
+        console.log('✅ API call successful');
+        console.log('📊 Number of questions received:', data.data.questions?.length || 0);
+        console.log('🔍 Questions structure:', data.data);
         
+        const storedAnswers = loadStoredAnswers();
+        let initialSelectedAnswers = storedAnswers?.selectedAnswers || {};
+        let initialResponses = storedAnswers?.responses || {};
+
         // Handle prefilled data for authenticated users
         if (data.data.prefilledData) {
-          console.log('Prefilled data received:', data.data.prefilledData);
+          console.log('📝 Prefilled data received:', data.data.prefilledData);
           setResponses(prev => ({
             ...prev,
             ...data.data.prefilledData
           }));
+          initialResponses = {
+            ...initialResponses,
+            grade: initialResponses.grade || data.data.prefilledData.grade,
+            zipCode: initialResponses.zipCode || data.data.prefilledData.zipCode
+          };
+          if (!initialSelectedAnswers.location_grade && (data.data.prefilledData.grade || data.data.prefilledData.zipCode)) {
+            initialSelectedAnswers = {
+              ...initialSelectedAnswers,
+              location_grade: {
+                ...(data.data.prefilledData.grade ? { grade: data.data.prefilledData.grade } : {}),
+                ...(data.data.prefilledData.zipCode ? { zipCode: data.data.prefilledData.zipCode } : {})
+              }
+            };
+          }
           
           // Show a notification about auto-filled data
           if (data.data.prefilledData.grade && data.data.prefilledData.zipCode) {
             console.log('📝 First question skipped - using profile data');
-            // You could add a toast notification here if you have a toast system
           }
         }
         
         // Show authentication status
         if (data.data.isAuthenticated) {
           console.log(`✅ User authenticated as: ${data.data.userRole}`);
-          if (data.data.prefilledData.grade && data.data.prefilledData.zipCode) {
+          if (data.data.prefilledData?.grade && data.data.prefilledData?.zipCode) {
             console.log('📝 First question skipped - using profile data');
           }
         }
         
-        setQuestions(data.data.questions.sort((a: CounselorQuestion, b: CounselorQuestion) => a.order - b.order));
-        setIsLoading(false);
+        // Make sure we have questions
+        if (data.data.questions && data.data.questions.length > 0) {
+          console.log('📋 Setting questions array with', data.data.questions.length, 'questions');
+          const sortedQuestions = data.data.questions.sort((a: CounselorQuestion, b: CounselorQuestion) => a.order - b.order);
+          console.log('📋 First question:', sortedQuestions[0]);
+          setQuestions(sortedQuestions);
+          setCurrentIndex(0); // Reset to first question
+          if (Object.keys(initialSelectedAnswers).length > 0) {
+            console.log('✅ Restoring previous answers for retake');
+            setSelectedAnswers(initialSelectedAnswers);
+            setResponses(prev => ({
+              ...prev,
+              ...initialResponses
+            }));
+          }
+          setIsLoading(false);
+          console.log('✅ Questions loaded successfully');
+        } else {
+          console.error('❌ No questions in response');
+          throw new Error('No questions received from server');
+        }
       } else {
+        console.error('❌ API call failed:', data.error);
         throw new Error(data.error || 'Failed to load questions');
       }
     } catch (error) {
-      console.error('Error fetching counselor questions:', error);
+      console.error('❌ Error fetching counselor questions:', error);
       
       // Fallback to demo questions if API fails
       console.log('Falling back to demo questions...');
@@ -333,9 +579,18 @@ export default function CounselorAssessmentPage() {
 
       const data = await response.json();
       if (data.success) {
-        // Store results for the results page
-        localStorage.setItem('counselorAssessmentResults', JSON.stringify(data.data));
+        // Store results for the results page with timestamp
+        const storedUser = localStorage.getItem('user');
+        const user = storedUser ? JSON.parse(storedUser) : null;
+        
+        const resultsWithTimestamp = {
+          ...data.data,
+          timestamp: new Date().toISOString(),
+          userEmail: user?.email || 'unknown'
+        };
+        localStorage.setItem('counselorAssessmentResults', JSON.stringify(resultsWithTimestamp));
         localStorage.setItem('zipCode', finalResponses.zipCode || '');
+        saveStoredAnswers(finalResponses);
         
         // Navigate to enhanced results page
         router.push('/counselor-results');
@@ -693,7 +948,7 @@ export default function CounselorAssessmentPage() {
     );
   };
 
-  if (isLoading) {
+  if (isLoading || (questions.length === 0 && !showPreviousResults)) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header title="Enhanced Career Assessment" />
@@ -718,15 +973,237 @@ export default function CounselorAssessmentPage() {
     );
   }
 
+  // Show previous results if available (must be before question rendering to avoid empty-question errors)
+  if (showPreviousResults && previousResults) {
+    const recommendations = previousResults.recommendations || previousResults;
+    const summary = previousResults.summary;
+    
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header title="Your Previous Assessment Results" />
+        <div className="py-12 px-4">
+          <div className="max-w-4xl mx-auto">
+            {/* Previous Results Header */}
+            <div className="bg-white rounded-lg shadow-lg p-8 mb-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">Welcome Back!</h1>
+                  <p className="text-gray-600 mt-2">
+                    You've already completed the enhanced career assessment. Here are your personalized results.
+                  </p>
+                  {previousResults.timestamp && (
+                    <p className="text-sm text-gray-500 mt-1">
+                      Completed on: {new Date(previousResults.timestamp).toLocaleDateString()}
+                    </p>
+                  )}
+                  <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-green-800 text-sm">
+                      ✅ Your previous assessment results have been automatically loaded. You can view the full details or take a new assessment if your interests have changed.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex space-x-4">
+                  <button
+                    onClick={() => router.push('/counselor-results')}
+                    className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
+                  >
+                    View Full Results
+                  </button>
+                  <button
+                    onClick={startNewAssessment}
+                    className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300"
+                  >
+                    Take New Assessment
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Summary */}
+            <div className="grid md:grid-cols-2 gap-6 mb-6">
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <h3 className="text-xl font-semibold mb-4 text-gray-900">Top Career Match</h3>
+                {recommendations?.topJobMatches && recommendations.topJobMatches[0] && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-lg font-medium text-blue-600">
+                        {recommendations.topJobMatches[0].career.title}
+                      </h4>
+                      <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                        {recommendations.topJobMatches[0].matchScore}% Match
+                      </span>
+                    </div>
+                    <p className="text-gray-600 text-sm">
+                      {recommendations.topJobMatches[0].career.description}
+                    </p>
+                    <div className="flex items-center space-x-4 text-sm text-gray-500">
+                      <span>💰 ${recommendations.topJobMatches[0].career.averageSalary?.toLocaleString()}</span>
+                      <span>🎓 {recommendations.topJobMatches[0].career.requiredEducation}</span>
+                    </div>
+                  </div>
+                )}
+                {summary && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-lg font-medium text-blue-600">
+                        {summary.topCareer}
+                      </h4>
+                      <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                        Top Match
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-4 text-sm text-gray-500">
+                      <span>💰 ${summary.averageSalary?.toLocaleString()}</span>
+                      <span>🎓 {summary.educationPath}</span>
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      <span className="font-medium">Career Readiness:</span> 
+                      <span className={`ml-2 capitalize ${
+                        summary.careerReadiness === 'high' ? 'text-green-600' :
+                        summary.careerReadiness === 'moderate' ? 'text-yellow-600' :
+                        'text-blue-600'
+                      }`}>
+                        {summary.careerReadiness}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <h3 className="text-xl font-semibold mb-4 text-gray-900">Assessment Summary</h3>
+                {summary && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Total Career Matches:</span>
+                      <span className="font-medium">{summary.totalJobMatches}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Average Salary:</span>
+                      <span className="font-medium">${summary.averageSalary?.toLocaleString()}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Education Path:</span>
+                      <span className="font-medium text-sm">{summary.educationPath}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Career Readiness:</span>
+                      <span className={`font-medium capitalize ${
+                        summary.careerReadiness === 'high' ? 'text-green-600' :
+                        summary.careerReadiness === 'moderate' ? 'text-yellow-600' :
+                        'text-blue-600'
+                      }`}>
+                        {summary.careerReadiness}
+                      </span>
+                    </div>
+                  </div>
+                )}
+                {recommendations?.studentProfile && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Grade Level:</span>
+                      <span className="font-medium">{recommendations.studentProfile.grade}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Location:</span>
+                      <span className="font-medium">{recommendations.studentProfile.location}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Key Strengths:</span>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {recommendations.studentProfile.strengths?.slice(0, 3).map((strength: string, index: number) => (
+                          <span key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
+                            {strength}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Quick Action Items */}
+            {recommendations?.aiRecommendations?.actionItems && (
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <h3 className="text-xl font-semibold mb-4 text-gray-900">Next Steps for You</h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {recommendations.aiRecommendations.actionItems.slice(0, 4).map((item: any, index: number) => (
+                    <div key={index} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-medium text-gray-900">{item.title}</h4>
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          item.priority === 'high' ? 'bg-red-100 text-red-800' :
+                          item.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-green-100 text-green-800'
+                        }`}>
+                          {item.priority}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">{item.description}</p>
+                      <p className="text-xs text-gray-500">⏰ {item.timeline}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Career Matches Preview */}
+            {recommendations?.topJobMatches && (
+              <div className="bg-white rounded-lg shadow-lg p-6 mt-6">
+                <h3 className="text-xl font-semibold mb-4 text-gray-900">Your Top Career Matches</h3>
+                <div className="space-y-4">
+                  {recommendations.topJobMatches.slice(0, 3).map((match: any, index: number) => (
+                    <div key={index} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-medium text-gray-900">{match.career.title}</h4>
+                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                          {match.matchScore}% Match
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">{match.career.description}</p>
+                      <div className="flex items-center space-x-4 text-sm text-gray-500">
+                        <span>💰 ${match.career.averageSalary?.toLocaleString()}</span>
+                        <span>🎓 {match.career.requiredEducation}</span>
+                        <span>📈 {match.career.growthOutlook || 'Stable'}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const currentQuestion = questions[currentIndex];
   const progress = ((currentIndex + 1) / questions.length) * 100;
 
-  // Debug info
-  console.log('Current questions array:', questions.length, 'questions loaded');
-  console.log('Current question index:', currentIndex);
-  console.log('Current question:', currentQuestion);
+  // Safeguard: if currentIndex is out of bounds, reset it
+  if (questions.length > 0 && (currentIndex < 0 || currentIndex >= questions.length)) {
+    console.log('⚠️ currentIndex out of bounds, resetting to 0');
+    setCurrentIndex(0);
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header title="Enhanced Career Assessment" />
+        <div className="flex items-center justify-center pt-20">
+          <div className="text-xl">Resetting assessment...</div>
+        </div>
+      </div>
+    );
+  }
 
-  if (!currentQuestion) {
+  // Debug info
+  console.log('🔍 Debug info:');
+  console.log('  - questions.length:', questions.length);
+  console.log('  - currentIndex:', currentIndex);
+  console.log('  - currentQuestion exists:', !!currentQuestion);
+  console.log('  - isLoading:', isLoading);
+  console.log('  - showPreviousResults:', showPreviousResults);
+
+  if (!currentQuestion && !isLoading && !showPreviousResults) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header title="Enhanced Career Assessment" />
@@ -734,16 +1211,251 @@ export default function CounselorAssessmentPage() {
           <div className="max-w-4xl mx-auto">
             <div className="bg-red-50 border border-red-200 rounded-lg p-6">
               <h2 className="text-xl font-semibold text-red-600 mb-4">Error: No Question Found</h2>
-              <p className="text-red-600">
+              <p className="text-red-600 mb-4">
                 Question index {currentIndex} not found. Total questions: {questions.length}
               </p>
+              <div className="mb-4">
+                <button
+                  onClick={() => {
+                    console.log('🔄 Retrying to fetch questions...');
+                    setCurrentIndex(0);
+                    setQuestions([]);
+                    fetchQuestions();
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 mr-4"
+                >
+                  Retry Loading Questions
+                </button>
+                <button
+                  onClick={() => {
+                    console.log('🏠 Going back to home...');
+                    router.push('/');
+                  }}
+                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                >
+                  Go to Home
+                </button>
+              </div>
               <details className="mt-4">
-                <summary className="cursor-pointer text-red-600">Show all questions</summary>
-                <pre className="text-xs text-red-500 mt-2 overflow-auto">
+                <summary className="cursor-pointer text-red-600">Show debug info</summary>
+                <div className="text-xs text-red-500 mt-2 space-y-2">
+                  <div>Questions length: {questions.length}</div>
+                  <div>Current index: {currentIndex}</div>
+                  <div>Is loading: {isLoading.toString()}</div>
+                  <div>Show previous results: {showPreviousResults.toString()}</div>
+                  <div>API URL: {process.env.NEXT_PUBLIC_API_URL}</div>
+                  <div>Token exists: {!!localStorage.getItem('token')}</div>
+                </div>
+                <pre className="text-xs text-red-500 mt-2 overflow-auto max-h-40">
                   {JSON.stringify(questions, null, 2)}
                 </pre>
               </details>
             </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show previous results if available
+  if (showPreviousResults && previousResults) {
+    const recommendations = previousResults.recommendations || previousResults;
+    const summary = previousResults.summary;
+    
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header title="Your Previous Assessment Results" />
+        <div className="py-12 px-4">
+          <div className="max-w-4xl mx-auto">
+            {/* Previous Results Header */}
+            <div className="bg-white rounded-lg shadow-lg p-8 mb-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">Welcome Back!</h1>
+                  <p className="text-gray-600 mt-2">
+                    You've already completed the enhanced career assessment. Here are your personalized results.
+                  </p>
+                  {previousResults.timestamp && (
+                    <p className="text-sm text-gray-500 mt-1">
+                      Completed on: {new Date(previousResults.timestamp).toLocaleDateString()}
+                    </p>
+                  )}
+                  <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-green-800 text-sm">
+                      ✅ Your previous assessment results have been automatically loaded. You can view the full details or take a new assessment if your interests have changed.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex space-x-4">
+                  <button
+                    onClick={() => router.push('/counselor-results')}
+                    className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
+                  >
+                    View Full Results
+                  </button>
+                  <button
+                    onClick={startNewAssessment}
+                    className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300"
+                  >
+                    Take New Assessment
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Summary */}
+            <div className="grid md:grid-cols-2 gap-6 mb-6">
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <h3 className="text-xl font-semibold mb-4 text-gray-900">Top Career Match</h3>
+                {recommendations?.topJobMatches && recommendations.topJobMatches[0] && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-lg font-medium text-blue-600">
+                        {recommendations.topJobMatches[0].career.title}
+                      </h4>
+                      <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                        {recommendations.topJobMatches[0].matchScore}% Match
+                      </span>
+                    </div>
+                    <p className="text-gray-600 text-sm">
+                      {recommendations.topJobMatches[0].career.description}
+                    </p>
+                    <div className="flex items-center space-x-4 text-sm text-gray-500">
+                      <span>💰 ${recommendations.topJobMatches[0].career.averageSalary?.toLocaleString()}</span>
+                      <span>🎓 {recommendations.topJobMatches[0].career.requiredEducation}</span>
+                    </div>
+                  </div>
+                )}
+                {summary && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-lg font-medium text-blue-600">
+                        {summary.topCareer}
+                      </h4>
+                      <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                        Top Match
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-4 text-sm text-gray-500">
+                      <span>💰 ${summary.averageSalary?.toLocaleString()}</span>
+                      <span>🎓 {summary.educationPath}</span>
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      <span className="font-medium">Career Readiness:</span> 
+                      <span className={`ml-2 capitalize ${
+                        summary.careerReadiness === 'high' ? 'text-green-600' :
+                        summary.careerReadiness === 'moderate' ? 'text-yellow-600' :
+                        'text-blue-600'
+                      }`}>
+                        {summary.careerReadiness}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <h3 className="text-xl font-semibold mb-4 text-gray-900">Assessment Summary</h3>
+                {summary && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Total Career Matches:</span>
+                      <span className="font-medium">{summary.totalJobMatches}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Average Salary:</span>
+                      <span className="font-medium">${summary.averageSalary?.toLocaleString()}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Education Path:</span>
+                      <span className="font-medium text-sm">{summary.educationPath}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Career Readiness:</span>
+                      <span className={`font-medium capitalize ${
+                        summary.careerReadiness === 'high' ? 'text-green-600' :
+                        summary.careerReadiness === 'moderate' ? 'text-yellow-600' :
+                        'text-blue-600'
+                      }`}>
+                        {summary.careerReadiness}
+                      </span>
+                    </div>
+                  </div>
+                )}
+                {recommendations?.studentProfile && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Grade Level:</span>
+                      <span className="font-medium">{recommendations.studentProfile.grade}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Location:</span>
+                      <span className="font-medium">{recommendations.studentProfile.location}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Key Strengths:</span>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {recommendations.studentProfile.strengths?.slice(0, 3).map((strength: string, index: number) => (
+                          <span key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
+                            {strength}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Quick Action Items */}
+            {recommendations?.aiRecommendations?.actionItems && (
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <h3 className="text-xl font-semibold mb-4 text-gray-900">Next Steps for You</h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {recommendations.aiRecommendations.actionItems.slice(0, 4).map((item: any, index: number) => (
+                    <div key={index} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-medium text-gray-900">{item.title}</h4>
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          item.priority === 'high' ? 'bg-red-100 text-red-800' :
+                          item.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-green-100 text-green-800'
+                        }`}>
+                          {item.priority}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">{item.description}</p>
+                      <p className="text-xs text-gray-500">⏰ {item.timeline}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Career Matches Preview */}
+            {recommendations?.topJobMatches && (
+              <div className="bg-white rounded-lg shadow-lg p-6 mt-6">
+                <h3 className="text-xl font-semibold mb-4 text-gray-900">Your Top Career Matches</h3>
+                <div className="space-y-4">
+                  {recommendations.topJobMatches.slice(0, 3).map((match: any, index: number) => (
+                    <div key={index} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-medium text-gray-900">{match.career.title}</h4>
+                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                          {match.matchScore}% Match
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">{match.career.description}</p>
+                      <div className="flex items-center space-x-4 text-sm text-gray-500">
+                        <span>💰 ${match.career.averageSalary?.toLocaleString()}</span>
+                        <span>🎓 {match.career.requiredEducation}</span>
+                        <span>📈 {match.career.growthOutlook || 'Stable'}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

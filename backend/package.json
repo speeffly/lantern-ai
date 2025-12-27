@@ -16,6 +16,7 @@
     "deploy:prod": "npm run build && serverless deploy --stage prod"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@types/multer": "^2.0.0",
     "@types/sqlite3": "^5.1.0",
     "bcrypt": "^5.1.1",

@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { StudentProfile, AssessmentAnswer, CareerMatch, AIRecommendations, LocalJobOpportunity, CourseRecommendation } from '../types';
 
 // Using CourseRecommendation and LocalJobOpportunity interfaces from types/index.ts
@@ -59,8 +60,8 @@ export class AIRecommendationService {
       console.log(context);
       console.log('='.repeat(80) + '\n');
       
-      // Generate recommendations using OpenAI
-      const aiResponse = await this.callOpenAI(context);
+      // Generate recommendations using AI (OpenAI or Gemini)
+      const aiResponse = await this.callAI(context);
       
       // Parse and structure the AI response
       console.log('\n' + '='.repeat(80));
@@ -234,6 +235,148 @@ This comprehensive profile indicates the need for detailed guidance on:
   }
 
   /**
+   * Call AI API (OpenAI or Gemini) for comprehensive recommendations
+   */
+  private static async callAI(context: string): Promise<string> {
+    const aiProvider = process.env.AI_PROVIDER || 'openai';
+    
+    console.log('🤖 AI Provider:', aiProvider);
+    
+    if (aiProvider === 'gemini') {
+      return this.callGemini(context);
+    } else {
+      return this.callOpenAI(context);
+    }
+  }
+
+  /**
+   * Call Google Gemini API for comprehensive recommendations
+   */
+  private static async callGemini(context: string): Promise<string> {
+    console.log('🔑 Initializing Gemini client with key length:', process.env.GEMINI_API_KEY?.length || 0);
+    
+    if (!process.env.GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY is required for Gemini AI provider');
+    }
+    
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    const systemPrompt = `You are Alex Johnson, a modern career coach specializing in technology and entrepreneurship for Gen Z students. You have:
+
+CREDENTIALS:
+- MBA in Business Innovation and Technology
+- Certified Professional Career Coach (CPCC)
+- 10 years experience in startup ecosystems and tech careers
+- Former software engineer turned career strategist
+
+EXPERTISE:
+- Emerging technology careers and digital economy trends
+- Remote work opportunities and digital nomad lifestyle
+- Startup culture and entrepreneurship pathways
+- Online learning platforms and skill development
+- Social media and personal branding for career success
+- Gig economy and freelance career strategies
+- Tech bootcamps and alternative education paths
+
+COACHING APPROACH:
+- Forward-thinking and innovation-focused
+- Emphasizes adaptability and continuous learning
+- Encourages creative problem-solving and risk-taking
+- Uses modern language and references students understand
+- Focuses on building personal brand and online presence
+- Practical advice with real-world examples from tech industry
+- Emphasizes networking through social media and online communities
+
+You provide cutting-edge career advice that prepares students for the future of work, with emphasis on technology, creativity, and entrepreneurial thinking.`;
+
+    const userPrompt = `${context}
+
+As Alex Johnson, provide innovative career guidance for this high school student. Focus on emerging opportunities, technology careers, and entrepreneurial pathways. Your recommendations should be forward-thinking and prepare them for the future of work.
+
+Provide your analysis in the following JSON format with cutting-edge, future-focused recommendations:
+
+{
+  "academicPlan": {
+    "currentYear": [
+      {
+        "courseName": "Specific course name",
+        "reasoning": "Why this course is essential for future careers",
+        "careerConnection": "How this connects to emerging opportunities",
+        "skillsDeveloped": ["skill1", "skill2", "skill3"],
+        "priority": "Essential|Highly Recommended|Recommended"
+      }
+    ],
+    "nextYear": [],
+    "longTerm": []
+  },
+  "careerPathway": {
+    "steps": ["Step 1", "Step 2", "Step 3", "Step 4"],
+    "timeline": "Timeline description",
+    "requirements": ["Requirement 1", "Requirement 2"]
+  },
+  "skillGaps": [
+    {
+      "skill": "Skill name",
+      "importance": "Critical|Important|Beneficial",
+      "howToAcquire": "How to develop this skill"
+    }
+  ],
+  "actionItems": [
+    {
+      "title": "Action title",
+      "description": "Detailed description",
+      "priority": "high|medium|low",
+      "timeline": "When to complete"
+    }
+  ]
+}
+
+Remember: Focus on technology, innovation, and preparing for the future of work.`;
+
+    // Log the prompts
+    console.log('\n' + '='.repeat(80));
+    console.log('🤖 GEMINI API CALL - PROMPT LOGGING');
+    console.log('='.repeat(80));
+    
+    console.log('\n📋 SYSTEM PROMPT (Career Coach Persona):');
+    console.log('-'.repeat(50));
+    console.log(systemPrompt);
+    
+    console.log('\n📝 USER PROMPT (Student Context & Instructions):');
+    console.log('-'.repeat(50));
+    console.log(userPrompt);
+    
+    console.log('\n⚙️ API CONFIGURATION:');
+    console.log('-'.repeat(50));
+    console.log('Model: gemini-1.5-flash');
+    console.log('Provider: Google Gemini');
+    console.log('Context Length:', context.length, 'characters');
+    console.log('System Prompt Length:', systemPrompt.length, 'characters');
+    console.log('User Prompt Length:', userPrompt.length, 'characters');
+    console.log('Total Prompt Length:', (systemPrompt.length + userPrompt.length), 'characters');
+    
+    console.log('\n🚀 Sending request to Gemini...');
+    console.log('='.repeat(80));
+
+    const result = await model.generateContent(`${systemPrompt}\n\n${userPrompt}`);
+    const response = result.response.text();
+    
+    console.log('\n' + '='.repeat(80));
+    console.log('✅ GEMINI API RESPONSE RECEIVED');
+    console.log('='.repeat(80));
+    console.log('Response Length:', response.length, 'characters');
+    console.log('Model Used: gemini-1.5-flash');
+    
+    console.log('\n📄 RAW AI RESPONSE:');
+    console.log('-'.repeat(50));
+    console.log(response);
+    console.log('='.repeat(80) + '\n');
+
+    return response;
+  }
+
+  /**
    * Call OpenAI API for comprehensive recommendations
    */
   private static async callOpenAI(context: string): Promise<string> {
@@ -272,11 +415,7 @@ You provide cutting-edge career advice that prepares students for the future of 
 
 const userPrompt = `${context}
 
-<<<<<<< Updated upstream
 As Dr. Sarah Martinez, provide comprehensive career guidance for this rural high school student. Your recommendations should be detailed, practical, and specifically tailored to their rural context. Use your 15 years of experience to provide professional-quality guidance. Factor the provided ZIP code into every recommendation (local availability, commuting feasibility, remote or hybrid options).
-=======
-As Alex Johnson, provide innovative career guidance for this high school student. Focus on emerging opportunities, technology careers, and entrepreneurial pathways. Your recommendations should be forward-thinking and prepare them for the future of work.
->>>>>>> Stashed changes
 
 Provide your analysis in the following JSON format with cutting-edge, future-focused recommendations:
 
@@ -392,7 +531,7 @@ Remember: You are providing professional career counseling to a rural high schoo
     
     console.log('\n⚙️ API CONFIGURATION:');
     console.log('-'.repeat(50));
-    console.log('Model: gpt-4');
+    console.log('Model: gpt-3.5-turbo');
     console.log('Max Tokens: 4000');
     console.log('Temperature: 0.7');
     console.log('Context Length:', context.length, 'characters');
@@ -404,7 +543,7 @@ Remember: You are providing professional career counseling to a rural high schoo
     console.log('='.repeat(80));
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-3.5-turbo",
       messages: [
         {
           role: "system",
