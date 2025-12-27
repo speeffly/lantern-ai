@@ -72,7 +72,19 @@ export default function CounselorAssessmentPage() {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       console.log('Fetching counselor questions from:', `${apiUrl}/api/counselor-assessment/questions`);
       
-      const response = await fetch(`${apiUrl}/api/counselor-assessment/questions`);
+      // Include authentication token if available
+      const token = localStorage.getItem('token');
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(`${apiUrl}/api/counselor-assessment/questions`, {
+        headers
+      });
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -82,8 +94,32 @@ export default function CounselorAssessmentPage() {
       console.log('Received questions data:', data);
       
       if (data.success) {
-        console.log('Number of questions received:', data.data.length);
-        setQuestions(data.data.sort((a: CounselorQuestion, b: CounselorQuestion) => a.order - b.order));
+        console.log('Number of questions received:', data.data.questions.length);
+        
+        // Handle prefilled data for authenticated users
+        if (data.data.prefilledData) {
+          console.log('Prefilled data received:', data.data.prefilledData);
+          setResponses(prev => ({
+            ...prev,
+            ...data.data.prefilledData
+          }));
+          
+          // Show a notification about auto-filled data
+          if (data.data.prefilledData.grade && data.data.prefilledData.zipCode) {
+            console.log('📝 First question skipped - using profile data');
+            // You could add a toast notification here if you have a toast system
+          }
+        }
+        
+        // Show authentication status
+        if (data.data.isAuthenticated) {
+          console.log(`✅ User authenticated as: ${data.data.userRole}`);
+          if (data.data.prefilledData.grade && data.data.prefilledData.zipCode) {
+            console.log('📝 First question skipped - using profile data');
+          }
+        }
+        
+        setQuestions(data.data.questions.sort((a: CounselorQuestion, b: CounselorQuestion) => a.order - b.order));
         setIsLoading(false);
       } else {
         throw new Error(data.error || 'Failed to load questions');

@@ -4,6 +4,7 @@ import path from 'path';
 import { CounselorGuidanceService, CounselorAssessmentResponse } from '../services/counselorGuidanceService';
 import { AssessmentServiceDB } from '../services/assessmentServiceDB';
 import { CareerPlanService } from '../services/careerPlanService';
+import { AuthServiceDB } from '../services/authServiceDB';
 import { ApiResponse } from '../types';
 import { authenticateToken } from '../middleware/auth';
 // File system imports removed - using embedded questions instead
@@ -37,10 +38,26 @@ const upload = multer({
 
 
 // GET /api/counselor-assessment/questions
-router.get('/questions', (req, res) => {
+router.get('/questions', async (req, res) => {
   try {
+    // Check if user is authenticated
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    let userProfile = null;
+    
+    if (token) {
+      try {
+        const user = AuthServiceDB.verifyToken(token);
+        if (user) {
+          userProfile = await AuthServiceDB.getUserProfile(parseInt(user.id));
+        }
+      } catch (error) {
+        // Token invalid, continue as anonymous user
+        console.log('Invalid token, continuing as anonymous user');
+      }
+    }
+
     // Embedded counselor questions to avoid file path issues in deployment
-    const questions = [
+    const allQuestions = [
       {
         "id": "location_grade",
         "order": 1,
@@ -269,9 +286,41 @@ router.get('/questions', (req, res) => {
       }
     ];
     
+    // Filter questions based on user authentication and profile
+    let questions = allQuestions;
+    let prefilledData = {};
+    
+    if (userProfile && userProfile.role === 'student') {
+      // For logged-in students, skip the first question if they have grade and zipCode
+      const studentProfile = userProfile.profile; // Note: profile is nested under 'profile'
+      if (studentProfile && studentProfile.grade && studentProfile.zip_code) {
+        // Skip the first question (location_grade)
+        questions = allQuestions.filter(q => q.id !== 'location_grade');
+        
+        // Renumber the remaining questions
+        questions = questions.map((q, index) => ({
+          ...q,
+          order: index + 1
+        }));
+        
+        // Provide prefilled data for the assessment
+        prefilledData = {
+          grade: studentProfile.grade.toString(),
+          zipCode: studentProfile.zip_code
+        };
+        
+        console.log(`📝 Skipping first question for logged-in student. Grade: ${studentProfile.grade}, ZIP: ${studentProfile.zip_code}`);
+      }
+    }
+    
     res.json({
       success: true,
-      data: questions,
+      data: {
+        questions,
+        prefilledData,
+        isAuthenticated: !!userProfile,
+        userRole: userProfile?.role || null
+      },
       message: `Retrieved ${questions.length} counselor assessment questions`
     } as ApiResponse);
   } catch (error) {
@@ -299,6 +348,41 @@ router.post('/submit', upload.single('transcriptFile'), async (req, res) => {
         success: false,
         error: 'Assessment responses are required'
       } as ApiResponse);
+    }
+
+    // Check if user is authenticated and get their profile
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    let userProfile = null;
+    
+    if (token || userId) {
+      try {
+        if (token) {
+          const user = AuthServiceDB.verifyToken(token);
+          if (user) {
+            userProfile = await AuthServiceDB.getUserProfile(parseInt(user.id));
+          }
+        } else if (userId) {
+          userProfile = await AuthServiceDB.getUserProfile(parseInt(userId));
+        }
+      } catch (error) {
+        console.log('Could not get user profile, continuing with provided data');
+      }
+    }
+
+    // Auto-fill grade and zipCode for logged-in students if not provided
+    if (userProfile && userProfile.role === 'student' && userProfile.profile) {
+      const studentProfile = userProfile.profile; // Note: profile is nested under 'profile'
+      
+      // If grade and zipCode are missing from responses, use profile data
+      if (!responses.grade && studentProfile.grade) {
+        responses.grade = studentProfile.grade.toString();
+        console.log(`📝 Auto-filled grade from profile: ${responses.grade}`);
+      }
+      
+      if (!responses.zipCode && studentProfile.zip_code) {
+        responses.zipCode = studentProfile.zip_code;
+        console.log(`📝 Auto-filled zipCode from profile: ${responses.zipCode}`);
+      }
     }
 
     // Handle uploaded file

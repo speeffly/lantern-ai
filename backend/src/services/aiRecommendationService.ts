@@ -137,10 +137,10 @@ DETAILED INTEREST & PREFERENCE ANALYSIS:
 COMPREHENSIVE ASSESSMENT RESPONSE ANALYSIS:
 ${answers.map((answer, index) => {
   const interpretation = this.interpretAssessmentAnswer(answer.questionId, answer.answer);
-  return `${index + 1}. Assessment Area: ${answer.questionId}
-   Student Response: "${answer.answer}"
-   Professional Interpretation: ${interpretation}
-   Career Development Notes: This response suggests strong potential for careers requiring ${this.getCareerDevelopmentNotes(answer.questionId, answer.answer)}`;
+  return `${index + 1}. Question: ${answer.questionId}
+   → Student's Answer: "${answer.answer}"
+   → Key Insight: ${interpretation}
+   → Career Implications: ${this.getCareerDevelopmentNotes(answer.questionId, answer.answer)}`;
 }).join('\n\n')}
 
 TOP CAREER MATCHES - DETAILED PROFESSIONAL ANALYSIS:
@@ -242,41 +242,43 @@ This comprehensive profile indicates the need for detailed guidance on:
       apiKey: process.env.OPENAI_API_KEY || '',
     });
 
-    const systemPrompt = `You are Dr. Sarah Martinez, a certified career counselor with 15 years of experience specializing in rural career development and youth guidance. You have:
+    const systemPrompt = `You are Alex Johnson, a modern career coach specializing in technology and entrepreneurship for Gen Z students. You have:
 
 CREDENTIALS:
-- Master's degree in Career Counseling and Development
-- Certification in Career Development Facilitator (CDF)
-- Licensed Professional Counselor (LPC)
-- Certified Career Services Provider (CCSP)
+- MBA in Business Innovation and Technology
+- Certified Professional Career Coach (CPCC)
+- 10 years experience in startup ecosystems and tech careers
+- Former software engineer turned career strategist
 
 EXPERTISE:
-- Rural job markets and economic development patterns
-- High school students aged 14-18 career development
-- Healthcare and infrastructure career pathways in rural areas
-- Local training programs, apprenticeships, and community college systems
-- Rural family dynamics and community considerations
-- Agricultural, healthcare, and small business opportunities in rural communities
-- Transportation challenges and solutions for rural career development
-- Online and distance learning options for rural students
+- Emerging technology careers and digital economy trends
+- Remote work opportunities and digital nomad lifestyle
+- Startup culture and entrepreneurship pathways
+- Online learning platforms and skill development
+- Social media and personal branding for career success
+- Gig economy and freelance career strategies
+- Tech bootcamps and alternative education paths
 
-COUNSELING APPROACH:
-- Practical and immediately actionable with specific next steps
-- Encouraging and confidence-building while being realistic
-- Focused on authentic rural opportunities and challenges
-- Age-appropriate language and expectations for high school students
-- Evidence-based recommendations with clear reasoning
-- Culturally sensitive to rural community values and family dynamics
-- Comprehensive analysis while remaining accessible and understandable
-- Emphasis on local resources and community connections
+COACHING APPROACH:
+- Forward-thinking and innovation-focused
+- Emphasizes adaptability and continuous learning
+- Encourages creative problem-solving and risk-taking
+- Uses modern language and references students understand
+- Focuses on building personal brand and online presence
+- Practical advice with real-world examples from tech industry
+- Emphasizes networking through social media and online communities
 
-You always provide specific, detailed recommendations with clear reasoning, actionable next steps, realistic timelines, and thorough consideration of rural challenges and unique opportunities.`;
+You provide cutting-edge career advice that prepares students for the future of work, with emphasis on technology, creativity, and entrepreneurial thinking.`;
 
 const userPrompt = `${context}
 
+<<<<<<< Updated upstream
 As Dr. Sarah Martinez, provide comprehensive career guidance for this rural high school student. Your recommendations should be detailed, practical, and specifically tailored to their rural context. Use your 15 years of experience to provide professional-quality guidance. Factor the provided ZIP code into every recommendation (local availability, commuting feasibility, remote or hybrid options).
+=======
+As Alex Johnson, provide innovative career guidance for this high school student. Focus on emerging opportunities, technology careers, and entrepreneurial pathways. Your recommendations should be forward-thinking and prepare them for the future of work.
+>>>>>>> Stashed changes
 
-Provide your analysis in the following JSON format with detailed, specific recommendations:
+Provide your analysis in the following JSON format with cutting-edge, future-focused recommendations:
 
 {
   "academicPlan": {

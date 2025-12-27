@@ -86,26 +86,6 @@ export default function DashboardPage() {
     router.push('/');
   };
 
-  const startAssessment = async () => {
-    try {
-      // Create a new session
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/sessions/start`, {
-        method: 'POST',
-      });
-      const data = await response.json();
-      
-      if (data.success && data.data.sessionId) {
-        localStorage.setItem('sessionId', data.data.sessionId);
-        router.push('/assessment');
-      } else {
-        alert('Failed to start assessment. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error starting assessment:', error);
-      alert('Failed to connect to server.');
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -178,12 +158,6 @@ export default function DashboardPage() {
                 className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors"
               >
                 🎓 {user.profileCompleted ? 'Retake Enhanced Assessment' : 'Start Enhanced Assessment'}
-              </button>
-              <button
-                onClick={startAssessment}
-                className="w-full bg-blue-100 text-blue-700 py-2 px-4 rounded-lg hover:bg-blue-200 transition-colors text-sm"
-              >
-                Or take Quick Assessment (5 min)
               </button>
             </div>
           </div>
@@ -313,14 +287,6 @@ export default function DashboardPage() {
                   <div className="flex items-center">
                     <div className={`w-4 h-4 rounded-full mr-3 ${
                       hasQuickResults ? 'bg-green-500' : 'bg-gray-300'
-                    }`} />
-                    <span className="text-gray-700">
-                      Quick Assessment {hasQuickResults ? 'Completed ✅' : 'Not Started'}
-                    </span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className={`w-4 h-4 rounded-full mr-3 ${
-                      user.zipCode ? 'bg-green-500' : 'bg-gray-300'
                     }`} />
                     <span className="text-gray-700">
                       Location {user.zipCode ? `(${user.zipCode}) ✅` : 'Not Set'}

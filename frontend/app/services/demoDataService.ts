@@ -1,81 +1,5 @@
 // Demo Data Service - Provides mock data for static deployment
 export const demoDataService = {
-  // Mock assessment questions
-  getQuestions: () => [
-    {
-      id: "1",
-      order: 1,
-      text: "What subjects do you enjoy most in school?",
-      type: "multiple-choice",
-      category: "interests",
-      options: [
-        "Math and Science",
-        "English and Literature", 
-        "History and Social Studies",
-        "Art and Creative Subjects",
-        "Physical Education and Health"
-      ]
-    },
-    {
-      id: "2",
-      order: 2,
-      text: "What type of work environment appeals to you?",
-      type: "multiple-choice",
-      category: "preferences",
-      options: [
-        "Office or indoor setting",
-        "Outdoors or field work",
-        "Laboratory or technical facility",
-        "Hospital or healthcare facility",
-        "School or educational setting"
-      ]
-    },
-    {
-      id: "3",
-      order: 3,
-      text: "How do you prefer to work?",
-      type: "multiple-choice",
-      category: "work-style",
-      options: [
-        "Independently with minimal supervision",
-        "As part of a small team",
-        "Leading and managing others",
-        "Helping and serving people directly",
-        "Creating and designing things"
-      ]
-    },
-    {
-      id: "4",
-      order: 4,
-      text: "What are your main interests and hobbies?",
-      type: "text",
-      category: "interests",
-      placeholder: "Tell us about what you enjoy doing in your free time..."
-    },
-    {
-      id: "5",
-      order: 5,
-      text: "What is most important to you in a career?",
-      type: "multiple-choice",
-      category: "values",
-      options: [
-        "High salary and financial security",
-        "Helping others and making a difference",
-        "Creative expression and innovation",
-        "Job stability and benefits",
-        "Opportunities for advancement"
-      ]
-    },
-    {
-      id: "6",
-      order: 6,
-      text: "What previous work or volunteer experience do you have? (Include part-time jobs, internships, volunteer work, family business, etc.)",
-      type: "text",
-      category: "experience",
-      placeholder: "Example: I worked at a local restaurant as a server, volunteered at the animal shelter on weekends, helped with my family's farm during summers..."
-    }
-  ],
-
   // Mock career results
   getCareerMatches: (answers: any) => [
     {
@@ -212,23 +136,15 @@ export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
     // Return demo data based on endpoint
     await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
     
-    if (endpoint.includes('/api/assessment/questions')) {
-      return { success: true, data: demoDataService.getQuestions() };
-    }
-    
-    if (endpoint.includes('/api/assessment/submit')) {
-      return { success: true, data: demoDataService.getCareerMatches({}) };
-    }
-    
-    if (endpoint.includes('/api/jobs')) {
-      return { success: true, data: demoDataService.getJobListings() };
-    }
-    
     if (endpoint.includes('/api/careers/')) {
       const careerId = endpoint.split('/').pop();
       const careers = demoDataService.getCareerMatches({});
       const career = careers.find(c => c.id === careerId) || careers[0];
       return { success: true, data: career };
+    }
+    
+    if (endpoint.includes('/api/jobs')) {
+      return { success: true, data: demoDataService.getJobListings() };
     }
     
     if (endpoint.includes('/api/auth-db/login')) {

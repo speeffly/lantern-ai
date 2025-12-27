@@ -5,7 +5,6 @@ import helmet from 'helmet';
 import compression from 'compression';
 import dotenv from 'dotenv';
 import sessionRoutes from './routes/sessions';
-import assessmentRoutes from './routes/assessment';
 import careersRoutes from './routes/careers';
 import authRoutes from './routes/auth';
 import authDBRoutes from './routes/authDB';
@@ -32,6 +31,7 @@ const allowedOrigins = [
 // Debug: Check if OpenAI API key is loaded
 console.log('🔑 Environment check - OpenAI API key loaded:', !!process.env.OPENAI_API_KEY);
 console.log('🔑 Environment check - API key length:', process.env.OPENAI_API_KEY?.length || 0);
+console.log('🔧 Environment check - USE_REAL_AI flag:', process.env.USE_REAL_AI || 'not set');
 
 // Debug: CORS configuration
 console.log('🌐 CORS configuration:');
@@ -97,7 +97,7 @@ app.get('/', (req, res) => {
         <div class="endpoint">GET /health - Health check</div>
         <div class="endpoint">GET /api - API information</div>
         <div class="endpoint">POST /api/auth/* - Authentication</div>
-        <div class="endpoint">GET /api/assessment/* - Career assessments</div>
+        <div class="endpoint">GET /api/counselor-assessment/* - Enhanced career assessment</div>
         <div class="endpoint">GET /api/careers/* - Career recommendations</div>
         <div class="endpoint">GET /api/jobs/* - Job listings</div>
         
@@ -128,7 +128,6 @@ app.get('/', (req, res) => {
         auth: '/api/auth',
         authDB: '/api/auth-db',
         sessions: '/api/sessions',
-        assessment: '/api/assessment',
         counselorAssessment: '/api/counselor-assessment',
         careers: '/api/careers',
         jobs: '/api/jobs',
@@ -181,8 +180,7 @@ app.get('/api/database/info', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/auth-db', authDBRoutes); // New database-enabled auth routes
 app.use('/api/sessions', sessionRoutes);
-app.use('/api/assessment', assessmentRoutes);
-app.use('/api/counselor-assessment', counselorAssessmentRoutes); // New counselor assessment
+app.use('/api/counselor-assessment', counselorAssessmentRoutes); // Enhanced assessment
 app.use('/api/careers', careersRoutes);
 app.use('/api/jobs', jobsRoutes); // Job listings
 app.use('/api/action-plans', actionPlansRoutes);
@@ -196,6 +194,7 @@ app.get('/api/debug/env', (req, res) => {
       DATABASE_URL: process.env.DATABASE_URL ? 'present' : 'missing',
       OPENAI_API_KEY: process.env.OPENAI_API_KEY ? 'present' : 'missing',
       OPENAI_KEY_LENGTH: process.env.OPENAI_API_KEY?.length || 0,
+      USE_REAL_AI: process.env.USE_REAL_AI || 'not set',
       FRONTEND_URL: process.env.FRONTEND_URL || 'not set',
       PORT: process.env.PORT || 3002,
       RENDER: process.env.RENDER ? 'true' : 'false'
@@ -434,7 +433,6 @@ app.get('/api', (req, res) => {
       auth: '/api/auth',
       authDB: '/api/auth-db',
       sessions: '/api/sessions',
-      assessment: '/api/assessment',
       counselorAssessment: '/api/counselor-assessment',
       careers: '/api/careers',
       jobs: '/api/jobs',
