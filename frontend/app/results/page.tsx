@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '../components/Header';
 import JobListings from '../components/JobListings';
+import FeedbackWidget from '../components/FeedbackWidget';
 
 interface Career {
   id: string;
@@ -307,6 +308,19 @@ export default function ResultsPage() {
                     >
                       Get Action Plan
                     </button>
+                  </div>
+
+                  {/* Feedback Widget */}
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <FeedbackWidget
+                      careerCode={match.career.id}
+                      careerTitle={match.career.title}
+                      userId={profile?.id}
+                      sessionId={localStorage.getItem('sessionId') || undefined}
+                      onFeedbackSubmitted={() => {
+                        console.log('Feedback submitted for', match.career.title);
+                      }}
+                    />
                   </div>
                 </div>
               ))}

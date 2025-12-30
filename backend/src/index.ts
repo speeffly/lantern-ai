@@ -11,6 +11,7 @@ import authDBRoutes from './routes/authDB';
 import actionPlansRoutes from './routes/actionPlans';
 import counselorAssessmentRoutes from './routes/counselorAssessment';
 import jobsRoutes from './routes/jobs';
+import feedbackRoutes from './routes/feedback';
 import { DatabaseAdapter } from './services/databaseAdapter';
 
 // Load environment variables
@@ -185,6 +186,7 @@ app.use('/api/counselor-assessment', counselorAssessmentRoutes); // Enhanced ass
 app.use('/api/careers', careersRoutes);
 app.use('/api/jobs', jobsRoutes); // Job listings
 app.use('/api/action-plans', actionPlansRoutes);
+app.use('/api/feedback', feedbackRoutes); // Feedback system for AI improvement
 
 // Debug endpoints for troubleshooting
 app.get('/api/debug/env', (req, res) => {

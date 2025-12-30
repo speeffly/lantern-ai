@@ -1,4 +1,4 @@
-import { Pool, Client } from 'pg';
+import { Pool } from 'pg';
 
 export class DatabaseServicePG {
   private static pool: Pool | null = null;
@@ -22,22 +22,37 @@ export class DatabaseServicePG {
 
       console.log('🗄️ Connecting to PostgreSQL database...');
 
-      // Create connection pool
+      // Create connection pool with better settings for Render
       this.pool = new Pool({
         connectionString: databaseUrl,
-        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-        max: 20, // Maximum number of clients in the pool
-        idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-        connectionTimeoutMillis: 2000, // Return an error after 2 seconds if connection could not be established
+        ssl: { rejectUnauthorized: false }, // Always use SSL for Render
+        max: 5, // Reduced pool size for better stability
+        idleTimeoutMillis: 60000, // Longer idle timeout
+        connectionTimeoutMillis: 10000, // Longer connection timeout
+        statement_timeout: 30000, // 30 second statement timeout
+        query_timeout: 30000, // 30 second query timeout
       });
 
-      // Test connection
-      const client = await this.pool.connect();
-      console.log('✅ Connected to PostgreSQL database successfully');
-      client.release();
+      // Test connection with retry logic
+      let retries = 3;
+      let connected = false;
+      
+      while (retries > 0 && !connected) {
+        try {
+          const client = await this.pool.connect();
+          console.log('✅ Connected to PostgreSQL database successfully');
+          client.release();
+          connected = true;
+        } catch (error) {
+          retries--;
+          console.log(`⚠️ Connection attempt failed, ${retries} retries left...`);
+          if (retries === 0) throw error;
+          await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds before retry
+        }
+      }
 
-      // Create tables
-      await this.createTables();
+      // Create tables with better error handling
+      await this.createTablesGradually();
 
       this.isInitialized = true;
       console.log('✅ PostgreSQL database initialized successfully');
@@ -48,14 +63,16 @@ export class DatabaseServicePG {
   }
 
   /**
-   * Create database tables with PostgreSQL syntax
+   * Create database tables gradually to avoid connection issues
    */
-  private static async createTables(): Promise<void> {
+  private static async createTablesGradually(): Promise<void> {
     try {
-      console.log('🔧 Creating PostgreSQL database tables...');
+      console.log('🔧 Creating PostgreSQL database tables gradually...');
       
-      const schema = `
-        -- Users table (students, counselors, parents)
+      // Create tables in smaller groups to avoid connection reset
+      const tableGroups = [
+        // Group 1: Core user tables
+        `
         CREATE TABLE IF NOT EXISTS users (
             id SERIAL PRIMARY KEY,
             email VARCHAR(255) UNIQUE NOT NULL,
@@ -68,31 +85,32 @@ export class DatabaseServicePG {
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             is_active BOOLEAN DEFAULT true
         );
-
-        -- Student profiles
+        `,
+        
+        // Group 2: Profile tables
+        `
         CREATE TABLE IF NOT EXISTS student_profiles (
             id SERIAL PRIMARY KEY,
             user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
             grade INTEGER,
             school_name VARCHAR(200),
             zip_code VARCHAR(10),
-            interests TEXT, -- JSON array of interests
-            skills TEXT, -- JSON array of skills
+            interests TEXT,
+            skills TEXT,
             education_goal VARCHAR(50),
             work_environment VARCHAR(50),
             gpa DECIMAL(3,2),
-            extracurricular_activities TEXT, -- JSON array
+            extracurricular_activities TEXT,
             career_aspirations TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
-        -- Counselor profiles
         CREATE TABLE IF NOT EXISTS counselor_profiles (
             id SERIAL PRIMARY KEY,
             user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
             school_district VARCHAR(200),
-            specializations TEXT, -- JSON array of specializations
+            specializations TEXT,
             years_experience INTEGER,
             license_number VARCHAR(100),
             bio TEXT,
@@ -100,7 +118,6 @@ export class DatabaseServicePG {
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
-        -- Parent profiles
         CREATE TABLE IF NOT EXISTS parent_profiles (
             id SERIAL PRIMARY KEY,
             user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -109,20 +126,10 @@ export class DatabaseServicePG {
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
-
-        -- Relationships between users
-        CREATE TABLE IF NOT EXISTS user_relationships (
-            id SERIAL PRIMARY KEY,
-            primary_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-            secondary_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-            relationship_type VARCHAR(20) NOT NULL CHECK (relationship_type IN ('parent_child', 'counselor_student')),
-            status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'pending')),
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            created_by INTEGER REFERENCES users(id),
-            UNIQUE(primary_user_id, secondary_user_id, relationship_type)
-        );
-
-        -- Assessment sessions
+        `,
+        
+        // Group 3: Assessment tables
+        `
         CREATE TABLE IF NOT EXISTS assessment_sessions (
             id SERIAL PRIMARY KEY,
             user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
@@ -134,7 +141,6 @@ export class DatabaseServicePG {
             expires_at TIMESTAMP NOT NULL
         );
 
-        -- Assessment answers
         CREATE TABLE IF NOT EXISTS assessment_answers (
             id SERIAL PRIMARY KEY,
             session_id INTEGER NOT NULL REFERENCES assessment_sessions(id) ON DELETE CASCADE,
@@ -142,103 +148,92 @@ export class DatabaseServicePG {
             answer TEXT NOT NULL,
             answered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
-
-        -- Career matches and recommendations
+        `,
+        
+        // Group 4: Career and action plan tables
+        `
         CREATE TABLE IF NOT EXISTS career_recommendations (
             id SERIAL PRIMARY KEY,
             session_id INTEGER REFERENCES assessment_sessions(id) ON DELETE CASCADE,
             user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-            career_matches TEXT NOT NULL, -- JSON array of career matches
-            ai_recommendations TEXT, -- JSON object with AI recommendations
-            local_job_market TEXT, -- JSON object with local job data
-            academic_plan TEXT, -- JSON object with course recommendations
+            career_matches TEXT NOT NULL,
+            ai_recommendations TEXT,
+            local_job_market TEXT,
+            academic_plan TEXT,
             generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
-        -- Action plans
         CREATE TABLE IF NOT EXISTS action_plans (
             id SERIAL PRIMARY KEY,
             user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
             career_code VARCHAR(50) NOT NULL,
             career_title VARCHAR(200) NOT NULL,
-            short_term_goals TEXT, -- JSON array
-            medium_term_goals TEXT, -- JSON array
-            long_term_goals TEXT, -- JSON array
-            skill_gaps TEXT, -- JSON array
-            action_items TEXT, -- JSON array
-            progress_notes TEXT, -- JSON array of progress updates
+            short_term_goals TEXT,
+            medium_term_goals TEXT,
+            long_term_goals TEXT,
+            skill_gaps TEXT,
+            action_items TEXT,
+            progress_notes TEXT,
             created_by INTEGER REFERENCES users(id),
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
-        -- Counselor notes
-        CREATE TABLE IF NOT EXISTS counselor_notes (
+        CREATE TABLE IF NOT EXISTS recommendation_feedback (
             id SERIAL PRIMARY KEY,
-            counselor_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-            student_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-            note_type VARCHAR(50) NOT NULL CHECK (note_type IN ('assessment', 'meeting', 'recommendation', 'progress', 'other')),
-            title VARCHAR(200) NOT NULL,
-            content TEXT NOT NULL,
-            is_shared_with_parent BOOLEAN DEFAULT false,
-            is_shared_with_student BOOLEAN DEFAULT true,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-
-        -- Progress tracking
-        CREATE TABLE IF NOT EXISTS student_progress (
-            id SERIAL PRIMARY KEY,
-            student_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-            action_plan_id INTEGER REFERENCES action_plans(id) ON DELETE SET NULL,
-            milestone_type VARCHAR(50) NOT NULL,
-            milestone_description TEXT NOT NULL,
-            target_date DATE,
-            completion_date DATE,
-            status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'completed', 'skipped')),
-            notes TEXT,
-            recorded_by INTEGER REFERENCES users(id),
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-
-        -- Communication log
-        CREATE TABLE IF NOT EXISTS communications (
-            id SERIAL PRIMARY KEY,
-            from_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-            to_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-            subject VARCHAR(200),
-            message TEXT NOT NULL,
-            message_type VARCHAR(20) DEFAULT 'message' CHECK (message_type IN ('message', 'notification', 'reminder')),
-            is_read BOOLEAN DEFAULT false,
-            parent_message_id INTEGER REFERENCES communications(id),
+            user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            session_id INTEGER REFERENCES assessment_sessions(id) ON DELETE CASCADE,
+            recommendation_id INTEGER REFERENCES career_recommendations(id) ON DELETE CASCADE,
+            career_code VARCHAR(50) NOT NULL,
+            career_title VARCHAR(200) NOT NULL,
+            feedback_type VARCHAR(20) NOT NULL CHECK (feedback_type IN ('helpful', 'not_helpful', 'rating', 'comment')),
+            rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+            is_helpful BOOLEAN,
+            comment TEXT,
+            improvement_suggestions TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
-        -- Indexes for better performance
-        CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-        CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
-        CREATE INDEX IF NOT EXISTS idx_student_profiles_user_id ON student_profiles(user_id);
-        CREATE INDEX IF NOT EXISTS idx_counselor_profiles_user_id ON counselor_profiles(user_id);
-        CREATE INDEX IF NOT EXISTS idx_parent_profiles_user_id ON parent_profiles(user_id);
-        CREATE INDEX IF NOT EXISTS idx_user_relationships_primary ON user_relationships(primary_user_id);
-        CREATE INDEX IF NOT EXISTS idx_user_relationships_secondary ON user_relationships(secondary_user_id);
-        CREATE INDEX IF NOT EXISTS idx_assessment_sessions_user_id ON assessment_sessions(user_id);
-        CREATE INDEX IF NOT EXISTS idx_assessment_sessions_token ON assessment_sessions(session_token);
-        CREATE INDEX IF NOT EXISTS idx_assessment_answers_session_id ON assessment_answers(session_id);
-        CREATE INDEX IF NOT EXISTS idx_career_recommendations_user_id ON career_recommendations(user_id);
-        CREATE INDEX IF NOT EXISTS idx_action_plans_user_id ON action_plans(user_id);
-        CREATE INDEX IF NOT EXISTS idx_counselor_notes_counselor_id ON counselor_notes(counselor_id);
-        CREATE INDEX IF NOT EXISTS idx_counselor_notes_student_id ON counselor_notes(student_id);
-        CREATE INDEX IF NOT EXISTS idx_student_progress_student_id ON student_progress(student_id);
-        CREATE INDEX IF NOT EXISTS idx_communications_from_user ON communications(from_user_id);
-        CREATE INDEX IF NOT EXISTS idx_communications_to_user ON communications(to_user_id);
-      `;
+        CREATE TABLE IF NOT EXISTS ai_learning_data (
+            id SERIAL PRIMARY KEY,
+            user_profile TEXT NOT NULL,
+            original_recommendation TEXT NOT NULL,
+            feedback_summary TEXT NOT NULL,
+            improvement_notes TEXT,
+            feedback_score DECIMAL(3,2),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        `
+      ];
       
-      // Execute schema creation
-      await this.query(schema);
+      // Create tables group by group with delays
+      for (let i = 0; i < tableGroups.length; i++) {
+        console.log(`🔧 Creating table group ${i + 1}/${tableGroups.length}...`);
+        await this.query(tableGroups[i]);
+        console.log(`✅ Table group ${i + 1} created successfully`);
+        
+        // Small delay between groups to avoid overwhelming the connection
+        if (i < tableGroups.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
       
-      console.log('✅ PostgreSQL database tables created successfully');
+      // Create indexes separately
+      console.log('🔧 Creating database indexes...');
+      const indexes = [
+        'CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);',
+        'CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);',
+        'CREATE INDEX IF NOT EXISTS idx_student_profiles_user_id ON student_profiles(user_id);',
+        'CREATE INDEX IF NOT EXISTS idx_assessment_sessions_user_id ON assessment_sessions(user_id);',
+        'CREATE INDEX IF NOT EXISTS idx_assessment_sessions_token ON assessment_sessions(session_token);',
+        'CREATE INDEX IF NOT EXISTS idx_assessment_answers_session_id ON assessment_answers(session_id);'
+      ];
+      
+      for (const index of indexes) {
+        await this.query(index);
+      }
+      
+      console.log('✅ PostgreSQL database tables and indexes created successfully');
     } catch (error) {
       console.error('❌ Error creating PostgreSQL tables:', error);
       throw error;

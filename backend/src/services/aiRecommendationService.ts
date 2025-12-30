@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { StudentProfile, AssessmentAnswer, CareerMatch, AIRecommendations, LocalJobOpportunity, CourseRecommendation } from '../types';
+import { FeedbackService } from './feedbackService';
 
 // Using CourseRecommendation and LocalJobOpportunity interfaces from types/index.ts
 
@@ -8,7 +9,7 @@ import { StudentProfile, AssessmentAnswer, CareerMatch, AIRecommendations, Local
 
 export class AIRecommendationService {
   /**
-   * Generate comprehensive AI-powered recommendations
+   * Generate comprehensive AI-powered recommendations with feedback integration
    */
   static async generateRecommendations(
     profile: Partial<StudentProfile>,
@@ -42,18 +43,25 @@ export class AIRecommendationService {
         return this.generateFallbackRecommendations(profile, careerMatches, zipCode, currentGrade);
       }
 
+      // Get feedback-based improvements for career recommendations
+      const feedbackImprovements = await this.getFeedbackImprovements(careerMatches);
+
       // Prepare context for AI
       console.log('\n' + '='.repeat(80));
       console.log('📊 PREPARING STUDENT CONTEXT FOR AI');
       console.log('='.repeat(80));
       console.log('Student Profile:', JSON.stringify(profile, null, 2));
       console.log('Assessment Answers Count:', answers.length);
+      console.log('Feedback Improvements:', feedbackImprovements.length, 'suggestions found');
+      if (feedbackImprovements.length > 0) {
+        console.log('Improvement Suggestions:', feedbackImprovements);
+      }
       console.log('Career Matches Count:', careerMatches.length);
       console.log('ZIP Code:', zipCode);
       console.log('Current Grade:', currentGrade);
       console.log('='.repeat(80));
       
-      const context = this.prepareAIContext(profile, answers, careerMatches, zipCode, currentGrade);
+      const context = this.prepareAIContext(profile, answers, careerMatches, zipCode, currentGrade, feedbackImprovements);
       
       console.log('\n📋 GENERATED CONTEXT FOR AI:');
       console.log('-'.repeat(50));
@@ -110,7 +118,8 @@ export class AIRecommendationService {
     answers: AssessmentAnswer[],
     careerMatches: CareerMatch[],
     zipCode: string,
-    currentGrade?: number
+    currentGrade?: number,
+    feedbackImprovements?: string[]
   ): string {
     const grade = currentGrade || 11;
     const interests = profile.interests?.join(', ') || 'Exploring career options';
@@ -200,6 +209,15 @@ This comprehensive profile indicates the need for detailed guidance on:
 5. Financial planning for education and career preparation
 6. Professional networking strategies in rural communities
 7. Specific, measurable action steps with realistic timelines and accountability measures
+
+FEEDBACK-BASED IMPROVEMENT INSIGHTS:
+${feedbackImprovements && feedbackImprovements.length > 0 ? 
+  `Based on feedback from previous students with similar profiles, please incorporate these improvement suggestions:
+${feedbackImprovements.map((improvement, index) => `${index + 1}. ${improvement}`).join('\n')}
+
+These insights should be integrated into your recommendations to provide more personalized and effective guidance.` :
+  'No specific feedback improvements available yet - provide comprehensive baseline recommendations.'
+}
     `;
   }
 
@@ -1010,5 +1028,30 @@ Remember: You are providing professional career counseling to a rural high schoo
     }
     
     return 'Continue developing both technical and soft skills relevant to this career path';
+  }
+
+  /**
+   * Get feedback-based improvements for career recommendations
+   */
+  private static async getFeedbackImprovements(careerMatches: CareerMatch[]): Promise<string[]> {
+    try {
+      const improvements: string[] = [];
+      
+      // Get improvement suggestions for top career matches
+      for (const match of careerMatches.slice(0, 3)) {
+        try {
+          const careerImprovements = await FeedbackService.getRecommendationImprovements(match.career.code);
+          improvements.push(...careerImprovements);
+        } catch (error) {
+          console.log(`⚠️ Could not get feedback improvements for ${match.career.code}:`, error);
+        }
+      }
+      
+      console.log(`💡 Retrieved ${improvements.length} feedback-based improvements`);
+      return improvements;
+    } catch (error) {
+      console.error('❌ Error getting feedback improvements:', error);
+      return [];
+    }
   }
 }
