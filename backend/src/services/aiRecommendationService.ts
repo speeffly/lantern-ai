@@ -1040,10 +1040,13 @@ Remember: You are providing professional career counseling to a rural high schoo
       // Get improvement suggestions for top career matches
       for (const match of careerMatches.slice(0, 3)) {
         try {
-          const careerImprovements = await FeedbackService.getRecommendationImprovements(match.career.code);
+          // Use onetCode if available, otherwise fall back to career id
+          const careerCode = match.career.onetCode || match.career.id;
+          const careerImprovements = await FeedbackService.getRecommendationImprovements(careerCode);
           improvements.push(...careerImprovements);
         } catch (error) {
-          console.log(`⚠️ Could not get feedback improvements for ${match.career.code}:`, error);
+          const careerCode = match.career.onetCode || match.career.id;
+          console.log(`⚠️ Could not get feedback improvements for ${careerCode}:`, error);
         }
       }
       
