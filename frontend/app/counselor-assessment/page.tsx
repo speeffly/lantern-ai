@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Header from '../components/Header';
 
@@ -55,6 +55,21 @@ interface CounselorAssessmentResponse {
 }
 
 export default function CounselorAssessmentPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50">
+        <Header title="Enhanced Career Assessment" />
+        <div className="flex items-center justify-center pt-20">
+          <div className="text-xl">Loading assessment...</div>
+        </div>
+      </div>
+    }>
+      <CounselorAssessmentContent />
+    </Suspense>
+  );
+}
+
+function CounselorAssessmentContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [questions, setQuestions] = useState<CounselorQuestion[]>([]);
@@ -551,7 +566,11 @@ export default function CounselorAssessmentPage() {
             transcriptFile: null // Remove file from JSON, it's in FormData
           }
         }));
-        formData.append('transcriptFile', finalResponses.academicPerformance.transcriptFile);
+        
+        // Only append transcript file if academicPerformance exists and has a transcriptFile
+        if (finalResponses.academicPerformance?.transcriptFile) {
+          formData.append('transcriptFile', finalResponses.academicPerformance.transcriptFile);
+        }
 
         response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/counselor-assessment/submit`, {
           method: 'POST',
@@ -713,7 +732,7 @@ export default function CounselorAssessmentPage() {
                   onChange={(e) => {
                     const newSelected = e.target.checked
                       ? [...selectedOptions, option]
-                      : selectedOptions.filter(item => item !== option);
+                      : selectedOptions.filter((item: string) => item !== option);
                     
                     handleAnswerChange(question.id, {
                       ...currentAnswer,
