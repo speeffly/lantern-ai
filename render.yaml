@@ -12,7 +12,7 @@ services:
       - key: RENDER
         value: "true"
       - key: FRONTEND_URL
-        value: https://main.d2ymtj6aumrj0m.amplifyapp.com
+        value: https://main.d36ebthmdi6xdg.amplifyapp.com,https://main.d2ymtj6aumrj0m.amplifyapp.com
       - key: JWT_SECRET
         value: lantern-ai-production-secret-key-2025
       - key: USE_REAL_AI

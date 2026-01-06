@@ -22,9 +22,11 @@ const allowedOrigins = [
   ...(process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',').map(url => url.trim()) : []),
   ...(process.env.NODE_ENV === 'production'
     ? [
-        'https://main.d2ymtj6aumrj0m.amplifyapp.com',
-        'https://d2ymtj6aumrj0m.amplifyapp.com',
-        'https://*.amplifyapp.com'
+        'https://main.d2ymtj6aumrj0m.amplifyapp.com',  // Old domain
+        'https://d2ymtj6aumrj0m.amplifyapp.com',       // Old domain
+        'https://main.d36ebthmdi6xdg.amplifyapp.com',  // New domain
+        'https://d36ebthmdi6xdg.amplifyapp.com',       // New domain
+        'https://*.amplifyapp.com'                     // Wildcard for any Amplify domain
       ]
     : ['http://localhost:3000', 'http://localhost:3001'])
 ].filter(Boolean);
@@ -50,7 +52,26 @@ const PORT = process.env.PORT || 3002;
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: allowedOrigins,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin is in allowed list
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // Check if origin matches Amplify pattern
+    if (origin.match(/^https:\/\/.*\.amplifyapp\.com$/)) {
+      return callback(null, true);
+    }
+    
+    // Log rejected origins for debugging
+    console.log('🚫 CORS rejected origin:', origin);
+    console.log('🌐 Allowed origins:', allowedOrigins);
+    
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
@@ -206,6 +227,30 @@ app.get('/api/debug/env', (req, res) => {
       RENDER: process.env.RENDER ? 'true' : 'false'
     },
     message: 'Environment variables checked'
+  });
+});
+
+// CORS debug endpoint
+app.get('/api/debug/cors', (req, res) => {
+  const origin = req.headers.origin;
+  const isAllowed = allowedOrigins.includes(origin || '') || 
+                   (origin && origin.match(/^https:\/\/.*\.amplifyapp\.com$/));
+  
+  res.json({
+    success: true,
+    data: {
+      requestOrigin: origin || 'no origin header',
+      allowedOrigins: allowedOrigins,
+      isOriginAllowed: isAllowed,
+      amplifyPatternMatch: origin ? origin.match(/^https:\/\/.*\.amplifyapp\.com$/) !== null : false,
+      corsHeaders: {
+        'Access-Control-Allow-Origin': isAllowed ? origin : 'not allowed',
+        'Access-Control-Allow-Credentials': 'true',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With'
+      }
+    },
+    message: 'CORS configuration checked'
   });
 });
 
