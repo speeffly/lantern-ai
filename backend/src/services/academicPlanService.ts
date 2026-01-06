@@ -206,7 +206,7 @@ Plan should start from Grade ${grade} and go through Grade 12, then include post
           limit: 10
         });
         
-        if (jobs.length > 0) {
+      if (jobs.length > 0) {
           // Extract salary information from real jobs
           const salaries = jobs
             .map(job => job.salary)

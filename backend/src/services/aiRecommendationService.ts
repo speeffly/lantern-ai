@@ -30,7 +30,12 @@ export class AIRecommendationService {
     try {
       console.log('🎯 Generating comprehensive career guidance package...');
 
-      // Generate all components in parallel for efficiency
+      // Fetch jobs once and reuse across all services
+      console.log('🔍 Fetching job opportunities once for all services...');
+      const sharedJobs = await this.generateLocalJobOpportunities(careerMatches, zipCode);
+      console.log(`✅ Fetched ${sharedJobs.length} job opportunities to share across services`);
+
+      // Generate all components in parallel for efficiency, passing shared jobs
       const [
         enhancedCareerMatches,
         counselorRecommendations,
@@ -38,7 +43,7 @@ export class AIRecommendationService {
         fourYearPlan
       ] = await Promise.all([
         CareerMatchingService.getEnhancedMatches(profile, answers, careerMatches),
-        this.generateRecommendations(profile, answers, careerMatches, zipCode, currentGrade),
+        this.generateRecommendations(profile, answers, careerMatches, zipCode, currentGrade, sharedJobs),
         ParentSummaryService.generateParentSummary(profile, answers, careerMatches, currentGrade),
         AcademicPlanService.generateFourYearPlan(profile, answers, careerMatches, zipCode, currentGrade)
       ]);
@@ -66,7 +71,8 @@ export class AIRecommendationService {
     answers: AssessmentAnswer[],
     careerMatches: CareerMatch[],
     zipCode: string,
-    currentGrade?: number
+    currentGrade?: number,
+    preloadedJobs?: LocalJobOpportunity[] // Add parameter to reuse jobs
   ): Promise<AIRecommendations> {
     try {
       console.log('🤖 Generating AI recommendations for profile:', profile.interests);
@@ -98,8 +104,8 @@ export class AIRecommendationService {
       // Get feedback-based improvements for career recommendations
       const feedbackImprovements = await this.getFeedbackImprovements(careerMatches);
 
-      // Get real jobs first
-      const localJobs = await this.generateLocalJobOpportunities(careerMatches, zipCode);
+      // Use preloaded jobs if available, otherwise fetch them once
+      const localJobs = preloadedJobs || await this.generateLocalJobOpportunities(careerMatches, zipCode);
       
       // Prepare context for AI (now includes real job data)
       console.log('\n' + '='.repeat(80));
