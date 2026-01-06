@@ -132,7 +132,7 @@ export class AIRecommendationService {
       console.log('🔄 PARSING AI RESPONSE INTO STRUCTURED RECOMMENDATIONS');
       console.log('='.repeat(80));
       
-      const recommendations = await this.parseAIResponse(aiResponse, profile, careerMatches, zipCode);
+      const recommendations = await this.parseAIResponse(aiResponse, profile, careerMatches, zipCode, localJobs, currentGrade);
       
       // Use the real jobs we already fetched
       recommendations.localJobs = localJobs;
@@ -471,6 +471,8 @@ You provide cutting-edge career advice that prepares students for the future of 
 
 As Alex Johnson, provide innovative career guidance for this high school student. Focus on emerging opportunities, technology careers, and entrepreneurial pathways. Your recommendations should be forward-thinking and prepare them for the future of work.
 
+IMPORTANT: Respond with ONLY valid JSON. Do not include any text before or after the JSON object. Ensure all strings are properly quoted and all objects/arrays are properly closed.
+
 Provide your analysis in the following JSON format with cutting-edge, future-focused recommendations:
 
 {
@@ -593,6 +595,8 @@ You provide cutting-edge career advice that prepares students for the future of 
 const userPrompt = `${context}
 
 As Dr. Sarah Martinez, provide comprehensive career guidance for this rural high school student. Your recommendations should be detailed, practical, and specifically tailored to their rural context. Use your 15 years of experience to provide professional-quality guidance. Factor the provided ZIP code into every recommendation (local availability, commuting feasibility, remote or hybrid options).
+
+IMPORTANT: Respond with ONLY valid JSON. Do not include any text before or after the JSON object. Ensure all strings are properly quoted and all objects/arrays are properly closed.
 
 Provide your analysis in the following JSON format with cutting-edge, future-focused recommendations:
 
@@ -759,7 +763,9 @@ Remember: You are providing professional career counseling to a rural high schoo
     aiResponse: string,
     profile: Partial<StudentProfile>,
     careerMatches: CareerMatch[],
-    zipCode: string
+    zipCode: string,
+    localJobs: LocalJobOpportunity[],
+    currentGrade?: number
   ): Promise<AIRecommendations> {
     try {
       console.log('🔍 Raw AI response length:', aiResponse.length);
@@ -805,7 +811,7 @@ Remember: You are providing professional career counseling to a rural high schoo
           nextYear: [],
           longTerm: []
         },
-        localJobs: [], // Will be set by caller with real Adzuna jobs
+        localJobs: localJobs, // Use the jobs passed in
         careerPathway: parsed.careerPathway || this.getDefaultCareerPathway(careerMatches),
         skillGaps: parsed.skillGaps || this.getDefaultSkillGaps(careerMatches),
         actionItems: parsed.actionItems || this.getDefaultActionItems(profile)
@@ -821,7 +827,7 @@ Remember: You are providing professional career counseling to a rural high schoo
         if (simpleExtraction) {
           console.log('✅ Successfully extracted simple recommendations from AI response');
           return {
-            localJobs: await this.generateLocalJobOpportunities(careerMatches, zipCode),
+            localJobs: localJobs, // Use the jobs we already fetched
             academicPlan: simpleExtraction.academicPlan || {
               currentYear: [],
               nextYear: [],
@@ -845,7 +851,7 @@ Remember: You are providing professional career counseling to a rural high schoo
 
     // Final fallback
     console.log('⚠️ Using enhanced fallback recommendations');
-    return await this.generateFallbackRecommendations(profile, careerMatches, zipCode);
+    return await this.generateFallbackRecommendations(profile, careerMatches, zipCode, currentGrade, localJobs);
   }
 
   /**
@@ -1001,7 +1007,8 @@ Remember: You are providing professional career counseling to a rural high schoo
     profile: Partial<StudentProfile>,
     careerMatches: CareerMatch[],
     zipCode: string,
-    currentGrade?: number
+    currentGrade?: number,
+    localJobs?: LocalJobOpportunity[]
   ): Promise<AIRecommendations> {
     const grade = currentGrade || 11;
     const isHealthcareInterested = profile.interests?.includes('Healthcare') || 
@@ -1013,7 +1020,7 @@ Remember: You are providing professional career counseling to a rural high schoo
         nextYear: this.getRelevantCourses(grade + 1, isHealthcareInterested, 'next'),
         longTerm: this.getRelevantCourses(grade + 2, isHealthcareInterested, 'longterm')
       },
-      localJobs: await this.generateLocalJobOpportunities(careerMatches, zipCode),
+      localJobs: localJobs || await this.generateLocalJobOpportunities(careerMatches, zipCode),
       careerPathway: this.getDefaultCareerPathway(careerMatches),
       skillGaps: this.getDefaultSkillGaps(careerMatches),
       actionItems: this.getDefaultActionItems(profile)
@@ -1256,6 +1263,57 @@ Remember: You are providing professional career counseling to a rural high schoo
     }
     
     return 'Continue developing both technical and soft skills relevant to this career path';
+  }
+
+  /**
+   * Fix malformed JSON from AI responses
+   */
+  private static fixMalformedJSON(jsonString: string): string {
+    try {
+      // Common AI JSON issues and fixes
+      let fixed = jsonString
+        // Fix incomplete strings (missing closing quotes)
+        .replace(/:\s*"([^"]*?)(\s*[,}\]])/g, (match, content, ending) => {
+          // If the content doesn't end with a quote, add one
+          if (!content.endsWith('"')) {
+            return `: "${content}"${ending}`;
+          }
+          return match;
+        })
+        // Fix arrays with missing commas
+        .replace(/"\s*"([^"]*?)"/g, '", "$1"')
+        // Fix objects with missing commas between properties
+        .replace(/}(\s*)"([^"]*?)":/g, '}, "$2":')
+        // Fix nested objects
+        .replace(/}(\s*){/g, '}, {')
+        // Remove any trailing text after the last }
+        .replace(/}[^}]*$/, '}')
+        // Fix boolean values that might be unquoted
+        .replace(/:\s*(true|false|null)(\s*[,}\]])/g, ': $1$2')
+        // Fix numbers that might have extra characters
+        .replace(/:\s*(\d+)[^\d,}\]]*(\s*[,}\]])/g, ': $1$2');
+      
+      // Try to balance braces and brackets
+      const openBraces = (fixed.match(/{/g) || []).length;
+      const closeBraces = (fixed.match(/}/g) || []).length;
+      const openBrackets = (fixed.match(/\[/g) || []).length;
+      const closeBrackets = (fixed.match(/\]/g) || []).length;
+      
+      // Add missing closing braces
+      for (let i = closeBraces; i < openBraces; i++) {
+        fixed += '}';
+      }
+      
+      // Add missing closing brackets
+      for (let i = closeBrackets; i < openBrackets; i++) {
+        fixed += ']';
+      }
+      
+      return fixed;
+    } catch (error) {
+      console.error('❌ JSON fixing failed:', error);
+      return jsonString; // Return original if fixing fails
+    }
   }
 
   /**

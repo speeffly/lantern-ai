@@ -76,6 +76,8 @@ ${answers.map(answer => `- ${answer.questionId}: ${answer.answer}`).join('\n')}
 
 Create a comprehensive parent summary in JSON format:
 
+IMPORTANT: Return ONLY valid JSON. No additional text or explanations outside the JSON object.
+
 {
   "overview": {
     "studentStrengths": ["specific strength 1", "specific strength 2", "specific strength 3"],

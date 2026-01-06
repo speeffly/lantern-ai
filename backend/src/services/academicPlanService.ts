@@ -100,6 +100,8 @@ Salary Outlook: ${marketInsights.salary}
 
 Create a detailed 4-year academic plan in JSON format:
 
+IMPORTANT: Return ONLY valid JSON. No additional text or explanations outside the JSON object.
+
 {
   "overview": {
     "planSummary": "Comprehensive summary of the 4-year plan strategy",

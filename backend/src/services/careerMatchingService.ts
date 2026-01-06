@@ -86,6 +86,8 @@ ${answers.map(answer => `- ${answer.questionId}: ${answer.answer}`).join('\n')}
 
 Provide a personalized analysis in JSON format:
 
+IMPORTANT: Return ONLY valid JSON. No additional text or explanations outside the JSON object.
+
 {
   "whyItMatches": "2-3 sentences explaining why this career aligns with the student's interests, skills, and goals",
   "personalizedDescription": "Rewrite the career description in a way that connects to this specific student's interests and strengths",
