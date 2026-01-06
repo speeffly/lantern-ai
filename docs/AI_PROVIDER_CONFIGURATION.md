@@ -12,8 +12,8 @@ Lantern AI supports multiple AI providers for generating career recommendations.
 - **Cost**: Pay-per-token pricing
 - **API Key**: Get from [OpenAI Platform](https://platform.openai.com/api-keys)
 
-### 🟢 **Google Gemini (1.5-flash)**
-- **Model**: gemini-1.5-flash
+### 🟢 **Google Gemini (Pro)**
+- **Model**: gemini-pro
 - **Strengths**: Fast responses, competitive pricing, Google integration
 - **Cost**: Generous free tier, competitive pricing
 - **API Key**: Get from [Google AI Studio](https://makersuite.google.com/app/apikey)
@@ -155,12 +155,12 @@ The frontend doesn't need AI API keys - all AI processing happens on the backend
 
 ## Provider Comparison
 
-| Feature | OpenAI GPT-3.5-turbo | Google Gemini 1.5-flash |
-|---------|----------------------|--------------------------|
+| Feature | OpenAI GPT-3.5-turbo | Google Gemini Pro |
+|---------|----------------------|-------------------|
 | **Response Quality** | Excellent | Very Good |
 | **Speed** | Fast | Very Fast |
 | **Cost** | $0.50-$1.50 per 1M tokens | Free tier + competitive pricing |
-| **Context Length** | 16,385 tokens | 1M+ tokens |
+| **Context Length** | 16,385 tokens | 30,720 tokens |
 | **Reliability** | Very High | High |
 | **Setup Complexity** | Simple | Simple |
 | **Free Tier** | $5 credit for new users | Generous free tier |
@@ -183,7 +183,7 @@ const AI_CONFIG = {
     presencePenalty: 0   // Encourage new topics
   },
   gemini: {
-    model: "gemini-1.5-flash",
+    model: "gemini-pro",
     temperature: 0.7,
     topK: 40,
     topP: 0.95,
