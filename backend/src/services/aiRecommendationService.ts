@@ -5,7 +5,6 @@ import { FeedbackService } from './feedbackService';
 import { RealJobProvider } from './realJobProvider';
 import { CareerMatchingService, EnhancedCareerMatch } from './careerMatchingService';
 import { ParentSummaryService, ParentSummary } from './parentSummaryService';
-// import { AcademicPlanService, FourYearPlan } from './academicPlanService'; // Temporarily disabled due to compilation errors
 
 // Temporary FourYearPlan interface to avoid compilation errors
 interface FourYearPlan {
@@ -32,10 +31,6 @@ interface FourYearPlan {
     skillPortability: string[];
   };
 }
-
-// Using CourseRecommendation and LocalJobOpportunity interfaces from types/index.ts
-
-// Using AIRecommendations interface from types/index.ts
 
 export class AIRecommendationService {
   /**
@@ -66,12 +61,10 @@ export class AIRecommendationService {
         enhancedCareerMatches,
         counselorRecommendations,
         parentSummary
-        // fourYearPlan - Temporarily disabled due to compilation errors
       ] = await Promise.all([
         CareerMatchingService.getEnhancedMatches(profile, answers, careerMatches),
         this.generateRecommendations(profile, answers, careerMatches, zipCode, currentGrade, sharedJobs),
         ParentSummaryService.generateParentSummary(profile, answers, careerMatches, currentGrade)
-        // AcademicPlanService.generateFourYearPlan(profile, answers, careerMatches, zipCode, currentGrade) - Temporarily disabled
       ]);
 
       // Temporary fallback for fourYearPlan
@@ -124,7 +117,7 @@ export class AIRecommendationService {
     careerMatches: CareerMatch[],
     zipCode: string,
     currentGrade?: number,
-    preloadedJobs?: LocalJobOpportunity[] // Add parameter to reuse jobs
+    preloadedJobs?: LocalJobOpportunity[]
   ): Promise<AIRecommendations> {
     try {
       console.log('🤖 Generating AI recommendations for profile:', profile.interests);
@@ -203,11 +196,6 @@ export class AIRecommendationService {
       console.log('Skill Gaps:', recommendations.skillGaps?.length || 0);
       console.log('Action Items:', recommendations.actionItems?.length || 0);
       
-      console.log('\n📋 COMPLETE RECOMMENDATIONS OBJECT:');
-      console.log('-'.repeat(50));
-      console.log(JSON.stringify(recommendations, null, 2));
-      console.log('='.repeat(80));
-      
       console.log('\n✅ AI RECOMMENDATION GENERATION COMPLETE');
       console.log('='.repeat(80) + '\n');
       
@@ -247,7 +235,6 @@ export class AIRecommendationService {
 COMPREHENSIVE STUDENT PROFILE FOR CAREER COUNSELING SESSION:
 
 STUDENT DEMOGRAPHICS & CONTEXT:
-
 - Current Academic Level: Grade ${grade} (Age: ${14 + (grade - 9)} years old)
 - Geographic Location: ZIP Code ${zipCode} (Rural community setting)
 - Academic Timeline: ${grade === 12 ? 'Senior year - immediate post-graduation planning needed' : 
@@ -276,47 +263,13 @@ ${careerMatches.slice(0, 5).map((match, index) => {
   return `${index + 1}. ${match.career.title} (${match.matchScore}% match)
    - Sector: ${match.career.sector}
    - Education Required: ${match.career.requiredEducation}
-   - Average Salary: $${match.career.averageSalary.toLocaleString()}
+   - Average Salary: ${match.career.averageSalary.toLocaleString()}
    - Key Responsibilities: ${match.career.responsibilities?.slice(0, 3).join(', ') || 'Various duties'}
    - Required Certifications: ${match.career.certifications?.join(', ') || 'None specified'}
    - Growth Outlook: ${match.career.growthOutlook || 'Stable'}
    - Match Reasons: ${match.reasoningFactors?.join(', ') || 'Strong alignment with interests'}
    - Local Demand: ${match.localDemand}`;
 }).join('\n\n')}
-
-RURAL COMMUNITY CONTEXT & STRATEGIC CONSIDERATIONS:
-
-Geographic & Economic Environment:
-- Rural location with unique opportunities and challenges
-- Lower cost of living but potentially adjusted wage scales
-- Strong community networks and relationship-based opportunities
-- Limited public transportation - personal vehicle typically essential
-- Seasonal employment patterns in agriculture and tourism sectors
-
-Educational Access & Training Resources:
-- Community college likely within 30-50 mile radius
-- Online and distance learning increasingly important for skill development
-- Dual enrollment opportunities may be available through high school
-- Regional trade schools and vocational training centers
-- Apprenticeship programs through local employers and unions
-- Professional development through agricultural extension and community organizations
-
-Career Development Landscape:
-- Healthcare sector expansion due to aging rural populations
-- Infrastructure maintenance and development needs
-- Agricultural technology and precision farming opportunities
-- Small business and entrepreneurship potential with lower startup costs
-- Remote work possibilities in technology and professional services
-- Government and public service positions with stability
-- Tourism, recreation, and outdoor industry growth potential
-
-Family & Community Dynamics:
-- Strong family ties and multi-generational considerations
-- Community leadership and civic engagement opportunities
-- Local mentorship through established professionals
-- Word-of-mouth networking and relationship-based hiring
-- Potential family business involvement or succession planning
-- Community values alignment important for career satisfaction
 
 REAL JOB MARKET ANALYSIS - CURRENT OPPORTUNITIES:
 ${realJobs && realJobs.length > 0 ? 
@@ -342,16 +295,6 @@ MARKET INSIGHTS:
 RECOMMENDATION FOCUS: Use this real job market data to provide specific, actionable advice. Reference actual employers, salary ranges, and job requirements in your recommendations.` :
   'Real job market data not available - provide general career guidance based on career matches and location.'
 }
-
-COUNSELING SESSION FOCUS AREAS:
-This comprehensive profile indicates the need for detailed guidance on:
-1. Strategic academic planning for remaining high school years
-2. Post-secondary education and training pathway optimization
-3. Skill development priorities with rural resource considerations
-4. Local and regional career opportunity identification
-5. Financial planning for education and career preparation
-6. Professional networking strategies in rural communities
-7. Specific, measurable action steps with realistic timelines and accountability measures
 
 FEEDBACK-BASED IMPROVEMENT INSIGHTS:
 ${feedbackImprovements && feedbackImprovements.length > 0 ? 
@@ -497,41 +440,15 @@ These insights should be integrated into your recommendations to provide more pe
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
 
-    const systemPrompt = `You are Alex Johnson, a modern career coach specializing in technology and entrepreneurship for Gen Z students. You have:
-
-CREDENTIALS:
-- MBA in Business Innovation and Technology
-- Certified Professional Career Coach (CPCC)
-- 10 years experience in startup ecosystems and tech careers
-- Former software engineer turned career strategist
-
-EXPERTISE:
-- Emerging technology careers and digital economy trends
-- Remote work opportunities and digital nomad lifestyle
-- Startup culture and entrepreneurship pathways
-- Online learning platforms and skill development
-- Social media and personal branding for career success
-- Gig economy and freelance career strategies
-- Tech bootcamps and alternative education paths
-
-COACHING APPROACH:
-- Forward-thinking and innovation-focused
-- Emphasizes adaptability and continuous learning
-- Encourages creative problem-solving and risk-taking
-- Uses modern language and references students understand
-- Focuses on building personal brand and online presence
-- Practical advice with real-world examples from tech industry
-- Emphasizes networking through social media and online communities
-
-You provide cutting-edge career advice that prepares students for the future of work, with emphasis on technology, creativity, and entrepreneurial thinking.`;
+    const systemPrompt = `You are Alex Johnson, a modern career coach specializing in technology and entrepreneurship for Gen Z students.`;
 
     const userPrompt = `${context}
 
-As Alex Johnson, provide innovative career guidance for this high school student. Focus on emerging opportunities, technology careers, and entrepreneurial pathways. Your recommendations should be forward-thinking and prepare them for the future of work.
+As Alex Johnson, provide innovative career guidance for this high school student. Focus on emerging opportunities, technology careers, and entrepreneurial pathways.
 
 IMPORTANT: Respond with ONLY valid JSON. Do not include any text before or after the JSON object. Ensure all strings are properly quoted and all objects/arrays are properly closed.
 
-Provide your analysis in the following JSON format with cutting-edge, future-focused recommendations:
+Provide your analysis in the following JSON format:
 
 {
   "academicPlan": {
@@ -541,7 +458,7 @@ Provide your analysis in the following JSON format with cutting-edge, future-foc
         "reasoning": "Why this course is essential for future careers",
         "careerConnection": "How this connects to emerging opportunities",
         "skillsDeveloped": ["skill1", "skill2", "skill3"],
-        "priority": "Essential|Highly Recommended|Recommended"
+        "priority": "Essential"
       }
     ],
     "nextYear": [],
@@ -555,7 +472,7 @@ Provide your analysis in the following JSON format with cutting-edge, future-foc
   "skillGaps": [
     {
       "skill": "Skill name",
-      "importance": "Critical|Important|Beneficial",
+      "importance": "Critical",
       "howToAcquire": "How to develop this skill"
     }
   ],
@@ -563,52 +480,19 @@ Provide your analysis in the following JSON format with cutting-edge, future-foc
     {
       "title": "Action title",
       "description": "Detailed description",
-      "priority": "high|medium|low",
+      "priority": "high",
       "timeline": "When to complete"
     }
   ]
-}
+}`;
 
-Remember: Focus on technology, innovation, and preparing for the future of work.`;
-
-    // Log the prompts
-    console.log('\n' + '='.repeat(80));
-    console.log('🤖 GEMINI API CALL - PROMPT LOGGING');
-    console.log('='.repeat(80));
-    
-    console.log('\n📋 SYSTEM PROMPT (Career Coach Persona):');
-    console.log('-'.repeat(50));
-    console.log(systemPrompt);
-    
-    console.log('\n📝 USER PROMPT (Student Context & Instructions):');
-    console.log('-'.repeat(50));
-    console.log(userPrompt);
-    
-    console.log('\n⚙️ API CONFIGURATION:');
-    console.log('-'.repeat(50));
-    console.log('Model: gemini-2.0-flash-exp');
-    console.log('Provider: Google Gemini');
-    console.log('Context Length:', context.length, 'characters');
-    console.log('System Prompt Length:', systemPrompt.length, 'characters');
-    console.log('User Prompt Length:', userPrompt.length, 'characters');
-    console.log('Total Prompt Length:', (systemPrompt.length + userPrompt.length), 'characters');
-    
-    console.log('\n🚀 Sending request to Gemini...');
-    console.log('='.repeat(80));
+    console.log('🚀 Sending request to Gemini...');
 
     const result = await model.generateContent(`${systemPrompt}\n\n${userPrompt}`);
     const response = result.response.text();
     
-    console.log('\n' + '='.repeat(80));
     console.log('✅ GEMINI API RESPONSE RECEIVED');
-    console.log('='.repeat(80));
     console.log('Response Length:', response.length, 'characters');
-    console.log('Model Used: gemini-2.0-flash-exp');
-    
-    console.log('\n📄 RAW AI RESPONSE:');
-    console.log('-'.repeat(50));
-    console.log(response);
-    console.log('='.repeat(80) + '\n');
 
     return response;
   }
@@ -622,164 +506,53 @@ Remember: Focus on technology, innovation, and preparing for the future of work.
       apiKey: process.env.OPENAI_API_KEY || '',
     });
 
-    const systemPrompt = `You are Alex Johnson, a modern career coach specializing in technology and entrepreneurship for Gen Z students. You have:
+    const systemPrompt = `You are Alex Johnson, a modern career coach specializing in technology and entrepreneurship for Gen Z students.`;
 
-CREDENTIALS:
-- MBA in Business Innovation and Technology
-- Certified Professional Career Coach (CPCC)
-- 10 years experience in startup ecosystems and tech careers
-- Former software engineer turned career strategist
+    const userPrompt = `${context}
 
-EXPERTISE:
-- Emerging technology careers and digital economy trends
-- Remote work opportunities and digital nomad lifestyle
-- Startup culture and entrepreneurship pathways
-- Online learning platforms and skill development
-- Social media and personal branding for career success
-- Gig economy and freelance career strategies
-- Tech bootcamps and alternative education paths
-
-COACHING APPROACH:
-- Forward-thinking and innovation-focused
-- Emphasizes adaptability and continuous learning
-- Encourages creative problem-solving and risk-taking
-- Uses modern language and references students understand
-- Focuses on building personal brand and online presence
-- Practical advice with real-world examples from tech industry
-- Emphasizes networking through social media and online communities
-
-You provide cutting-edge career advice that prepares students for the future of work, with emphasis on technology, creativity, and entrepreneurial thinking.`;
-
-const userPrompt = `${context}
-
-As Dr. Sarah Martinez, provide comprehensive career guidance for this rural high school student. Your recommendations should be detailed, practical, and specifically tailored to their rural context. Use your 15 years of experience to provide professional-quality guidance. Factor the provided ZIP code into every recommendation (local availability, commuting feasibility, remote or hybrid options).
+As Alex Johnson, provide comprehensive career guidance for this rural high school student.
 
 IMPORTANT: Respond with ONLY valid JSON. Do not include any text before or after the JSON object. Ensure all strings are properly quoted and all objects/arrays are properly closed.
 
-Provide your analysis in the following JSON format with cutting-edge, future-focused recommendations:
+Provide your analysis in the following JSON format:
 
 {
   "academicPlan": {
     "currentYear": [
       {
-        "courseName": "Specific course name (e.g., 'Advanced Biology with Lab')",
-        "reasoning": "Detailed professional explanation of why this course is essential for their specific career goals, including how it builds foundational knowledge",
-        "careerConnection": "Specific explanation of how this course directly connects to their top career matches and future opportunities",
-        "skillsDeveloped": ["specific technical skill", "specific soft skill", "specific academic skill"],
-        "priority": "Essential|Highly Recommended|Recommended",
-        "localAvailability": "Detailed information about how to access this course (high school offering, dual enrollment, online options, community college)",
-        "prerequisites": "Any required previous courses or skills",
-        "timeCommitment": "Expected hours per week and semester length"
+        "courseName": "Specific course name",
+        "reasoning": "Why this course is essential",
+        "careerConnection": "How this connects to career goals",
+        "skillsDeveloped": ["skill1", "skill2", "skill3"],
+        "priority": "Essential"
       }
     ],
-    "nextYear": [
-      {
-        "courseName": "Advanced course building on current year foundation",
-        "reasoning": "Professional explanation of why this progression is important for career development",
-        "careerConnection": "How this advanced course enhances career pathway preparation",
-        "skillsDeveloped": ["advanced skill 1", "advanced skill 2", "leadership skill"],
-        "priority": "Essential|Highly Recommended|Recommended",
-        "localAvailability": "Access information including backup options",
-        "prerequisites": "Required foundation from current year",
-        "timeCommitment": "Expected commitment level"
-      }
-    ],
-    "longTerm": [
-      {
-        "option": "Specific post-secondary education or training program name",
-        "description": "Detailed description of the program, curriculum, and outcomes",
-        "duration": "Specific time required (e.g., '18-month certificate program')",
-        "cost": "Realistic cost range including tuition, fees, materials",
-        "location": "Specific information about where available (local community college name, regional options, reputable online programs)",
-        "careerOutcomes": "Specific careers this leads to with salary ranges",
-        "admissionRequirements": "What's needed to get accepted",
-        "financialAid": "Available scholarships, grants, and funding options"
-      }
-    ]
+    "nextYear": [],
+    "longTerm": []
   },
   "careerPathway": {
-    "steps": [
-      "Specific immediate action for next 6 months with clear deliverables",
-      "Detailed short-term goal for 6 months - 2 years with measurable outcomes",
-      "Comprehensive medium-term objective for 2-5 years with career milestones",
-      "Long-term vision for 5+ years with advancement opportunities"
-    ],
-    "timeline": "Detailed timeline from high school graduation to established career with key milestones",
-    "requirements": ["Specific educational requirement", "Specific certification requirement", "Specific experience requirement"],
-    "ruralConsiderations": "Detailed analysis of rural-specific factors including transportation, family considerations, local opportunities, and community connections",
-    "financialPlanning": "Comprehensive cost analysis including education expenses, living costs, expected salary progression, and ROI timeline",
-    "alternativePathways": "Backup options and alternative routes to similar career outcomes"
+    "steps": ["Step 1", "Step 2", "Step 3", "Step 4"],
+    "timeline": "Timeline description",
+    "requirements": ["Requirement 1", "Requirement 2"]
   },
   "skillGaps": [
     {
-      "skill": "Specific skill name (e.g., 'Medical Terminology and Documentation')",
-      "importance": "Critical|Important|Beneficial",
-      "currentLevel": "Assessment of student's current ability in this area",
-      "targetLevel": "What level they need to reach for career success",
-      "howToAcquire": "Detailed, specific methods to develop this skill including courses, programs, and self-study options",
-      "timeline": "Realistic timeframe for skill development with milestones",
-      "resources": "Specific resources including online courses, local programs, books, mentors",
-      "practiceOpportunities": "Concrete ways to practice and apply this skill in real situations",
-      "assessmentMethods": "How to measure progress and competency",
-      "ruralChallenges": "Specific challenges for developing this skill in a rural area and solutions"
+      "skill": "Skill name",
+      "importance": "Critical",
+      "howToAcquire": "How to develop this skill"
     }
   ],
   "actionItems": [
     {
-      "title": "Specific, actionable title (e.g., 'Schedule Meeting with School Counselor About Dual Enrollment')",
-      "description": "Detailed description of exactly what to do, why it's important, and expected outcomes",
-      "priority": "high|medium|low",
-      "timeline": "Specific timeframe with deadlines (e.g., 'Complete by end of this week')",
-      "category": "Academic|Career Exploration|Skill Development|Networking|Financial Planning",
-      "steps": ["Detailed step 1 with specific actions", "Detailed step 2 with specific actions", "Detailed step 3 with specific actions"],
-      "resources": "Specific resources needed including contact information, websites, materials",
-      "successMetrics": "Clear, measurable ways to determine completion and success",
-      "potentialObstacles": "Likely challenges and how to overcome them",
-      "followUpActions": "What to do after completing this action item"
-    }
-  ],
-  "localOpportunities": [
-    {
-      "type": "Volunteer|Internship|Part-time Job|Mentorship|Job Shadow",
-      "organization": "Realistic local organization name and type (e.g., 'County General Hospital', 'Local Construction Company')",
-      "description": "Detailed description of what the opportunity involves and time commitment",
-      "skills": "Specific skills that will be gained from this opportunity",
-      "careerRelevance": "Detailed explanation of how this connects to their career goals and builds their resume",
-      "howToApply": "Step-by-step process for pursuing this opportunity including contact methods",
-      "requirements": "Any age, skill, or other requirements",
-      "benefits": "What the student will gain beyond just experience",
-      "timeline": "When to apply and typical duration of opportunity"
+      "title": "Action title",
+      "description": "Detailed description",
+      "priority": "high",
+      "timeline": "When to complete"
     }
   ]
-}
+}`;
 
-Remember: You are providing professional career counseling to a rural high school student. Your recommendations should be comprehensive, realistic, and specifically tailored to their rural context while maintaining the high standards of professional career guidance. Include specific details that demonstrate your expertise and provide genuine value to help this student succeed in their chosen career path.`;
-
-    // Log the complete prompts being sent to OpenAI
-    console.log('\n' + '='.repeat(80));
-    console.log('🤖 OPENAI API CALL - PROMPT LOGGING');
-    console.log('='.repeat(80));
-    
-    console.log('\n📋 SYSTEM PROMPT (Career Counselor Persona):');
-    console.log('-'.repeat(50));
-    console.log(systemPrompt);
-    
-    console.log('\n📝 USER PROMPT (Student Context & Instructions):');
-    console.log('-'.repeat(50));
-    console.log(userPrompt);
-    
-    console.log('\n⚙️ API CONFIGURATION:');
-    console.log('-'.repeat(50));
-    console.log('Model: gpt-3.5-turbo');
-    console.log('Max Tokens: 4000');
-    console.log('Temperature: 0.7');
-    console.log('Context Length:', context.length, 'characters');
-    console.log('System Prompt Length:', systemPrompt.length, 'characters');
-    console.log('User Prompt Length:', userPrompt.length, 'characters');
-    console.log('Total Prompt Length:', (systemPrompt.length + userPrompt.length), 'characters');
-    
-    console.log('\n🚀 Sending request to OpenAI...');
-    console.log('='.repeat(80));
+    console.log('🚀 Sending request to OpenAI...');
 
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
@@ -799,23 +572,14 @@ Remember: You are providing professional career counseling to a rural high schoo
 
     const response = completion.choices[0]?.message?.content || '';
     
-    console.log('\n' + '='.repeat(80));
     console.log('✅ OPENAI API RESPONSE RECEIVED');
-    console.log('='.repeat(80));
     console.log('Response Length:', response.length, 'characters');
-    console.log('Tokens Used:', completion.usage?.total_tokens || 'unknown');
-    console.log('Model Used:', completion.model);
-    
-    console.log('\n📄 RAW AI RESPONSE:');
-    console.log('-'.repeat(50));
-    console.log(response);
-    console.log('='.repeat(80) + '\n');
 
     return response;
   }
 
   /**
-   * Parse AI response into structured recommendations
+   * Parse AI response into structured recommendations with comprehensive JSON fixing
    */
   private static async parseAIResponse(
     aiResponse: string,
@@ -828,39 +592,12 @@ Remember: You are providing professional career counseling to a rural high schoo
     try {
       console.log('🔍 Raw AI response length:', aiResponse.length);
       
-      // Clean the response thoroughly
-      let cleanedResponse = aiResponse
-        // Remove markdown code blocks
-        .replace(/```json\s*/g, '')
-        .replace(/```\s*$/g, '')
-        .replace(/```/g, '')
-        // Remove control characters and fix common issues
-        .replace(/[\x00-\x1F\x7F]/g, '') // Remove all control characters
-        .replace(/\n/g, ' ') // Replace newlines with spaces
-        .replace(/\r/g, '') // Remove carriage returns
-        .replace(/\t/g, ' ') // Replace tabs with spaces
-        .replace(/\s+/g, ' ') // Normalize whitespace
-        .trim();
-      
-      // Extract JSON object
-      let jsonMatch = cleanedResponse.match(/\{.*\}/);
-      if (!jsonMatch) {
-        throw new Error('No JSON object found in response');
-      }
-      
-      let jsonString = jsonMatch[0];
-      
-      // Additional JSON cleanup
-      jsonString = jsonString
-        .replace(/,\s*}/g, '}') // Remove trailing commas in objects
-        .replace(/,\s*]/g, ']') // Remove trailing commas in arrays
-        .replace(/([{,]\s*)(\w+):/g, '$1"$2":') // Add quotes to unquoted keys
-        .replace(/:\s*([^",{\[\]}\s][^",{\[\]}\n]*?)(\s*[,}\]])/g, ': "$1"$2'); // Quote unquoted string values
-      
-      console.log('🔍 Cleaned JSON preview:', jsonString.substring(0, 300) + '...');
+      // Use comprehensive JSON fixing
+      const cleanedJson = this.fixMalformedJSON(aiResponse);
+      console.log('🔍 Cleaned JSON preview:', cleanedJson.substring(0, 300) + '...');
       
       // Parse the cleaned JSON
-      const parsed = JSON.parse(jsonString);
+      const parsed = JSON.parse(cleanedJson);
       
       console.log('✅ Successfully parsed AI response');
       return {
@@ -869,7 +606,7 @@ Remember: You are providing professional career counseling to a rural high schoo
           nextYear: [],
           longTerm: []
         },
-        localJobs: localJobs, // Use the jobs passed in
+        localJobs: localJobs,
         careerPathway: parsed.careerPathway || this.getDefaultCareerPathway(careerMatches),
         skillGaps: parsed.skillGaps || this.getDefaultSkillGaps(careerMatches),
         actionItems: parsed.actionItems || this.getDefaultActionItems(profile)
@@ -879,27 +616,39 @@ Remember: You are providing professional career counseling to a rural high schoo
       console.error('❌ Failed to parse AI response:', error);
       console.log('🔍 Raw response sample:', aiResponse.substring(0, 200));
       
-      // Try one more time with a simpler approach - extract just the parts we need
+      // Progressive fallback strategies
+      console.log('🔄 Attempting progressive fallback strategies...');
+      
+      // Strategy 1: Try to extract just academic plan
+      try {
+        const academicPlanOnly = this.extractAcademicPlanOnly(aiResponse);
+        if (academicPlanOnly) {
+          console.log('✅ Successfully extracted academic plan only');
+          return {
+            localJobs: localJobs,
+            academicPlan: academicPlanOnly,
+            careerPathway: this.getDefaultCareerPathway(careerMatches),
+            skillGaps: this.getDefaultSkillGaps(careerMatches),
+            actionItems: this.getDefaultActionItems(profile)
+          };
+        }
+      } catch (extractError) {
+        console.log('⚠️ Academic plan extraction failed');
+      }
+      
+      // Strategy 2: Try simple text extraction
       try {
         const simpleExtraction = await this.extractSimpleRecommendations(aiResponse, profile, careerMatches, zipCode);
         if (simpleExtraction) {
           console.log('✅ Successfully extracted simple recommendations from AI response');
           return {
-            localJobs: localJobs, // Use the jobs we already fetched
-            academicPlan: simpleExtraction.academicPlan || {
-              currentYear: [],
-              nextYear: [],
-              longTerm: []
-            },
+            localJobs: localJobs,
+            academicPlan: simpleExtraction.academicPlan || { currentYear: [], nextYear: [], longTerm: [] },
             careerPathway: (simpleExtraction.careerPathway && 'steps' in simpleExtraction.careerPathway) 
               ? simpleExtraction.careerPathway 
-              : {
-                  steps: [],
-                  timeline: '2-4 years',
-                  requirements: []
-                },
-            skillGaps: simpleExtraction.skillGaps || [],
-            actionItems: simpleExtraction.actionItems || []
+              : { steps: [], timeline: '2-4 years', requirements: [] },
+            skillGaps: simpleExtraction.skillGaps || this.getDefaultSkillGaps(careerMatches),
+            actionItems: simpleExtraction.actionItems || this.getDefaultActionItems(profile)
           };
         }
       } catch (extractError) {
@@ -910,6 +659,73 @@ Remember: You are providing professional career counseling to a rural high schoo
     // Final fallback
     console.log('⚠️ Using enhanced fallback recommendations');
     return await this.generateFallbackRecommendations(profile, careerMatches, zipCode, currentGrade, localJobs);
+  }
+
+  /**
+   * Extract academic plan only from malformed AI response
+   */
+  private static extractAcademicPlanOnly(aiResponse: string): any | null {
+    try {
+      console.log('🔧 Attempting to extract academic plan only...');
+      
+      // Try to find the academicPlan section
+      const academicPlanMatch = aiResponse.match(/"academicPlan"\s*:\s*\{[^}]*(?:\{[^}]*\}[^}]*)*\}/);
+      if (academicPlanMatch) {
+        const academicPlanJson = `{${academicPlanMatch[0]}}`;
+        const parsed = JSON.parse(academicPlanJson);
+        return parsed.academicPlan;
+      }
+      
+      // Alternative: try to extract currentYear, nextYear, longTerm arrays
+      const currentYearMatch = aiResponse.match(/"currentYear"\s*:\s*\[[^\]]*\]/);
+      const nextYearMatch = aiResponse.match(/"nextYear"\s*:\s*\[[^\]]*\]/);
+      const longTermMatch = aiResponse.match(/"longTerm"\s*:\s*\[[^\]]*\]/);
+      
+      if (currentYearMatch || nextYearMatch || longTermMatch) {
+        const academicPlan: any = {
+          currentYear: [],
+          nextYear: [],
+          longTerm: []
+        };
+        
+        if (currentYearMatch) {
+          try {
+            const currentYearJson = `{"currentYear":${currentYearMatch[0].split(':')[1]}}`;
+            const parsed = JSON.parse(currentYearJson);
+            academicPlan.currentYear = parsed.currentYear;
+          } catch (error) {
+            console.log('⚠️ Failed to parse currentYear array');
+          }
+        }
+        
+        if (nextYearMatch) {
+          try {
+            const nextYearJson = `{"nextYear":${nextYearMatch[0].split(':')[1]}}`;
+            const parsed = JSON.parse(nextYearJson);
+            academicPlan.nextYear = parsed.nextYear;
+          } catch (error) {
+            console.log('⚠️ Failed to parse nextYear array');
+          }
+        }
+        
+        if (longTermMatch) {
+          try {
+            const longTermJson = `{"longTerm":${longTermMatch[0].split(':')[1]}}`;
+            const parsed = JSON.parse(longTermJson);
+            academicPlan.longTerm = parsed.longTerm;
+          } catch (error) {
+            console.log('⚠️ Failed to parse longTerm array');
+          }
+        }
+        
+        return academicPlan;
+      }
+      
+      return null;
+    } catch (error) {
+      console.log('⚠️ Academic plan extraction failed:', error);
+      return null;
+    }
   }
 
   /**
@@ -958,6 +774,152 @@ Remember: You are providing professional career counseling to a rural high schoo
     }
   }
 
+  /**
+   * Fix malformed JSON from AI responses with comprehensive error handling
+   */
+  private static fixMalformedJSON(aiResponse: string): string {
+    try {
+      console.log('🔧 Starting comprehensive JSON cleanup...');
+      
+      // Step 1: Initial cleanup
+      let cleaned = aiResponse
+        // Remove markdown code blocks
+        .replace(/```json\s*/gi, '')
+        .replace(/```\s*$/g, '')
+        .replace(/```/g, '')
+        // Remove any text before the first {
+        .replace(/^[^{]*/, '')
+        // Remove any text after the last }
+        .replace(/}[^}]*$/, '}')
+        // Remove control characters but preserve structure
+        .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+        .trim();
+
+      // Step 2: Extract JSON more carefully
+      let jsonStart = cleaned.indexOf('{');
+      let jsonEnd = cleaned.lastIndexOf('}');
+      
+      if (jsonStart === -1 || jsonEnd === -1 || jsonStart >= jsonEnd) {
+        throw new Error('No valid JSON structure found');
+      }
+      
+      let jsonString = cleaned.substring(jsonStart, jsonEnd + 1);
+      
+      // Step 3: Fix common JSON issues that cause "Expected ',' or '}'" errors
+      jsonString = jsonString
+        // Fix missing quotes around property names
+        .replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":')
+        // Fix trailing commas
+        .replace(/,(\s*[}\]])/g, '$1')
+        // Fix missing commas between properties (most common issue)
+        .replace(/"\s*\n\s*"/g, '",\n"')
+        .replace(/}\s*\n\s*"/g, '},\n"')
+        .replace(/]\s*\n\s*"/g, '],\n"')
+        .replace(/([^,}\]]\s*)(\s*"[^"]*"\s*:)/g, '$1,$2')
+        // Fix unescaped quotes in strings
+        .replace(/"([^"]*)"([^"]*)"([^"]*)":/g, '"$1\\"$2\\"$3":')
+        // Fix boolean and null values
+        .replace(/:\s*(true|false|null)(\s*[,}\]])/gi, ': $1$2')
+        // Fix numbers with extra characters
+        .replace(/:\s*(\d+(?:\.\d+)?)[^\d,}\]\s]*(\s*[,}\]])/g, ': $1$2')
+        // Fix incomplete strings at end of properties
+        .replace(/:\s*"([^"]*?)(\s*[,}\]])/g, (match, content, ending) => {
+          if (content && !content.includes('"')) {
+            return `: "${content}"${ending}`;
+          }
+          return match;
+        });
+
+      // Step 4: Balance braces and brackets
+      const openBraces = (jsonString.match(/{/g) || []).length;
+      const closeBraces = (jsonString.match(/}/g) || []).length;
+      const openBrackets = (jsonString.match(/\[/g) || []).length;
+      const closeBrackets = (jsonString.match(/\]/g) || []).length;
+      
+      // Add missing closing braces
+      for (let i = closeBraces; i < openBraces; i++) {
+        jsonString += '}';
+      }
+      
+      // Add missing closing brackets
+      for (let i = closeBrackets; i < openBrackets; i++) {
+        jsonString += ']';
+      }
+
+      // Step 5: Try to parse and fix specific errors
+      try {
+        JSON.parse(jsonString);
+        console.log('✅ JSON cleanup successful');
+        return jsonString;
+      } catch (parseError) {
+        console.log('🔧 First parse failed, attempting targeted fixes...');
+        
+        if (parseError instanceof SyntaxError) {
+          const errorMessage = parseError.message;
+          
+          // Fix specific error: Expected ',' or '}' after property value
+          if (errorMessage.includes("Expected ',' or '}'")) {
+            // Find the position mentioned in the error
+            const positionMatch = errorMessage.match(/position (\d+)/);
+            if (positionMatch) {
+              const position = parseInt(positionMatch[1]);
+              const beforeError = jsonString.substring(0, position);
+              const afterError = jsonString.substring(position);
+              
+              // Try to fix the specific position
+              if (afterError.match(/^\s*"/)) {
+                // Missing comma before next property
+                jsonString = beforeError + ',' + afterError;
+              } else if (afterError.match(/^\s*}/)) {
+                // Extra content before closing brace
+                jsonString = beforeError + afterError;
+              }
+            } else {
+              // General fix for missing commas
+              jsonString = jsonString
+                .replace(/([^,}\]]\s*)(\s*"[^"]*"\s*:)/g, '$1,$2')
+                .replace(/,\s*,/g, ',');
+            }
+          }
+          
+          // Fix specific error: Unexpected token
+          if (errorMessage.includes('Unexpected token')) {
+            jsonString = jsonString
+              .replace(/([^",}\]]\s+)(["{])/g, '$1,$2')
+              .replace(/,\s*,/g, ',');
+          }
+        }
+        
+        // Try parsing again
+        try {
+          JSON.parse(jsonString);
+          console.log('✅ Targeted JSON fixes successful');
+          return jsonString;
+        } catch (finalError) {
+          console.log('⚠️ JSON cleanup partially successful, may have remaining issues');
+          return jsonString; // Return best effort
+        }
+      }
+      
+    } catch (error) {
+      console.error('❌ JSON cleanup failed:', error);
+      
+      // Last resort: try to extract just the academic plan section
+      try {
+        const academicPlanMatch = aiResponse.match(/"academicPlan"\s*:\s*\{[^}]*\}/);
+        if (academicPlanMatch) {
+          console.log('🔄 Extracting academic plan only as fallback');
+          return `{${academicPlanMatch[0]}}`;
+        }
+      } catch (extractError) {
+        console.log('⚠️ Even academic plan extraction failed');
+      }
+      
+      // Return a minimal valid JSON structure
+      console.log('🔄 Returning minimal valid JSON structure');
+      return '{"academicPlan":{"currentYear":[],"nextYear":[],"longTerm":[]},"careerPathway":{"steps":[],"timeline":"2-4 years","requirements":[]},"skillGaps":[],"actionItems":[]}';
+    }
+  }
   /**
    * Generate local job opportunities using RealJobProvider (Adzuna API)
    */
@@ -1048,7 +1010,7 @@ Remember: You are providing professional career counseling to a rural high schoo
         company: `Local ${match.career.sector === 'healthcare' ? 'Hospital' : 'Company'} ${index + 1}`,
         location: `${distance} miles from ZIP ${zipCode}`,
         distance,
-        salary: `$${Math.round(match.career.averageSalary * 0.8 / 1000)}k - $${Math.round(match.career.averageSalary * 1.2 / 1000)}k`,
+        salary: `${Math.round(match.career.averageSalary * 0.8 / 1000)}k - ${Math.round(match.career.averageSalary * 1.2 / 1000)}k`,
         requirements: match.career.certifications || ['High school diploma'],
         description: `Entry-level ${match.career.title} position with growth opportunities (${match.matchScore}% match)`,
         source: 'Local job market analysis'
@@ -1284,97 +1246,6 @@ Remember: You are providing professional career counseling to a rural high schoo
   }
 
   /**
-   * Assess rural viability for career sectors
-   */
-  private static assessRuralViability(sector: string): string {
-    const viability: { [key: string]: string } = {
-      'healthcare': 'High - Growing demand due to aging rural populations and healthcare access needs',
-      'infrastructure': 'High - Ongoing need for maintenance, utilities, and construction in rural areas',
-      'agriculture': 'High - Core rural industry with modern technology integration opportunities',
-      'education': 'Moderate - Local schools and community colleges provide stable opportunities',
-      'technology': 'Moderate - Remote work opportunities increasing, but may require reliable internet',
-      'business': 'Moderate - Small business and entrepreneurship opportunities with lower startup costs',
-      'government': 'Moderate - Local government and public service positions available',
-      'manufacturing': 'Variable - Depends on local industrial presence and transportation access'
-    };
-
-    return viability[sector.toLowerCase()] || 'Variable - Depends on local economic conditions and market demand';
-  }
-
-  /**
-   * Analyze skill gaps between career requirements and student profile
-   */
-  private static analyzeSkillGaps(career: any, profile: Partial<StudentProfile>): string {
-    const studentSkills = profile.skills || [];
-    const careerSector = career.sector?.toLowerCase() || '';
-    
-    if (careerSector.includes('healthcare')) {
-      const healthcareSkills = ['communication', 'empathy', 'attention to detail', 'medical knowledge'];
-      const gaps = healthcareSkills.filter(skill => !studentSkills.some(s => s.toLowerCase().includes(skill)));
-      return gaps.length > 0 ? `Focus on developing: ${gaps.join(', ')}` : 'Strong skill alignment with healthcare requirements';
-    }
-    
-    if (careerSector.includes('technology')) {
-      const techSkills = ['problem-solving', 'analytical thinking', 'technical skills', 'continuous learning'];
-      const gaps = techSkills.filter(skill => !studentSkills.some(s => s.toLowerCase().includes(skill)));
-      return gaps.length > 0 ? `Develop technical competencies: ${gaps.join(', ')}` : 'Good foundation for technology careers';
-    }
-    
-    return 'Continue developing both technical and soft skills relevant to this career path';
-  }
-
-  /**
-   * Fix malformed JSON from AI responses
-   */
-  private static fixMalformedJSON(jsonString: string): string {
-    try {
-      // Common AI JSON issues and fixes
-      let fixed = jsonString
-        // Fix incomplete strings (missing closing quotes)
-        .replace(/:\s*"([^"]*?)(\s*[,}\]])/g, (match, content, ending) => {
-          // If the content doesn't end with a quote, add one
-          if (!content.endsWith('"')) {
-            return `: "${content}"${ending}`;
-          }
-          return match;
-        })
-        // Fix arrays with missing commas
-        .replace(/"\s*"([^"]*?)"/g, '", "$1"')
-        // Fix objects with missing commas between properties
-        .replace(/}(\s*)"([^"]*?)":/g, '}, "$2":')
-        // Fix nested objects
-        .replace(/}(\s*){/g, '}, {')
-        // Remove any trailing text after the last }
-        .replace(/}[^}]*$/, '}')
-        // Fix boolean values that might be unquoted
-        .replace(/:\s*(true|false|null)(\s*[,}\]])/g, ': $1$2')
-        // Fix numbers that might have extra characters
-        .replace(/:\s*(\d+)[^\d,}\]]*(\s*[,}\]])/g, ': $1$2');
-      
-      // Try to balance braces and brackets
-      const openBraces = (fixed.match(/{/g) || []).length;
-      const closeBraces = (fixed.match(/}/g) || []).length;
-      const openBrackets = (fixed.match(/\[/g) || []).length;
-      const closeBrackets = (fixed.match(/\]/g) || []).length;
-      
-      // Add missing closing braces
-      for (let i = closeBraces; i < openBraces; i++) {
-        fixed += '}';
-      }
-      
-      // Add missing closing brackets
-      for (let i = closeBrackets; i < openBrackets; i++) {
-        fixed += ']';
-      }
-      
-      return fixed;
-    } catch (error) {
-      console.error('❌ JSON fixing failed:', error);
-      return jsonString; // Return original if fixing fails
-    }
-  }
-
-  /**
    * Get feedback-based improvements for career recommendations
    */
   private static async getFeedbackImprovements(careerMatches: CareerMatch[]): Promise<string[]> {
@@ -1400,33 +1271,6 @@ Remember: You are providing professional career counseling to a rural high schoo
       console.error('❌ Error getting feedback improvements:', error);
       return [];
     }
-  }
-
-  /**
-   * Convert ZIP code to location string for Adzuna API
-   */
-  private static zipCodeToLocation(zipCode: string): string {
-    // For now, use ZIP code directly. In production, you might want to:
-    // 1. Use a ZIP code to city/state lookup service
-    // 2. Cache common ZIP code conversions
-    // 3. Handle international postal codes
-    
-    // Common ZIP code patterns for major areas
-    const zipPatterns: { [key: string]: string } = {
-      '10': 'New York, NY',
-      '11': 'New York, NY', 
-      '90': 'Los Angeles, CA',
-      '94': 'San Francisco, CA',
-      '60': 'Chicago, IL',
-      '77': 'Houston, TX',
-      '85': 'Phoenix, AZ',
-      '19': 'Philadelphia, PA',
-      '78': 'San Antonio, TX',
-      '92': 'San Diego, CA'
-    };
-
-    const prefix = zipCode.substring(0, 2);
-    return zipPatterns[prefix] || `ZIP ${zipCode}`;
   }
 
   /**
