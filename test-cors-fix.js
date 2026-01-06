@@ -1,7 +1,7 @@
 // Test script to verify CORS configuration fix
 const https = require('https');
 
-const BACKEND_URL = 'https://lantern-ai-backend.onrender.com';
+const BACKEND_URL = 'https://lantern-ai.onrender.com';
 const FRONTEND_ORIGINS = [
   'https://main.d36ebthmdi6xdg.amplifyapp.com',  // New domain
   'https://main.d2ymtj6aumrj0m.amplifyapp.com',  // Old domain
@@ -11,7 +11,7 @@ const FRONTEND_ORIGINS = [
 async function testCORS(origin) {
   return new Promise((resolve, reject) => {
     const options = {
-      hostname: 'lantern-ai-backend.onrender.com',
+      hostname: 'lantern-ai.onrender.com',
       port: 443,
       path: '/api/debug/cors',
       method: 'GET',

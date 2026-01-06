@@ -38,11 +38,12 @@ console.log('🔧 Environment check - USE_REAL_AI flag:', process.env.USE_REAL_A
 console.log('💰 Note: If using real AI, ensure OpenAI account has sufficient credits');
 
 // Debug: CORS configuration
-console.log('🌐 CORS configuration:');
+console.log('🌐 CORS configuration updated for new Amplify domain:');
 console.log('   - Environment:', process.env.NODE_ENV);
 console.log('   - Frontend URL:', process.env.FRONTEND_URL);
 console.log('   - Port:', process.env.PORT || 3002);
 console.log('   - Allowed origins:', allowedOrigins);
+console.log('   - Deployment timestamp:', new Date().toISOString());
 
 // Initialize database
 
