@@ -354,7 +354,7 @@ These insights should be integrated into your recommendations to provide more pe
     }
     
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
     const systemPrompt = `You are Alex Johnson, a modern career coach specializing in technology and entrepreneurship for Gen Z students. You have:
 
@@ -443,7 +443,7 @@ Remember: Focus on technology, innovation, and preparing for the future of work.
     
     console.log('\n⚙️ API CONFIGURATION:');
     console.log('-'.repeat(50));
-    console.log('Model: gemini-pro');
+    console.log('Model: gemini-1.5-pro');
     console.log('Provider: Google Gemini');
     console.log('Context Length:', context.length, 'characters');
     console.log('System Prompt Length:', systemPrompt.length, 'characters');
@@ -460,7 +460,7 @@ Remember: Focus on technology, innovation, and preparing for the future of work.
     console.log('✅ GEMINI API RESPONSE RECEIVED');
     console.log('='.repeat(80));
     console.log('Response Length:', response.length, 'characters');
-    console.log('Model Used: gemini-pro');
+    console.log('Model Used: gemini-1.5-pro');
     
     console.log('\n📄 RAW AI RESPONSE:');
     console.log('-'.repeat(50));
