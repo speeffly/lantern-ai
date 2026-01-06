@@ -323,6 +323,9 @@ export interface LocalJobOpportunity {
   requirements: string[];
   distance: number;
   source: string;
+  url?: string;
+  posted?: string;
+  category?: string;
 }
 
 // Relationship Types

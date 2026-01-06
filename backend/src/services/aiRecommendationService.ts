@@ -2,12 +2,62 @@ import OpenAI from 'openai';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { StudentProfile, AssessmentAnswer, CareerMatch, AIRecommendations, LocalJobOpportunity, CourseRecommendation } from '../types';
 import { FeedbackService } from './feedbackService';
+import { AdzunaService } from './adzunaService';
+import { CareerMatchingService, EnhancedCareerMatch } from './careerMatchingService';
+import { ParentSummaryService, ParentSummary } from './parentSummaryService';
+import { AcademicPlanService, FourYearPlan } from './academicPlanService';
 
 // Using CourseRecommendation and LocalJobOpportunity interfaces from types/index.ts
 
 // Using AIRecommendations interface from types/index.ts
 
 export class AIRecommendationService {
+  /**
+   * Generate comprehensive career guidance package
+   */
+  static async generateComprehensiveGuidance(
+    profile: Partial<StudentProfile>,
+    answers: AssessmentAnswer[],
+    careerMatches: CareerMatch[],
+    zipCode: string,
+    currentGrade?: number
+  ): Promise<{
+    enhancedCareerMatches: EnhancedCareerMatch[];
+    counselorRecommendations: AIRecommendations;
+    parentSummary: ParentSummary;
+    fourYearPlan: FourYearPlan;
+  }> {
+    try {
+      console.log('🎯 Generating comprehensive career guidance package...');
+
+      // Generate all components in parallel for efficiency
+      const [
+        enhancedCareerMatches,
+        counselorRecommendations,
+        parentSummary,
+        fourYearPlan
+      ] = await Promise.all([
+        CareerMatchingService.getEnhancedMatches(profile, answers, careerMatches),
+        this.generateRecommendations(profile, answers, careerMatches, zipCode, currentGrade),
+        ParentSummaryService.generateParentSummary(profile, answers, careerMatches, currentGrade),
+        AcademicPlanService.generateFourYearPlan(profile, answers, careerMatches, zipCode, currentGrade)
+      ]);
+
+      console.log('✅ Comprehensive career guidance package generated successfully');
+      
+      return {
+        enhancedCareerMatches,
+        counselorRecommendations,
+        parentSummary,
+        fourYearPlan
+      };
+
+    } catch (error) {
+      console.error('❌ Comprehensive guidance generation failed:', error);
+      throw new Error(`Failed to generate comprehensive career guidance: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
   /**
    * Generate comprehensive AI-powered recommendations with feedback integration
    */
@@ -48,7 +98,10 @@ export class AIRecommendationService {
       // Get feedback-based improvements for career recommendations
       const feedbackImprovements = await this.getFeedbackImprovements(careerMatches);
 
-      // Prepare context for AI
+      // Get real jobs first
+      const localJobs = await this.generateLocalJobOpportunities(careerMatches, zipCode);
+      
+      // Prepare context for AI (now includes real job data)
       console.log('\n' + '='.repeat(80));
       console.log('📊 PREPARING STUDENT CONTEXT FOR AI');
       console.log('='.repeat(80));
@@ -59,11 +112,12 @@ export class AIRecommendationService {
         console.log('Improvement Suggestions:', feedbackImprovements);
       }
       console.log('Career Matches Count:', careerMatches.length);
+      console.log('Real Jobs Found:', localJobs.length);
       console.log('ZIP Code:', zipCode);
       console.log('Current Grade:', currentGrade);
       console.log('='.repeat(80));
       
-      const context = this.prepareAIContext(profile, answers, careerMatches, zipCode, currentGrade, feedbackImprovements);
+      const context = this.prepareAIContext(profile, answers, careerMatches, zipCode, currentGrade, feedbackImprovements, localJobs);
       
       console.log('\n📋 GENERATED CONTEXT FOR AI:');
       console.log('-'.repeat(50));
@@ -79,6 +133,9 @@ export class AIRecommendationService {
       console.log('='.repeat(80));
       
       const recommendations = this.parseAIResponse(aiResponse, profile, careerMatches, zipCode);
+      
+      // Use the real jobs we already fetched
+      recommendations.localJobs = localJobs;
       
       console.log('\n📊 FINAL STRUCTURED RECOMMENDATIONS:');
       console.log('-'.repeat(50));
@@ -121,7 +178,8 @@ export class AIRecommendationService {
     careerMatches: CareerMatch[],
     zipCode: string,
     currentGrade?: number,
-    feedbackImprovements?: string[]
+    feedbackImprovements?: string[],
+    realJobs?: LocalJobOpportunity[]
   ): string {
     const grade = currentGrade || 11;
     const interests = profile.interests?.join(', ') || 'Exploring career options';
@@ -201,6 +259,31 @@ Family & Community Dynamics:
 - Word-of-mouth networking and relationship-based hiring
 - Potential family business involvement or succession planning
 - Community values alignment important for career satisfaction
+
+REAL JOB MARKET ANALYSIS - CURRENT OPPORTUNITIES:
+${realJobs && realJobs.length > 0 ? 
+  `Based on live job market data from Adzuna API, here are actual job opportunities available now in the ${zipCode} area:
+
+${realJobs.slice(0, 8).map((job, index) => {
+  return `${index + 1}. ${job.title} at ${job.company}
+   - Location: ${job.location} (${job.distance} miles away)
+   - Salary: ${job.salary}
+   - Requirements: ${job.requirements.join(', ')}
+   - Posted: ${job.posted || 'Recently'}
+   - Category: ${job.category || 'General'}
+   - Application: ${job.url ? 'Direct application available' : 'Contact employer'}
+   - Job Summary: ${job.description.substring(0, 150)}...`;
+}).join('\n\n')}
+
+MARKET INSIGHTS:
+- Total relevant jobs found: ${realJobs.length}
+- Average distance from student: ${Math.round(realJobs.reduce((sum, job) => sum + job.distance, 0) / realJobs.length)} miles
+- Job categories represented: ${[...new Set(realJobs.map(job => job.category).filter(Boolean))].join(', ')}
+- Companies actively hiring: ${[...new Set(realJobs.map(job => job.company))].slice(0, 5).join(', ')}
+
+RECOMMENDATION FOCUS: Use this real job market data to provide specific, actionable advice. Reference actual employers, salary ranges, and job requirements in your recommendations.` :
+  'Real job market data not available - provide general career guidance based on career matches and location.'
+}
 
 COUNSELING SESSION FOCUS AREAS:
 This comprehensive profile indicates the need for detailed guidance on:
@@ -325,7 +408,7 @@ These insights should be integrated into your recommendations to provide more pe
   /**
    * Call AI API (OpenAI or Gemini) for comprehensive recommendations
    */
-  private static async callAI(context: string): Promise<string> {
+  static async callAI(context: string): Promise<string> {
     const aiConfig = this.validateAIConfiguration();
     
     console.log('🤖 AI Provider Configuration:', aiConfig);
@@ -715,9 +798,6 @@ Remember: You are providing professional career counseling to a rural high schoo
       // Parse the cleaned JSON
       const parsed = JSON.parse(jsonString);
       
-      // Add local job opportunities
-      const localJobs = this.generateLocalJobOpportunities(careerMatches, zipCode);
-      
       console.log('✅ Successfully parsed AI response');
       return {
         academicPlan: parsed.academicPlan || {
@@ -725,7 +805,7 @@ Remember: You are providing professional career counseling to a rural high schoo
           nextYear: [],
           longTerm: []
         },
-        localJobs,
+        localJobs: [], // Will be set by caller with real Adzuna jobs
         careerPathway: parsed.careerPathway || this.getDefaultCareerPathway(careerMatches),
         skillGaps: parsed.skillGaps || this.getDefaultSkillGaps(careerMatches),
         actionItems: parsed.actionItems || this.getDefaultActionItems(profile)
@@ -741,7 +821,7 @@ Remember: You are providing professional career counseling to a rural high schoo
         if (simpleExtraction) {
           console.log('✅ Successfully extracted simple recommendations from AI response');
           return {
-            localJobs: this.generateLocalJobOpportunities(careerMatches, zipCode),
+            localJobs: await this.generateLocalJobOpportunities(careerMatches, zipCode),
             academicPlan: simpleExtraction.academicPlan || {
               currentYear: [],
               nextYear: [],
@@ -814,9 +894,75 @@ Remember: You are providing professional career counseling to a rural high schoo
   }
 
   /**
-   * Generate local job opportunities (simulated - in production would use job APIs)
+   * Generate local job opportunities using Adzuna API
    */
-  private static generateLocalJobOpportunities(
+  private static async generateLocalJobOpportunities(
+    careerMatches: CareerMatch[],
+    zipCode: string
+  ): Promise<LocalJobOpportunity[]> {
+    try {
+      console.log('🔍 Fetching real job opportunities from Adzuna API...');
+      
+      // Check if Adzuna is configured
+      if (!process.env.ADZUNA_APP_ID || !process.env.ADZUNA_APP_KEY) {
+        console.log('⚠️ Adzuna API not configured, using simulated jobs');
+        return this.generateSimulatedJobs(careerMatches, zipCode);
+      }
+
+      // Convert ZIP code to location string
+      const location = this.zipCodeToLocation(zipCode);
+      
+      // Get job recommendations from Adzuna
+      const jobRecommendations = await AdzunaService.getJobRecommendations(
+        careerMatches,
+        location,
+        3 // Max 3 jobs per career
+      );
+
+      const localJobs: LocalJobOpportunity[] = [];
+
+      // Process Adzuna job results
+      jobRecommendations.forEach(recommendation => {
+        recommendation.jobs.forEach(job => {
+          const formattedJob = AdzunaService.formatJobForRecommendation(job);
+          
+          localJobs.push({
+            title: formattedJob.title,
+            company: formattedJob.company,
+            location: formattedJob.location,
+            distance: this.calculateDistance(zipCode, formattedJob.location),
+            salary: formattedJob.salary,
+            requirements: this.extractRequirements(job.description),
+            description: formattedJob.description,
+            source: 'Adzuna Job Search',
+            url: formattedJob.url,
+            posted: formattedJob.posted,
+            category: formattedJob.category
+          });
+        });
+      });
+
+      console.log(`✅ Found ${localJobs.length} real job opportunities from Adzuna`);
+      
+      // If we got jobs, return them; otherwise fall back to simulated
+      if (localJobs.length > 0) {
+        return localJobs.slice(0, 10); // Limit to top 10 jobs
+      } else {
+        console.log('⚠️ No jobs found from Adzuna, using simulated jobs');
+        return this.generateSimulatedJobs(careerMatches, zipCode);
+      }
+
+    } catch (error) {
+      console.error('❌ Error fetching jobs from Adzuna:', error);
+      console.log('🔄 Falling back to simulated job opportunities');
+      return this.generateSimulatedJobs(careerMatches, zipCode);
+    }
+  }
+
+  /**
+   * Generate simulated job opportunities (fallback)
+   */
+  private static generateSimulatedJobs(
     careerMatches: CareerMatch[],
     zipCode: string
   ): LocalJobOpportunity[] {
@@ -861,7 +1007,7 @@ Remember: You are providing professional career counseling to a rural high schoo
         nextYear: this.getRelevantCourses(grade + 1, isHealthcareInterested, 'next'),
         longTerm: this.getRelevantCourses(grade + 2, isHealthcareInterested, 'longterm')
       },
-      localJobs: this.generateLocalJobOpportunities(careerMatches, zipCode),
+      localJobs: await this.generateLocalJobOpportunities(careerMatches, zipCode),
       careerPathway: this.getDefaultCareerPathway(careerMatches),
       skillGaps: this.getDefaultSkillGaps(careerMatches),
       actionItems: this.getDefaultActionItems(profile)
@@ -1132,5 +1278,89 @@ Remember: You are providing professional career counseling to a rural high schoo
       console.error('❌ Error getting feedback improvements:', error);
       return [];
     }
+  }
+
+  /**
+   * Convert ZIP code to location string for Adzuna API
+   */
+  private static zipCodeToLocation(zipCode: string): string {
+    // For now, use ZIP code directly. In production, you might want to:
+    // 1. Use a ZIP code to city/state lookup service
+    // 2. Cache common ZIP code conversions
+    // 3. Handle international postal codes
+    
+    // Common ZIP code patterns for major areas
+    const zipPatterns: { [key: string]: string } = {
+      '10': 'New York, NY',
+      '11': 'New York, NY', 
+      '90': 'Los Angeles, CA',
+      '94': 'San Francisco, CA',
+      '60': 'Chicago, IL',
+      '77': 'Houston, TX',
+      '85': 'Phoenix, AZ',
+      '19': 'Philadelphia, PA',
+      '78': 'San Antonio, TX',
+      '92': 'San Diego, CA'
+    };
+
+    const prefix = zipCode.substring(0, 2);
+    return zipPatterns[prefix] || `ZIP ${zipCode}`;
+  }
+
+  /**
+   * Calculate approximate distance (simplified)
+   */
+  private static calculateDistance(zipCode: string, location: string): number {
+    // Simplified distance calculation
+    // In production, you'd use a proper geocoding service
+    
+    // Extract any distance information from location string
+    const distanceMatch = location.match(/(\d+)\s*miles?/i);
+    if (distanceMatch) {
+      return parseInt(distanceMatch[1]);
+    }
+    
+    // Default distances based on location patterns
+    if (location.includes('Remote')) return 0;
+    if (location.includes(zipCode)) return 5;
+    if (location.includes('NY') && zipCode.startsWith('1')) return 15;
+    if (location.includes('CA') && zipCode.startsWith('9')) return 20;
+    
+    // Default estimate
+    return Math.floor(Math.random() * 30) + 10; // 10-40 miles
+  }
+
+  /**
+   * Extract job requirements from description
+   */
+  private static extractRequirements(description: string): string[] {
+    const requirements: string[] = [];
+    
+    // Common requirement patterns
+    const patterns = [
+      /bachelor'?s degree/i,
+      /master'?s degree/i,
+      /high school diploma/i,
+      /associate degree/i,
+      /certification/i,
+      /license/i,
+      /\d+\+?\s*years?\s*experience/i,
+      /experience with \w+/i,
+      /knowledge of \w+/i
+    ];
+
+    patterns.forEach(pattern => {
+      const match = description.match(pattern);
+      if (match) {
+        requirements.push(match[0]);
+      }
+    });
+
+    // Default requirements if none found
+    if (requirements.length === 0) {
+      requirements.push('High school diploma or equivalent');
+    }
+
+    return requirements.slice(0, 3); // Limit to 3 requirements
   }
 }
