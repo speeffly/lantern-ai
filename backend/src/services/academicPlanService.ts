@@ -1,6 +1,6 @@
 import { StudentProfile, AssessmentAnswer, CareerMatch } from '../types';
 import { AIRecommendationService } from './aiRecommendationService';
-import { AdzunaService } from './adzunaService';
+import { RealJobProvider } from './realJobProvider';
 
 export interface FourYearPlan {
   overview: {
@@ -194,28 +194,38 @@ Plan should start from Grade ${grade} and go through Grade 12, then include post
     salary: string;
   }> {
     try {
-      // Get salary insights from Adzuna if available
+      // Get job market data from RealJobProvider if available
       const topCareer = careerMatches[0];
-      if (process.env.ADZUNA_APP_ID && process.env.ADZUNA_APP_KEY) {
-        const location = this.zipCodeToLocation(zipCode);
-        const salaryData = await AdzunaService.getSalaryInsights(topCareer.career.title, location);
+      if (RealJobProvider.isEnabled()) {
+        const jobs = await RealJobProvider.searchJobs({
+          careerTitle: topCareer.career.title,
+          zipCode: zipCode,
+          radiusMiles: 50,
+          limit: 10
+        });
         
-        return {
-          trends: [
-            `${topCareer.career.sector} sector showing ${topCareer.career.growthOutlook} growth`,
-            'Digital skills increasingly important across all industries',
-            'Remote work opportunities expanding'
-          ],
-          skills: [
-            'Communication and collaboration',
-            'Digital literacy',
-            'Problem-solving and critical thinking'
-          ],
-          growth: topCareer.career.growthOutlook || 'Stable growth expected',
-          salary: salaryData.mean_salary 
-            ? `Average salary: $${Math.round(salaryData.mean_salary).toLocaleString()}`
-            : `Expected salary range: $${Math.round(topCareer.career.averageSalary * 0.8).toLocaleString()} - $${Math.round(topCareer.career.averageSalary * 1.2).toLocaleString()}`
-        };
+        if (jobs.length > 0) {
+          // Extract salary information from real jobs
+          const salaries = jobs
+            .map(job => job.salary)
+            .filter(Boolean)
+            .join(', ');
+          
+          return {
+            trends: [
+              `${topCareer.career.sector} sector showing ${topCareer.career.growthOutlook} growth`,
+              'Digital skills increasingly important across all industries',
+              'Remote work opportunities expanding'
+            ],
+            skills: [
+              'Communication and collaboration',
+              'Digital literacy',
+              'Problem-solving and critical thinking'
+            ],
+            growth: topCareer.career.growthOutlook || 'Stable growth expected',
+            salary: salaries || `Expected salary range: $${Math.round(topCareer.career.averageSalary * 0.8).toLocaleString()} - $${Math.round(topCareer.career.averageSalary * 1.2).toLocaleString()}`
+          };
+        }
       }
     } catch (error) {
       console.log('⚠️ Could not fetch market insights:', error);

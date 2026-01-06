@@ -2,7 +2,7 @@ import OpenAI from 'openai';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { StudentProfile, AssessmentAnswer, CareerMatch, AIRecommendations, LocalJobOpportunity, CourseRecommendation } from '../types';
 import { FeedbackService } from './feedbackService';
-import { AdzunaService } from './adzunaService';
+import { RealJobProvider } from './realJobProvider';
 import { CareerMatchingService, EnhancedCareerMatch } from './careerMatchingService';
 import { ParentSummaryService, ParentSummary } from './parentSummaryService';
 import { AcademicPlanService, FourYearPlan } from './academicPlanService';
@@ -895,7 +895,7 @@ Remember: You are providing professional career counseling to a rural high schoo
   }
 
   /**
-   * Generate local job opportunities using Adzuna API
+   * Generate local job opportunities using RealJobProvider (Adzuna API)
    */
   private static async generateLocalJobOpportunities(
     careerMatches: CareerMatch[],
@@ -904,44 +904,49 @@ Remember: You are providing professional career counseling to a rural high schoo
     try {
       console.log('🔍 Fetching real job opportunities from Adzuna API...');
       
-      // Check if Adzuna is configured
-      if (!process.env.ADZUNA_APP_ID || !process.env.ADZUNA_APP_KEY) {
-        console.log('⚠️ Adzuna API not configured, using simulated jobs');
+      // Check if RealJobProvider is enabled
+      if (!RealJobProvider.isEnabled()) {
+        console.log('⚠️ RealJobProvider not configured, using simulated jobs');
         return this.generateSimulatedJobs(careerMatches, zipCode);
       }
 
-      // Convert ZIP code to location string
-      const location = this.zipCodeToLocation(zipCode);
-      
-      // Get job recommendations from Adzuna
-      const jobRecommendations = await AdzunaService.getJobRecommendations(
-        careerMatches,
-        location,
-        3 // Max 3 jobs per career
-      );
-
       const localJobs: LocalJobOpportunity[] = [];
 
-      // Process Adzuna job results
-      jobRecommendations.forEach(recommendation => {
-        recommendation.jobs.forEach(job => {
-          const formattedJob = AdzunaService.formatJobForRecommendation(job);
-          
-          localJobs.push({
-            title: formattedJob.title,
-            company: formattedJob.company,
-            location: formattedJob.location,
-            distance: this.calculateDistance(zipCode, formattedJob.location),
-            salary: formattedJob.salary,
-            requirements: this.extractRequirements(job.description),
-            description: formattedJob.description,
-            source: 'Adzuna Job Search',
-            url: formattedJob.url,
-            posted: formattedJob.posted,
-            category: formattedJob.category
+      // Get job opportunities for each career match
+      for (const match of careerMatches.slice(0, 3)) { // Top 3 career matches
+        try {
+          const jobs = await RealJobProvider.searchJobs({
+            careerTitle: match.career.title,
+            zipCode: zipCode,
+            radiusMiles: 25,
+            limit: 3 // Max 3 jobs per career
           });
-        });
-      });
+
+          // Convert RealJobProvider jobs to LocalJobOpportunity format
+          jobs.forEach(job => {
+            localJobs.push({
+              title: job.title,
+              company: job.company,
+              location: job.location,
+              distance: job.distanceFromStudent || this.calculateDistance(zipCode, job.location),
+              salary: job.salary || 'Salary not specified',
+              requirements: job.requirements || this.extractRequirements(job.description),
+              description: job.description.substring(0, 200) + '...',
+              source: 'Adzuna Job Search',
+              url: job.applicationUrl,
+              posted: job.postedDate,
+              category: match.career.sector
+            });
+          });
+
+          // Add small delay to avoid rate limiting
+          await new Promise(resolve => setTimeout(resolve, 100));
+
+        } catch (error) {
+          console.error(`❌ Failed to get jobs for ${match.career.title}:`, error);
+          // Continue with other careers even if one fails
+        }
+      }
 
       console.log(`✅ Found ${localJobs.length} real job opportunities from Adzuna`);
       
@@ -954,7 +959,7 @@ Remember: You are providing professional career counseling to a rural high schoo
       }
 
     } catch (error) {
-      console.error('❌ Error fetching jobs from Adzuna:', error);
+      console.error('❌ Error fetching jobs from RealJobProvider:', error);
       console.log('🔄 Falling back to simulated job opportunities');
       return this.generateSimulatedJobs(careerMatches, zipCode);
     }
