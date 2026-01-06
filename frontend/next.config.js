@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const isProduction = process.env.NODE_ENV === 'production';
 const defaultApiUrl = process.env.NEXT_PUBLIC_API_URL || (isProduction
-  ? 'https://lantern-ai-backend.onrender.com'
+  ? 'https://lantern-ai.onrender.com'
   : 'http://localhost:3002');
 
 const nextConfig = {
