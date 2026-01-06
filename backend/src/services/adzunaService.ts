@@ -108,7 +108,7 @@ export class AdzunaService {
           throw new Error('Adzuna API authentication failed. Please check your APP_ID and APP_KEY.');
         } else if (error.response?.status === 429) {
           throw new Error('Adzuna API rate limit exceeded. Please try again later.');
-        } else if (error.response?.status >= 500) {
+        } else if (error.response && error.response.status >= 500) {
           throw new Error('Adzuna API server error. Please try again later.');
         }
       }

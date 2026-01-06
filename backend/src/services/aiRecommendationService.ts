@@ -132,7 +132,7 @@ export class AIRecommendationService {
       console.log('🔄 PARSING AI RESPONSE INTO STRUCTURED RECOMMENDATIONS');
       console.log('='.repeat(80));
       
-      const recommendations = this.parseAIResponse(aiResponse, profile, careerMatches, zipCode);
+      const recommendations = await this.parseAIResponse(aiResponse, profile, careerMatches, zipCode);
       
       // Use the real jobs we already fetched
       recommendations.localJobs = localJobs;
@@ -165,7 +165,7 @@ export class AIRecommendationService {
       
       // Otherwise, fallback to rule-based recommendations
       console.log('🔄 Falling back to rule-based recommendations due to error');
-      return this.generateFallbackRecommendations(profile, careerMatches, zipCode, currentGrade);
+      return await this.generateFallbackRecommendations(profile, careerMatches, zipCode, currentGrade);
     }
   }
 
@@ -755,12 +755,12 @@ Remember: You are providing professional career counseling to a rural high schoo
   /**
    * Parse AI response into structured recommendations
    */
-  private static parseAIResponse(
+  private static async parseAIResponse(
     aiResponse: string,
     profile: Partial<StudentProfile>,
     careerMatches: CareerMatch[],
     zipCode: string
-  ): AIRecommendations {
+  ): Promise<AIRecommendations> {
     try {
       console.log('🔍 Raw AI response length:', aiResponse.length);
       
@@ -817,7 +817,7 @@ Remember: You are providing professional career counseling to a rural high schoo
       
       // Try one more time with a simpler approach - extract just the parts we need
       try {
-        const simpleExtraction = this.extractSimpleRecommendations(aiResponse, profile, careerMatches);
+        const simpleExtraction = await this.extractSimpleRecommendations(aiResponse, profile, careerMatches, zipCode);
         if (simpleExtraction) {
           console.log('✅ Successfully extracted simple recommendations from AI response');
           return {
@@ -845,17 +845,18 @@ Remember: You are providing professional career counseling to a rural high schoo
 
     // Final fallback
     console.log('⚠️ Using enhanced fallback recommendations');
-    return this.generateFallbackRecommendations(profile, careerMatches, zipCode);
+    return await this.generateFallbackRecommendations(profile, careerMatches, zipCode);
   }
 
   /**
    * Extract simple recommendations using regex patterns
    */
-  private static extractSimpleRecommendations(
+  private static async extractSimpleRecommendations(
     aiResponse: string,
     profile: Partial<StudentProfile>,
-    careerMatches: CareerMatch[]
-  ): Partial<AIRecommendations> | null {
+    careerMatches: CareerMatch[],
+    zipCode: string
+  ): Promise<Partial<AIRecommendations> | null> {
     try {
       // Extract career pathway steps
       const shortTermMatch = aiResponse.match(/"shortTerm":\s*\[(.*?)\]/);
@@ -991,12 +992,12 @@ Remember: You are providing professional career counseling to a rural high schoo
   /**
    * Fallback recommendations when AI is not available
    */
-  private static generateFallbackRecommendations(
+  private static async generateFallbackRecommendations(
     profile: Partial<StudentProfile>,
     careerMatches: CareerMatch[],
     zipCode: string,
     currentGrade?: number
-  ): AIRecommendations {
+  ): Promise<AIRecommendations> {
     const grade = currentGrade || 11;
     const isHealthcareInterested = profile.interests?.includes('Healthcare') || 
                                   careerMatches[0]?.career.sector === 'healthcare';

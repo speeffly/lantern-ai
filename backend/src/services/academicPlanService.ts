@@ -87,7 +87,7 @@ ${index + 1}. ${match.career.title} (${match.matchScore}% match)
    - Education Required: ${match.career.requiredEducation}
    - Average Salary: $${match.career.averageSalary.toLocaleString()}
    - Growth Outlook: ${match.career.growthOutlook}
-   - Key Skills: ${match.career.skills?.join(', ') || 'Various professional skills'}
+   - Key Skills: ${match.career.responsibilities?.slice(0, 3).join(', ') || 'Various professional skills'}
 `).join('')}
 
 MARKET INSIGHTS:
