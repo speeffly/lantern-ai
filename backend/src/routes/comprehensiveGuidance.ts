@@ -2,7 +2,7 @@ import express from 'express';
 import { AIRecommendationService } from '../services/aiRecommendationService';
 import { CareerMatchingService } from '../services/careerMatchingService';
 import { ParentSummaryService } from '../services/parentSummaryService';
-// import { AcademicPlanService } from '../services/academicPlanService'; // Temporarily disabled
+import { AcademicPlanService } from '../services/academicPlanService';
 
 const router = express.Router();
 
@@ -130,40 +130,14 @@ router.post('/four-year-plan', async (req, res) => {
       });
     }
 
-    // Temporarily disabled due to compilation errors
-    // const fourYearPlan = await AcademicPlanService.generateFourYearPlan(
-    //   profile,
-    //   answers,
-    //   careerMatches,
-    //   zipCode,
-    //   currentGrade
-    // );
-
-    // Temporary fallback response
-    const fourYearPlan = {
-      overview: {
-        planSummary: 'Academic planning temporarily unavailable - service under maintenance',
-        careerGoal: careerMatches[0]?.career.title || 'Career exploration',
-        educationPath: careerMatches[0]?.career.requiredEducation || 'To be determined',
-        keyMilestones: ['Complete high school', 'Explore career options', 'Pursue relevant training']
-      },
-      yearByYear: [],
-      postGraduation: {
-        immediateOptions: [],
-        careerTimeline: []
-      },
-      marketInsights: {
-        industryTrends: ['Technology integration', 'Skills-based hiring'],
-        skillsInDemand: ['Communication', 'Problem-solving'],
-        salaryProjections: 'Competitive growth expected',
-        jobGrowthOutlook: 'Positive outlook'
-      },
-      contingencyPlanning: {
-        alternativePaths: ['Multiple career pathways available'],
-        transferOptions: ['Flexible education options'],
-        skillPortability: ['Transferable skills development']
-      }
-    };
+    // Generate 4-year academic plan with real job data
+    const fourYearPlan = await AcademicPlanService.generateFourYearPlan(
+      profile,
+      answers,
+      careerMatches,
+      zipCode,
+      currentGrade
+    );
 
     res.json({
       success: true,

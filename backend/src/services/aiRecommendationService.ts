@@ -5,32 +5,7 @@ import { FeedbackService } from './feedbackService';
 import { RealJobProvider } from './realJobProvider';
 import { CareerMatchingService, EnhancedCareerMatch } from './careerMatchingService';
 import { ParentSummaryService, ParentSummary } from './parentSummaryService';
-
-// Temporary FourYearPlan interface to avoid compilation errors
-interface FourYearPlan {
-  overview: {
-    planSummary: string;
-    careerGoal: string;
-    educationPath: string;
-    keyMilestones: string[];
-  };
-  yearByYear: any[];
-  postGraduation: {
-    immediateOptions: any[];
-    careerTimeline: any[];
-  };
-  marketInsights: {
-    industryTrends: string[];
-    skillsInDemand: string[];
-    salaryProjections: string;
-    jobGrowthOutlook: string;
-  };
-  contingencyPlanning: {
-    alternativePaths: string[];
-    transferOptions: string[];
-    skillPortability: string[];
-  };
-}
+import { AcademicPlanService, FourYearPlan } from './academicPlanService';
 
 export class AIRecommendationService {
   /**
@@ -60,38 +35,14 @@ export class AIRecommendationService {
       const [
         enhancedCareerMatches,
         counselorRecommendations,
-        parentSummary
+        parentSummary,
+        fourYearPlan
       ] = await Promise.all([
         CareerMatchingService.getEnhancedMatches(profile, answers, careerMatches),
         this.generateRecommendations(profile, answers, careerMatches, zipCode, currentGrade, sharedJobs),
-        ParentSummaryService.generateParentSummary(profile, answers, careerMatches, currentGrade)
+        ParentSummaryService.generateParentSummary(profile, answers, careerMatches, currentGrade),
+        AcademicPlanService.generateFourYearPlan(profile, answers, careerMatches, zipCode, currentGrade, sharedJobs)
       ]);
-
-      // Temporary fallback for fourYearPlan
-      const fourYearPlan: FourYearPlan = {
-        overview: {
-          planSummary: 'Academic planning temporarily unavailable - focusing on career recommendations',
-          careerGoal: careerMatches[0]?.career.title || 'Career exploration',
-          educationPath: careerMatches[0]?.career.requiredEducation || 'To be determined',
-          keyMilestones: ['Complete high school', 'Explore career options', 'Pursue relevant training']
-        },
-        yearByYear: [],
-        postGraduation: {
-          immediateOptions: [],
-          careerTimeline: []
-        },
-        marketInsights: {
-          industryTrends: ['Technology integration', 'Skills-based hiring'],
-          skillsInDemand: ['Communication', 'Problem-solving'],
-          salaryProjections: 'Competitive growth expected',
-          jobGrowthOutlook: 'Positive outlook'
-        },
-        contingencyPlanning: {
-          alternativePaths: ['Multiple career pathways available'],
-          transferOptions: ['Flexible education options'],
-          skillPortability: ['Transferable skills development']
-        }
-      };
 
       console.log('✅ Comprehensive career guidance package generated successfully');
       
