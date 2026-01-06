@@ -188,7 +188,8 @@ Plan should start from Grade ${grade} and go through Grade 12, then include post
    */
   private static async getMarketInsights(
     careerMatches: CareerMatch[],
-    zipCode: string
+    zipCode: string,
+    preloadedJobs?: any[] // Add parameter to reuse jobs
   ): Promise<{
     trends: string[];
     skills: string[];
@@ -196,15 +197,27 @@ Plan should start from Grade ${grade} and go through Grade 12, then include post
     salary: string;
   }> {
     try {
-      // Get job market data from RealJobProvider if available
       const topCareer = careerMatches[0];
-      if (RealJobProvider.isEnabled()) {
-        const jobs = await RealJobProvider.searchJobs({
+      let jobs: any[] = [];
+      
+      // Use preloaded jobs if available to prevent duplicate API calls
+      if (preloadedJobs && preloadedJobs.length > 0) {
+        console.log('🔄 Using preloaded jobs for market insights (preventing duplicate API call)');
+        jobs = preloadedJobs.filter(job => 
+          job.title.toLowerCase().includes(topCareer.career.title.toLowerCase()) ||
+          job.category === topCareer.career.sector
+        );
+      } else if (RealJobProvider.isEnabled()) {
+        console.log('🔍 Fetching fresh jobs for market insights (no preloaded jobs available)');
+        jobs = await RealJobProvider.searchJobs({
           careerTitle: topCareer.career.title,
           zipCode: zipCode,
           radiusMiles: 50,
           limit: 10
         });
+      } else {
+        console.log('🟠 RealJobProvider disabled for market insights - using career data only');
+      }
         
       if (jobs.length > 0) {
           // Extract salary information from real jobs

@@ -13,6 +13,7 @@ import counselorAssessmentRoutes from './routes/counselorAssessment';
 import jobsRoutes from './routes/jobs';
 import feedbackRoutes from './routes/feedback';
 import comprehensiveGuidanceRoutes from './routes/comprehensiveGuidance';
+import debugRoutes from './routes/debug';
 import { DatabaseAdapter } from './services/databaseAdapter';
 
 // Load environment variables
@@ -211,6 +212,7 @@ app.use('/api/jobs', jobsRoutes); // Job listings
 app.use('/api/action-plans', actionPlansRoutes);
 app.use('/api/feedback', feedbackRoutes); // Feedback system for AI improvement
 app.use('/api/comprehensive-guidance', comprehensiveGuidanceRoutes); // Complete career guidance package
+app.use('/api/debug', debugRoutes); // Environment and configuration debugging
 
 // Debug endpoints for troubleshooting
 app.get('/api/debug/env', (req, res) => {

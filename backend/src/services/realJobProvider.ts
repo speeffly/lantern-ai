@@ -34,11 +34,21 @@ export class RealJobProvider {
 
   static isEnabled(): boolean {
     const flag = (process.env.USE_REAL_JOBS || '').toLowerCase().trim();
-    const on = (flag === 'true' || flag === '1' || flag === 'yes') && !!(this.appId && this.apiKey);
-    if (!on) {
+    const appId = (process.env.ADZUNA_APP_ID || '').trim();
+    const apiKey = (process.env.ADZUNA_APP_KEY || '').trim();
+    
+    const flagCheck = (flag === 'true' || flag === '1' || flag === 'yes');
+    const credentialsCheck = !!(appId && apiKey);
+    const isEnabled = flagCheck && credentialsCheck;
+    
+    if (!isEnabled) {
       console.log('🟠 RealJobProvider disabled: set USE_REAL_JOBS=true and provide ADZUNA_APP_ID/ADZUNA_API_KEY');
+      console.log(`   - USE_REAL_JOBS: "${flag}" (needs: "true", "1", or "yes")`);
+      console.log(`   - ADZUNA_APP_ID: ${appId ? 'present' : 'missing'} (length: ${appId.length})`);
+      console.log(`   - ADZUNA_APP_KEY: ${apiKey ? 'present' : 'missing'} (length: ${apiKey.length})`);
     }
-    return on;
+    
+    return isEnabled;
   }
 
   /**
