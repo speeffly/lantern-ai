@@ -404,7 +404,7 @@ const AI_CONFIG = {
     temperature: 0.7
   },
   gemini: {
-    model: "gemini-1.5-flash",
+    model: "gemini-pro",
     temperature: 0.7
   }
 };
