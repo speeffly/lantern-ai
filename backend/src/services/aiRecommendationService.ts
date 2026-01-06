@@ -20,21 +20,23 @@ export class AIRecommendationService {
   ): Promise<AIRecommendations> {
     try {
       console.log('🤖 Generating AI recommendations for profile:', profile.interests);
-      console.log('🔑 OpenAI API Key present:', !!process.env.OPENAI_API_KEY);
-      console.log('🔑 API Key length:', process.env.OPENAI_API_KEY?.length || 0);
+      
+      // Validate AI configuration
+      const aiConfig = this.validateAIConfiguration();
+      console.log('🔧 AI Configuration:', aiConfig);
 
       // Check if we should use real OpenAI or fallback mode
       const useRealAI = process.env.USE_REAL_AI === 'true';
-      const hasOpenAIKey = !!process.env.OPENAI_API_KEY;
       
       console.log('🔧 AI Mode Configuration:');
       console.log('   - USE_REAL_AI flag:', useRealAI);
-      console.log('   - OpenAI API key present:', hasOpenAIKey);
+      console.log('   - AI Provider:', aiConfig.provider);
+      console.log('   - Provider available:', aiConfig.available);
       
-      // If real AI is requested but no API key, throw error
-      if (useRealAI && !hasOpenAIKey) {
-        console.error('❌ Real AI requested but OpenAI API key is missing');
-        throw new Error('Real AI mode enabled but OpenAI API key is required. Please configure OPENAI_API_KEY environment variable.');
+      // If real AI is requested but no valid provider, throw error
+      if (useRealAI && !aiConfig.available) {
+        console.error('❌ Real AI requested but no valid AI provider configured');
+        throw new Error(`Real AI mode enabled but ${aiConfig.provider} API key is missing or invalid. Please configure ${aiConfig.provider.toUpperCase()}_API_KEY environment variable.`);
       }
       
       // If not using real AI, use fallback recommendations
@@ -253,17 +255,91 @@ These insights should be integrated into your recommendations to provide more pe
   }
 
   /**
+   * Validate AI configuration and determine available provider
+   */
+  private static validateAIConfiguration(): { provider: string; available: boolean; reason?: string } {
+    const aiProvider = (process.env.AI_PROVIDER || 'openai').toLowerCase();
+    
+    console.log('🔧 Validating AI configuration...');
+    console.log('   - Requested provider:', aiProvider);
+    
+    switch (aiProvider) {
+      case 'openai':
+        const hasOpenAIKey = !!process.env.OPENAI_API_KEY;
+        const openAIKeyLength = process.env.OPENAI_API_KEY?.length || 0;
+        console.log('   - OpenAI API key present:', hasOpenAIKey);
+        console.log('   - OpenAI API key length:', openAIKeyLength);
+        
+        if (!hasOpenAIKey) {
+          return {
+            provider: 'openai',
+            available: false,
+            reason: 'OPENAI_API_KEY environment variable is missing'
+          };
+        }
+        
+        if (openAIKeyLength < 20) {
+          return {
+            provider: 'openai',
+            available: false,
+            reason: 'OPENAI_API_KEY appears to be invalid (too short)'
+          };
+        }
+        
+        return { provider: 'openai', available: true };
+        
+      case 'gemini':
+        const hasGeminiKey = !!process.env.GEMINI_API_KEY;
+        const geminiKeyLength = process.env.GEMINI_API_KEY?.length || 0;
+        console.log('   - Gemini API key present:', hasGeminiKey);
+        console.log('   - Gemini API key length:', geminiKeyLength);
+        
+        if (!hasGeminiKey) {
+          return {
+            provider: 'gemini',
+            available: false,
+            reason: 'GEMINI_API_KEY environment variable is missing'
+          };
+        }
+        
+        if (geminiKeyLength < 20) {
+          return {
+            provider: 'gemini',
+            available: false,
+            reason: 'GEMINI_API_KEY appears to be invalid (too short)'
+          };
+        }
+        
+        return { provider: 'gemini', available: true };
+        
+      default:
+        console.log('   - Invalid AI provider specified:', aiProvider);
+        return {
+          provider: aiProvider,
+          available: false,
+          reason: `Invalid AI provider '${aiProvider}'. Supported providers: 'openai', 'gemini'`
+        };
+    }
+  }
+
+  /**
    * Call AI API (OpenAI or Gemini) for comprehensive recommendations
    */
   private static async callAI(context: string): Promise<string> {
-    const aiProvider = process.env.AI_PROVIDER || 'openai';
+    const aiConfig = this.validateAIConfiguration();
     
-    console.log('🤖 AI Provider:', aiProvider);
+    console.log('🤖 AI Provider Configuration:', aiConfig);
     
-    if (aiProvider === 'gemini') {
+    if (!aiConfig.available) {
+      throw new Error(`AI Provider '${aiConfig.provider}' is not available: ${aiConfig.reason}`);
+    }
+    
+    if (aiConfig.provider === 'gemini') {
       return this.callGemini(context);
-    } else {
+    } else if (aiConfig.provider === 'openai') {
       return this.callOpenAI(context);
+    } else {
+      throw new Error(`Unsupported AI provider: ${aiConfig.provider}`);
     }
   }
 

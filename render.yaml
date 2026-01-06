@@ -11,10 +11,14 @@ services:
         value: 10000
       - key: RENDER
         value: "true"
-        value: "true"
       - key: FRONTEND_URL
         value: https://main.d2ymtj6aumrj0m.amplifyapp.com
       - key: JWT_SECRET
         value: lantern-ai-production-secret-key-2025
       - key: USE_REAL_AI
-        value: "true"      
+        value: "true"
+      - key: AI_PROVIDER
+        value: "openai"
+      # Add your AI API keys in Render.com dashboard:
+      # OPENAI_API_KEY=sk-proj-your-key-here
+      # GEMINI_API_KEY=your-gemini-key-here
