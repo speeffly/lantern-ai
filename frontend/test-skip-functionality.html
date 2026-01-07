@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skip Functionality Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-2xl mx-auto">
+        <h1 class="text-2xl font-bold mb-6">Skip Functionality Test</h1>
+        
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Academic Performance Question (Optional)</h2>
+            
+            <!-- Skip Status Display -->
+            <div id="skipStatus" class="hidden mb-6 p-4 bg-green-50 border-l-4 border-green-400 rounded-lg">
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                    <div>
+                        <p class="text-green-800 font-semibold">Question Skipped</p>
+                        <p class="text-green-700 text-sm">You've chosen to skip sharing your academic information. You can change your mind by selecting an option below.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Input Method Selection -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-3">
+                    How would you like to share your academic information?
+                </label>
+                
+                <div class="space-y-2">
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="radio" name="inputMethod" value="Type grades manually" class="w-4 h-4 text-blue-600">
+                        <span class="text-gray-700">Type grades manually</span>
+                    </label>
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="radio" name="inputMethod" value="Upload transcript file" class="w-4 h-4 text-blue-600">
+                        <span class="text-gray-700">Upload transcript file</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Text Input (shown when manual entry selected) -->
+            <div id="textInput" class="hidden mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Enter your grades or academic performance:
+                </label>
+                <textarea 
+                    placeholder="Example: 'Math: A, Science: B+, English: A-, GPA: 3.4' or 'Strong in STEM classes, struggle with writing, honor roll last semester'..."
+                    rows="4"
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg resize-none focus:border-blue-500 focus:outline-none"
+                ></textarea>
+            </div>
+            
+            <!-- File Upload (shown when file upload selected) -->
+            <div id="fileInput" class="hidden mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Upload your transcript (PDF or CSV format):
+                </label>
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                    <input type="file" accept=".pdf,.csv" class="hidden" id="file-upload">
+                    <label for="file-upload" class="cursor-pointer">
+                        <div class="space-y-2">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                            <div class="text-gray-600">
+                                <span class="font-medium text-blue-600 hover:text-blue-500">Click to upload</span> or drag and drop
+                            </div>
+                            <p class="text-sm text-gray-500">PDF or CSV files only</p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Skip Button -->
+            <div class="text-center pt-4 border-t border-gray-200">
+                <button 
+                    id="skipButton"
+                    type="button"
+                    class="inline-flex items-center px-4 py-2 bg-gray-50 text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium"
+                >
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Skip this question
+                </button>
+                <p class="text-xs text-gray-500 mt-2">
+                    This question is optional. You can skip it and continue with the assessment.
+                </p>
+            </div>
+            
+            <!-- Test Results -->
+            <div class="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h3 class="font-semibold text-blue-800 mb-2">Test Status:</h3>
+                <div id="testStatus" class="text-sm text-blue-700">
+                    Ready to test skip functionality
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentState = {
+            inputMethod: '',
+            isSkipped: false
+        };
+
+        const skipStatus = document.getElementById('skipStatus');
+        const textInput = document.getElementById('textInput');
+        const fileInput = document.getElementById('fileInput');
+        const skipButton = document.getElementById('skipButton');
+        const testStatus = document.getElementById('testStatus');
+        const radioButtons = document.querySelectorAll('input[name="inputMethod"]');
+
+        function updateUI() {
+            // Update skip status display
+            if (currentState.isSkipped) {
+                skipStatus.classList.remove('hidden');
+                textInput.classList.add('hidden');
+                fileInput.classList.add('hidden');
+                skipButton.innerHTML = `
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z" />
+                    </svg>
+                    Answer this question instead
+                `;
+                skipButton.className = "inline-flex items-center px-4 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium";
+                testStatus.textContent = "✅ Question is SKIPPED - Skip functionality working!";
+            } else {
+                skipStatus.classList.add('hidden');
+                skipButton.innerHTML = `
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Skip this question
+                `;
+                skipButton.className = "inline-flex items-center px-4 py-2 bg-gray-50 text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium";
+                
+                // Show appropriate input based on method
+                if (currentState.inputMethod === 'Type grades manually') {
+                    textInput.classList.remove('hidden');
+                    fileInput.classList.add('hidden');
+                    testStatus.textContent = "📝 Manual entry selected - ready to type grades";
+                } else if (currentState.inputMethod === 'Upload transcript file') {
+                    textInput.classList.add('hidden');
+                    fileInput.classList.remove('hidden');
+                    testStatus.textContent = "📁 File upload selected - ready to upload transcript";
+                } else {
+                    textInput.classList.add('hidden');
+                    fileInput.classList.add('hidden');
+                    testStatus.textContent = "⏳ No input method selected - choose an option or skip";
+                }
+            }
+        }
+
+        // Handle radio button changes
+        radioButtons.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    currentState.inputMethod = e.target.value;
+                    currentState.isSkipped = false;
+                    updateUI();
+                }
+            });
+        });
+
+        // Handle skip button click
+        skipButton.addEventListener('click', () => {
+            if (currentState.isSkipped) {
+                // Un-skip
+                currentState.isSkipped = false;
+                currentState.inputMethod = '';
+                radioButtons.forEach(radio => radio.checked = false);
+            } else {
+                // Skip
+                currentState.isSkipped = true;
+                currentState.inputMethod = 'skip';
+                radioButtons.forEach(radio => radio.checked = false);
+            }
+            updateUI();
+        });
+
+        // Initialize UI
+        updateUI();
+    </script>
+</body>
+</html>

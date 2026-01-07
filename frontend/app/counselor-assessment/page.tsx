@@ -526,6 +526,7 @@ function CounselorAssessmentContent() {
   };
 
   const handleAnswerChange = (questionId: string, value: any) => {
+    console.log('📝 Answer changed:', { questionId, value, isSkip: value?.inputMethod === 'skip' });
     setSelectedAnswers(prev => ({
       ...prev,
       [questionId]: value
@@ -555,19 +556,35 @@ function CounselorAssessmentContent() {
     } else if (currentQuestion.type === 'combined_input') {
       // For combined_input (academic performance), it's optional
       const inputMethod = currentAnswer?.inputMethod;
-      if (inputMethod === 'Type grades manually') {
+      
+      console.log('🔍 Validating combined_input question:', {
+        questionId: currentQuestion.id,
+        inputMethod: inputMethod,
+        isOptional: isOptional,
+        currentAnswer: currentAnswer,
+        skipDetected: inputMethod === 'skip'
+      });
+      
+      if (inputMethod === 'skip') {
+        console.log('✅ Question skipped, proceeding to next');
+        // Question is skipped, allow to proceed
+      } else if (inputMethod === 'Type grades manually') {
         const gradesText = currentAnswer?.gradesText?.trim();
         if (!gradesText) {
-          alert('Please enter your grades or select a different option');
+          alert('Please enter your grades or select a different option (or skip this question)');
           return;
         }
       } else if (inputMethod === 'Upload transcript file') {
         if (!currentAnswer?.transcriptFile) {
-          alert('Please upload a transcript file or select a different option');
+          alert('Please upload a transcript file or select a different option (or skip this question)');
           return;
         }
+      } else if (!isOptional) {
+        // If it's not optional and no method selected, require selection
+        alert('Please select how you want to share your academic information or skip this question');
+        return;
       }
-      // If inputMethod is 'skip' or empty, that's fine for optional questions
+      // If inputMethod is empty and question is optional, that's fine too
     } else if (currentQuestion.type === 'multiple_choice') {
       if (!isOptional && (!currentAnswer || currentAnswer.length === 0)) {
         alert('Please select at least one option');
@@ -907,6 +924,22 @@ function CounselorAssessmentContent() {
             <label className="block text-sm font-medium text-gray-700 mb-3">
               How would you like to share your academic information?
             </label>
+            
+            {/* Show skip status prominently if skipped */}
+            {inputMethod === 'skip' && (
+              <div className="mb-6 p-4 bg-green-50 border-l-4 border-green-400 rounded-lg">
+                <div className="flex items-center">
+                  <svg className="w-6 h-6 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <div>
+                    <p className="text-green-800 font-semibold">Question Skipped</p>
+                    <p className="text-green-700 text-sm">You've chosen to skip sharing your academic information. You can change your mind by selecting an option below.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             <div className="space-y-2">
               {question.fields.inputMethod?.options?.map((option, index) => (
                 <label key={index} className="flex items-center space-x-3 cursor-pointer">
@@ -1001,16 +1034,43 @@ function CounselorAssessmentContent() {
           )}
 
           {/* Skip option */}
-          <div className="text-center">
-            <button
-              type="button"
-              onClick={() => {
-                handleAnswerChange(question.id, { inputMethod: 'skip' });
-              }}
-              className="text-gray-500 hover:text-gray-700 text-sm underline"
-            >
-              Skip this question
-            </button>
+          <div className="text-center mt-6 pt-4 border-t border-gray-200">
+            {currentAnswer?.inputMethod === 'skip' ? (
+              <button
+                type="button"
+                onClick={() => {
+                  console.log('🔄 Un-skipping question:', question.id);
+                  console.log('🔄 Current answer before un-skip:', selectedAnswers[question.id]);
+                  handleAnswerChange(question.id, { inputMethod: '' });
+                  console.log('🔄 Answer after un-skip:', { inputMethod: '' });
+                }}
+                className="inline-flex items-center px-4 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z" />
+                </svg>
+                Answer this question instead
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  console.log('🔄 Skipping question:', question.id);
+                  console.log('🔄 Current answer before skip:', selectedAnswers[question.id]);
+                  handleAnswerChange(question.id, { inputMethod: 'skip' });
+                  console.log('🔄 Answer after skip:', { inputMethod: 'skip' });
+                }}
+                className="inline-flex items-center px-4 py-2 bg-gray-50 text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Skip this question
+              </button>
+            )}
+            <p className="text-xs text-gray-500 mt-2">
+              This question is optional. You can skip it and continue with the assessment.
+            </p>
           </div>
         </div>
       );

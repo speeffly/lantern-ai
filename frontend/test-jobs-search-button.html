@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jobs Search Button Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-2xl font-bold mb-6">Jobs Search Button Test</h1>
+        
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h2 class="text-2xl font-semibold mb-6">Search Jobs</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        ZIP Code *
+                    </label>
+                    <input
+                        type="text"
+                        id="zipCode"
+                        placeholder="Enter your ZIP code (5 digits)"
+                        maxlength="5"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Keywords (Optional)
+                    </label>
+                    <input
+                        type="text"
+                        id="keywords"
+                        placeholder="e.g., healthcare, technology"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Specific Career (Optional)
+                    </label>
+                    <select
+                        id="career"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                        <option value="">All Careers</option>
+                        <option value="Registered Nurse">Registered Nurse</option>
+                        <option value="Electrician">Electrician</option>
+                        <option value="Medical Assistant">Medical Assistant</option>
+                        <option value="Construction Worker">Construction Worker</option>
+                        <option value="Teacher">Teacher</option>
+                        <option value="Software Developer">Software Developer</option>
+                        <option value="Mechanic">Mechanic</option>
+                        <option value="Administrative Assistant">Administrative Assistant</option>
+                    </select>
+                </div>
+            </div>
+
+            <button
+                id="searchButton"
+                disabled
+                class="w-full md:w-auto px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
+            >
+                🔍 Search Jobs
+            </button>
+        </div>
+
+        <!-- Test Status -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <h3 class="font-semibold text-blue-800 mb-2">Test Status:</h3>
+            <div id="testStatus" class="text-sm text-blue-700">
+                Button is disabled - enter a ZIP code to enable it
+            </div>
+            
+            <div class="mt-4 space-y-2">
+                <div><strong>Button State:</strong> <span id="buttonState">Disabled</span></div>
+                <div><strong>ZIP Code:</strong> <span id="zipCodeValue">Empty</span></div>
+                <div><strong>Click Count:</strong> <span id="clickCount">0</span></div>
+            </div>
+        </div>
+
+        <!-- Test Instructions -->
+        <div class="bg-green-50 border border-green-200 rounded-lg p-6 mt-6">
+            <h3 class="font-semibold text-green-800 mb-2">Test Instructions:</h3>
+            <ol class="text-sm text-green-700 space-y-1">
+                <li>1. Notice the button is initially disabled (gray background)</li>
+                <li>2. Enter a ZIP code (e.g., 12345) - button should become enabled (blue background)</li>
+                <li>3. Try clicking the button - it should be clickable and show success message</li>
+                <li>4. Clear the ZIP code - button should become disabled again</li>
+                <li>5. Test with invalid ZIP codes (letters, less than 5 digits)</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        let clickCount = 0;
+        
+        const zipCodeInput = document.getElementById('zipCode');
+        const searchButton = document.getElementById('searchButton');
+        const testStatus = document.getElementById('testStatus');
+        const buttonState = document.getElementById('buttonState');
+        const zipCodeValue = document.getElementById('zipCodeValue');
+        const clickCountDisplay = document.getElementById('clickCount');
+
+        function updateButtonState() {
+            const zipCode = zipCodeInput.value.trim();
+            const zipCodeRegex = /^\d{5}$/;
+            const isValid = zipCodeRegex.test(zipCode);
+            
+            searchButton.disabled = !isValid;
+            
+            // Update display
+            buttonState.textContent = isValid ? 'Enabled' : 'Disabled';
+            zipCodeValue.textContent = zipCode || 'Empty';
+            
+            if (!zipCode) {
+                testStatus.textContent = 'Button is disabled - enter a ZIP code to enable it';
+                testStatus.className = 'text-sm text-blue-700';
+            } else if (!isValid) {
+                testStatus.textContent = 'Invalid ZIP code - must be exactly 5 digits';
+                testStatus.className = 'text-sm text-red-700';
+            } else {
+                testStatus.textContent = 'Button is enabled - click to test search functionality';
+                testStatus.className = 'text-sm text-green-700';
+            }
+        }
+
+        // ZIP code input validation
+        zipCodeInput.addEventListener('input', (e) => {
+            // Only allow digits and limit to 5 characters
+            const value = e.target.value.replace(/\D/g, '').slice(0, 5);
+            e.target.value = value;
+            updateButtonState();
+        });
+
+        // Search button click handler
+        searchButton.addEventListener('click', () => {
+            clickCount++;
+            clickCountDisplay.textContent = clickCount;
+            
+            const zipCode = zipCodeInput.value.trim();
+            const keywords = document.getElementById('keywords').value.trim();
+            const career = document.getElementById('career').value;
+            
+            testStatus.textContent = `✅ Search clicked! ZIP: ${zipCode}, Keywords: "${keywords || 'None'}", Career: "${career || 'All'}"`;
+            testStatus.className = 'text-sm text-green-700 font-medium';
+            
+            console.log('Search button clicked:', {
+                zipCode,
+                keywords,
+                career,
+                clickCount
+            });
+        });
+
+        // Initialize
+        updateButtonState();
+    </script>
+</body>
+</html>

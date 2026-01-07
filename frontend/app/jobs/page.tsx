@@ -20,16 +20,22 @@ export default function JobsPage() {
   }, []);
 
   const handleSearch = () => {
+    console.log('🔍 Search button clicked:', { zipCode, searchKeywords, selectedCareer });
+    
     // Validate ZIP code format
     const zipCodeRegex = /^\d{5}$/;
     if (!zipCodeRegex.test(zipCode)) {
+      console.log('❌ Invalid ZIP code:', zipCode);
       alert('Please enter a valid 5-digit ZIP code (e.g., 12345)');
       return;
     }
     
+    console.log('✅ ZIP code valid, proceeding with search');
+    
     if (zipCode) {
       localStorage.setItem('zipCode', zipCode);
       setShowResults(true);
+      console.log('✅ Search results enabled');
     }
   };
 
@@ -113,13 +119,30 @@ export default function JobsPage() {
               </div>
             </div>
 
-            <button
-              onClick={handleSearch}
-              disabled={!zipCode}
-              className="w-full md:w-auto px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
-            >
-              🔍 Search Jobs
-            </button>
+            <div className="flex flex-col md:flex-row md:items-end gap-4">
+              <button
+                onClick={handleSearch}
+                disabled={!zipCode || zipCode.length !== 5}
+                className={`w-full md:w-auto px-8 py-3 rounded-lg font-medium transition-all duration-200 ${
+                  !zipCode || zipCode.length !== 5
+                    ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                    : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-lg active:bg-blue-800 cursor-pointer'
+                }`}
+              >
+                🔍 Search Jobs
+              </button>
+              
+              {/* Button Status Indicator */}
+              <div className="text-sm text-gray-500">
+                {!zipCode ? (
+                  <span className="text-red-500">⚠️ Enter ZIP code to enable search</span>
+                ) : zipCode.length !== 5 ? (
+                  <span className="text-yellow-500">⚠️ ZIP code must be 5 digits</span>
+                ) : (
+                  <span className="text-green-500">✅ Ready to search</span>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Quick Career Buttons */}
@@ -134,12 +157,20 @@ export default function JobsPage() {
                 <button
                   key={career}
                   onClick={() => {
+                    console.log('🎯 Career selected:', career);
                     setSelectedCareer(career);
-                    if (zipCode) setShowResults(true);
+                    if (zipCode && zipCode.length === 5) {
+                      setShowResults(true);
+                      console.log('✅ Showing results for career:', career);
+                    } else {
+                      console.log('⚠️ Need valid ZIP code to show results');
+                      alert('Please enter a valid 5-digit ZIP code first');
+                    }
                   }}
-                  className="p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors text-left"
+                  className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 active:bg-blue-100 transition-all duration-200 text-left cursor-pointer"
                 >
                   <div className="font-medium text-gray-900">{career}</div>
+                  <div className="text-xs text-gray-500 mt-1">Click to search</div>
                 </button>
               ))}
             </div>
