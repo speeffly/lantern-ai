@@ -756,12 +756,17 @@ Provide your analysis in the following JSON format:
       
       let jsonString = cleaned.substring(jsonStart, jsonEnd + 1);
       
-      // Step 3: Fix common JSON issues that cause "Expected ',' or '}'" errors
+      // Step 3: Fix common JSON issues that cause parsing errors
       jsonString = jsonString
+        // Fix leading commas after opening braces (common AI error)
+        .replace(/{\s*,/g, '{')
+        .replace(/\[\s*,/g, '[')
         // Fix missing quotes around property names
         .replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":')
         // Fix trailing commas
         .replace(/,(\s*[}\]])/g, '$1')
+        // Fix multiple consecutive commas
+        .replace(/,\s*,+/g, ',')
         // Fix missing commas between properties (most common issue)
         .replace(/"\s*\n\s*"/g, '",\n"')
         .replace(/}\s*\n\s*"/g, '},\n"')
@@ -779,9 +784,26 @@ Provide your analysis in the following JSON format:
             return `: "${content}"${ending}`;
           }
           return match;
-        });
+        })
+        // Fix escaped backslashes in strings that break JSON
+        .replace(/\\\\/g, '\\')
+        // Fix newlines in strings
+        .replace(/"\s*\n\s*([^"]*?)"/g, '"$1"');
 
-      // Step 4: Balance braces and brackets
+      // Step 4: Advanced fixes for specific patterns
+      jsonString = jsonString
+        // Fix array elements without commas
+        .replace(/}\s*{/g, '},{')
+        .replace(/]\s*\[/g, '],[')
+        // Fix missing commas after array elements
+        .replace(/}\s*]/g, '}]')
+        .replace(/"\s*]/g, '"]')
+        // Fix property names that got corrupted
+        .replace(/\\"/g, '\\"')
+        // Remove any remaining leading/trailing commas
+        .replace(/^,+|,+$/g, '');
+
+      // Step 5: Balance braces and brackets
       const openBraces = (jsonString.match(/{/g) || []).length;
       const closeBraces = (jsonString.match(/}/g) || []).length;
       const openBrackets = (jsonString.match(/\[/g) || []).length;
@@ -797,60 +819,77 @@ Provide your analysis in the following JSON format:
         jsonString += ']';
       }
 
-      // Step 5: Try to parse and fix specific errors
-      try {
-        JSON.parse(jsonString);
-        console.log('✅ JSON cleanup successful');
-        return jsonString;
-      } catch (parseError) {
-        console.log('🔧 First parse failed, attempting targeted fixes...');
-        
-        if (parseError instanceof SyntaxError) {
-          const errorMessage = parseError.message;
-          
-          // Fix specific error: Expected ',' or '}' after property value
-          if (errorMessage.includes("Expected ',' or '}'")) {
-            // Find the position mentioned in the error
-            const positionMatch = errorMessage.match(/position (\d+)/);
-            if (positionMatch) {
-              const position = parseInt(positionMatch[1]);
-              const beforeError = jsonString.substring(0, position);
-              const afterError = jsonString.substring(position);
-              
-              // Try to fix the specific position
-              if (afterError.match(/^\s*"/)) {
-                // Missing comma before next property
-                jsonString = beforeError + ',' + afterError;
-              } else if (afterError.match(/^\s*}/)) {
-                // Extra content before closing brace
-                jsonString = beforeError + afterError;
-              }
-            } else {
-              // General fix for missing commas
-              jsonString = jsonString
-                .replace(/([^,}\]]\s*)(\s*"[^"]*"\s*:)/g, '$1,$2')
-                .replace(/,\s*,/g, ',');
-            }
-          }
-          
-          // Fix specific error: Unexpected token
-          if (errorMessage.includes('Unexpected token')) {
-            jsonString = jsonString
-              .replace(/([^",}\]]\s+)(["{])/g, '$1,$2')
-              .replace(/,\s*,/g, ',');
-          }
-        }
-        
-        // Try parsing again
+      // Step 6: Try to parse and fix specific errors iteratively
+      let attempts = 0;
+      const maxAttempts = 3;
+      
+      while (attempts < maxAttempts) {
         try {
           JSON.parse(jsonString);
-          console.log('✅ Targeted JSON fixes successful');
+          console.log(`✅ JSON cleanup successful after ${attempts + 1} attempt(s)`);
           return jsonString;
-        } catch (finalError) {
-          console.log('⚠️ JSON cleanup partially successful, may have remaining issues');
-          return jsonString; // Return best effort
+        } catch (parseError) {
+          attempts++;
+          console.log(`🔧 Parse attempt ${attempts} failed, applying targeted fixes...`);
+          
+          if (parseError instanceof SyntaxError) {
+            const errorMessage = parseError.message;
+            
+            // Fix specific error: Expected property name or '}'
+            if (errorMessage.includes("Expected property name or '}'")) {
+              // Remove leading commas and fix structure
+              jsonString = jsonString
+                .replace(/{\s*,/g, '{')
+                .replace(/,\s*}/g, '}')
+                .replace(/,\s*,/g, ',');
+            }
+            
+            // Fix specific error: Expected ',' or '}' after property value
+            if (errorMessage.includes("Expected ',' or '}'")) {
+              const positionMatch = errorMessage.match(/position (\d+)/);
+              if (positionMatch) {
+                const position = parseInt(positionMatch[1]);
+                const beforeError = jsonString.substring(0, position);
+                const afterError = jsonString.substring(position);
+                
+                // Try to fix the specific position
+                if (afterError.match(/^\s*"/)) {
+                  // Missing comma before next property
+                  jsonString = beforeError + ',' + afterError;
+                } else if (afterError.match(/^\s*}/)) {
+                  // Extra content before closing brace - remove it
+                  const cleanAfter = afterError.replace(/^[^"}]*/, '');
+                  jsonString = beforeError + cleanAfter;
+                }
+              } else {
+                // General fix for missing commas
+                jsonString = jsonString
+                  .replace(/([^,}\]]\s*)(\s*"[^"]*"\s*:)/g, '$1,$2')
+                  .replace(/,\s*,/g, ',');
+              }
+            }
+            
+            // Fix specific error: Expected ',' or ']' after array element
+            if (errorMessage.includes("Expected ',' or ']'")) {
+              jsonString = jsonString
+                .replace(/([^,\]]\s*)(\s*[{\[])/g, '$1,$2')
+                .replace(/,\s*,/g, ',');
+            }
+            
+            // Fix specific error: Unexpected token
+            if (errorMessage.includes('Unexpected token')) {
+              jsonString = jsonString
+                .replace(/([^",}\]]\s+)(["{])/g, '$1,$2')
+                .replace(/,\s*,/g, ',')
+                .replace(/{\s*,/g, '{')
+                .replace(/\[\s*,/g, '[');
+            }
+          }
         }
       }
+      
+      console.log('⚠️ JSON cleanup partially successful, may have remaining issues');
+      return jsonString;
       
     } catch (error) {
       console.error('❌ JSON cleanup failed:', error);

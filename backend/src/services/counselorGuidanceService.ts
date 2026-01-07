@@ -1,6 +1,8 @@
 import { CareerService } from './careerService';
 import { CareerMatch, AssessmentAnswer } from '../types';
 import { AIRecommendationService } from './aiRecommendationService';
+import { DynamicSalaryService } from './dynamicSalaryService';
+import { EnhancedCareerService } from './enhancedCareerService';
 
 export interface CounselorAssessmentResponse {
   grade?: number;
@@ -127,24 +129,86 @@ export class CounselorGuidanceService {
   ): Promise<CounselorRecommendation> {
     try {
       console.log('🎓 Generating counselor recommendations for grade', responses.grade, 'student');
+      console.log('📍 Location:', responses.zipCode);
 
       // Convert responses to student profile format
       const studentProfile = this.convertToStudentProfile(responses);
+      console.log('👤 Student Profile:', JSON.stringify(studentProfile, null, 2));
       
-      // Get career matches using existing service
-      const careerMatches = CareerService.getCareerMatches(studentProfile, responses.zipCode || '');
+      // STEP 1: Get enhanced career matches with dynamic salary data
+      console.log('\n' + '='.repeat(80));
+      console.log('💰 STEP 1: GETTING ENHANCED CAREER MATCHES WITH DYNAMIC SALARY DATA');
+      console.log('='.repeat(80));
+      
+      const enhancedResult = await EnhancedCareerService.getCareerMatchesWithDynamicSalaries(
+        studentProfile,
+        this.convertToAssessmentAnswers(responses),
+        responses.zipCode || ''
+      );
+      
+      console.log('📊 Enhanced Career Analysis Results:');
+      console.log('   - Career matches found:', enhancedResult.careerMatches.length);
+      console.log('   - Dynamic data available:', enhancedResult.insights.dynamicDataAvailable);
+      console.log('   - Jobs analyzed:', enhancedResult.insights.jobsAnalyzed);
+      console.log('   - Average salary difference:', enhancedResult.insights.averageSalaryDifference.toLocaleString());
+      console.log('   - Recommendation quality:', enhancedResult.insights.recommendationQuality);
+      
+      // Log salary data details
+      console.log('\n📈 SALARY ANALYSIS BREAKDOWN:');
+      enhancedResult.salaryData.salaryAnalyses.forEach((analysis, index) => {
+        console.log(`   ${index + 1}. ${analysis.careerTitle}:`);
+        console.log(`      - Average Salary: $${analysis.averageSalary.toLocaleString()}`);
+        console.log(`      - Salary Range: $${analysis.salaryRange.min.toLocaleString()} - $${analysis.salaryRange.max.toLocaleString()}`);
+        console.log(`      - Job Count: ${analysis.jobCount}`);
+        console.log(`      - Data Source: ${analysis.dataSource}`);
+        console.log(`      - Last Updated: ${analysis.lastUpdated.toISOString()}`);
+      });
+      
+      console.log('\n🏢 MARKET INSIGHTS:');
+      console.log('   - Highest Paying Career:', enhancedResult.salaryData.marketInsights.highestPaying);
+      console.log('   - Most Jobs Available:', enhancedResult.salaryData.marketInsights.mostJobs);
+      console.log('   - Average Across All Careers: $' + enhancedResult.salaryData.marketInsights.averageAcrossAllCareers.toLocaleString());
+      console.log('='.repeat(80));
+      
+      // Use enhanced career matches instead of basic ones
+      const careerMatches = enhancedResult.careerMatches;
       
       // Get top 15 matches for high school students
       const topMatches = careerMatches
         .filter(match => this.isAppropriateForHighSchool(match.career))
         .slice(0, 15);
 
-      // Generate detailed job recommendations
-      const jobRecommendations = await this.generateJobRecommendations(
+      console.log('\n🎯 TOP CAREER MATCHES (after filtering):');
+      topMatches.slice(0, 5).forEach((match, index) => {
+        console.log(`   ${index + 1}. ${match.career.title} (${match.matchScore}% match)`);
+        console.log(`      - Sector: ${match.career.sector}`);
+        console.log(`      - Average Salary: $${match.career.averageSalary.toLocaleString()}`);
+        console.log(`      - Required Education: ${match.career.requiredEducation}`);
+        if (match.localSalaryData) {
+          console.log(`      - Local Salary Data: ${match.localSalaryData.source} (${match.localSalaryData.jobCount} jobs)`);
+        }
+      });
+
+      // STEP 2: Generate detailed job recommendations with dynamic salary data
+      console.log('\n' + '='.repeat(80));
+      console.log('💼 STEP 2: GENERATING JOB RECOMMENDATIONS WITH DYNAMIC SALARY DATA');
+      console.log('='.repeat(80));
+      
+      const jobRecommendations = await this.generateJobRecommendationsWithDynamicSalary(
         topMatches, 
         responses.zipCode || '', 
-        responses.grade || 11
+        responses.grade || 11,
+        enhancedResult.salaryData
       );
+
+      console.log('✅ Job recommendations generated with dynamic salary data');
+      jobRecommendations.slice(0, 3).forEach((job, index) => {
+        console.log(`   ${index + 1}. ${job.career.title}:`);
+        console.log(`      - Match Score: ${job.matchScore}%`);
+        console.log(`      - Local Average Salary: $${job.localOpportunities.averageLocalSalary.toLocaleString()}`);
+        console.log(`      - Estimated Jobs: ${job.localOpportunities.estimatedJobs}`);
+        console.log(`      - Distance: ${job.localOpportunities.distanceFromStudent} miles`);
+      });
 
       // Create 4-year action plan
       const fourYearPlan = this.createFourYearActionPlan(
@@ -161,7 +225,9 @@ export class CounselorGuidanceService {
       );
 
       // Generate AI-powered recommendations
-      console.log('🤖 Calling AI recommendation service from counselor assessment...');
+      console.log('\n' + '='.repeat(80));
+      console.log('🤖 STEP 3: GENERATING AI-POWERED RECOMMENDATIONS');
+      console.log('='.repeat(80));
       let aiRecommendations: {
         academicPlan: any;
         localJobs: any[];
@@ -217,6 +283,16 @@ export class CounselorGuidanceService {
         jobRecommendations,
         fourYearPlan
       );
+
+      console.log('\n' + '='.repeat(80));
+      console.log('✅ COUNSELOR RECOMMENDATIONS GENERATION COMPLETE');
+      console.log('='.repeat(80));
+      console.log('📊 Final Summary:');
+      console.log('   - Top career matches:', jobRecommendations.length);
+      console.log('   - Dynamic salary data used:', enhancedResult.insights.dynamicDataAvailable ? 'YES' : 'NO');
+      console.log('   - Total jobs analyzed:', enhancedResult.insights.jobsAnalyzed);
+      console.log('   - AI recommendations:', aiRecommendations ? 'Generated' : 'Not available');
+      console.log('='.repeat(80) + '\n');
 
       return {
         studentProfile: {
@@ -366,6 +442,36 @@ export class CounselorGuidanceService {
   }
 
   /**
+   * Generate detailed job recommendations with dynamic salary data
+   */
+  private static async generateJobRecommendationsWithDynamicSalary(
+    careerMatches: CareerMatch[],
+    zipCode: string,
+    grade: number,
+    salaryData: any
+  ): Promise<JobRecommendation[]> {
+    const recommendations: JobRecommendation[] = [];
+
+    for (const match of careerMatches) {
+      // Get local job market data using dynamic salary analysis
+      const localData = await this.getLocalJobDataWithDynamicSalary(match.career, zipCode, salaryData);
+      
+      // Get education path
+      const educationPath = this.createEducationPath(match.career, grade);
+      
+      recommendations.push({
+        career: match.career,
+        matchScore: match.matchScore,
+        matchReasons: match.reasoningFactors || this.generateMatchReasons(match),
+        localOpportunities: localData,
+        educationPath
+      });
+    }
+
+    return recommendations;
+  }
+
+  /**
    * Generate detailed job recommendations
    */
   private static async generateJobRecommendations(
@@ -395,20 +501,64 @@ export class CounselorGuidanceService {
   }
 
   /**
-   * Get local job market data for a career
+   * Get local job market data using dynamic salary analysis
    */
-  private static async getLocalJobData(career: any, _zipCode: string) {
+  private static async getLocalJobDataWithDynamicSalary(career: any, zipCode: string, salaryData: any) {
+    console.log(`💰 Getting dynamic salary data for ${career.title} in ${zipCode}...`);
+    
+    // Find the salary analysis for this career
+    const salaryAnalysis = salaryData.salaryAnalyses.find(
+      (analysis: any) => analysis.careerTitle === career.title
+    );
+
+    if (salaryAnalysis) {
+      console.log(`   ✅ Found dynamic salary data for ${career.title}:`);
+      console.log(`      - Average Salary: $${salaryAnalysis.averageSalary.toLocaleString()}`);
+      console.log(`      - Job Count: ${salaryAnalysis.jobCount}`);
+      console.log(`      - Data Source: ${salaryAnalysis.dataSource}`);
+      console.log(`      - Salary Range: $${salaryAnalysis.salaryRange.min.toLocaleString()} - $${salaryAnalysis.salaryRange.max.toLocaleString()}`);
+      
+      // Use dynamic salary data
+      return {
+        estimatedJobs: salaryAnalysis.jobCount,
+        averageLocalSalary: salaryAnalysis.averageSalary,
+        topEmployers: this.generateLocalEmployers(career.sector),
+        distanceFromStudent: Math.floor(Math.random() * 35) + 5 // 5-40 miles (still simulated)
+      };
+    } else {
+      console.log(`   ⚠️ No dynamic salary data found for ${career.title}, using fallback`);
+      
+      // Fallback to simulated data
+      return this.getLocalJobDataFallback(career, zipCode);
+    }
+  }
+
+  /**
+   * Get local job market data for a career (original method, now fallback)
+   */
+  private static async getLocalJobData(career: any, zipCode: string) {
+    console.log(`📊 Getting simulated job data for ${career.title} in ${zipCode}...`);
+    return this.getLocalJobDataFallback(career, zipCode);
+  }
+
+  /**
+   * Fallback method for local job data (simulated)
+   */
+  private static getLocalJobDataFallback(career: any, _zipCode: string) {
     // Simulate local job market analysis
     const baseJobs = Math.floor(Math.random() * 50) + 10; // 10-60 jobs
     const salaryVariation = 0.1; // ±10%
     const distance = Math.floor(Math.random() * 35) + 5; // 5-40 miles
 
-    return {
+    const simulatedData = {
       estimatedJobs: baseJobs,
       averageLocalSalary: Math.round(career.averageSalary * (1 + (Math.random() - 0.5) * salaryVariation)),
       topEmployers: this.generateLocalEmployers(career.sector),
       distanceFromStudent: distance
     };
+
+    console.log(`   📊 Simulated data: ${baseJobs} jobs, $${simulatedData.averageLocalSalary.toLocaleString()} avg salary`);
+    return simulatedData;
   }
 
   /**
