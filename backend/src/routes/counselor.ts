@@ -2,14 +2,27 @@ import express from 'express';
 import { CounselorService } from '../services/counselorService';
 import { authenticateToken } from '../middleware/auth';
 
+// Define the authenticated request interface
+interface AuthenticatedRequest extends express.Request {
+  user?: {
+    user: {
+      id: number;
+      email: string;
+      firstName: string;
+      lastName: string;
+      role: string;
+    };
+  };
+}
+
 const router = express.Router();
 
 /**
  * Get counselor dashboard statistics
  */
-router.get('/stats', authenticateToken, async (req, res) => {
+router.get('/stats', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
-    const counselorId = req.user?.id;
+    const counselorId = req.user?.user?.id;
     if (!counselorId) {
       return res.status(401).json({ success: false, error: 'Unauthorized' });
     }
@@ -33,9 +46,9 @@ router.get('/stats', authenticateToken, async (req, res) => {
 /**
  * Get all students with progress for counselor
  */
-router.get('/students', authenticateToken, async (req, res) => {
+router.get('/students', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
-    const counselorId = req.user?.id;
+    const counselorId = req.user?.user?.id;
     if (!counselorId) {
       return res.status(401).json({ success: false, error: 'Unauthorized' });
     }
@@ -59,9 +72,9 @@ router.get('/students', authenticateToken, async (req, res) => {
 /**
  * Get detailed student information
  */
-router.get('/students/:studentId', authenticateToken, async (req, res) => {
+router.get('/students/:studentId', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
-    const counselorId = req.user?.id;
+    const counselorId = req.user?.user?.id;
     const studentId = parseInt(req.params.studentId);
 
     if (!counselorId) {
@@ -91,9 +104,9 @@ router.get('/students/:studentId', authenticateToken, async (req, res) => {
 /**
  * Add student to counselor's caseload
  */
-router.post('/students', authenticateToken, async (req, res) => {
+router.post('/students', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
-    const counselorId = req.user?.id;
+    const counselorId = req.user?.user?.id;
     const { studentEmail } = req.body;
 
     if (!counselorId) {
@@ -123,9 +136,9 @@ router.post('/students', authenticateToken, async (req, res) => {
 /**
  * Remove student from counselor's caseload
  */
-router.delete('/students/:studentId', authenticateToken, async (req, res) => {
+router.delete('/students/:studentId', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
-    const counselorId = req.user?.id;
+    const counselorId = req.user?.user?.id;
     const studentId = parseInt(req.params.studentId);
 
     if (!counselorId) {
@@ -155,9 +168,9 @@ router.delete('/students/:studentId', authenticateToken, async (req, res) => {
 /**
  * Create counselor note for student
  */
-router.post('/students/:studentId/notes', authenticateToken, async (req, res) => {
+router.post('/students/:studentId/notes', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
-    const counselorId = req.user?.id;
+    const counselorId = req.user?.user?.id;
     const studentId = parseInt(req.params.studentId);
     const { noteType, title, content, isSharedWithParent } = req.body;
 
@@ -200,9 +213,9 @@ router.post('/students/:studentId/notes', authenticateToken, async (req, res) =>
 /**
  * Get counselor notes for student
  */
-router.get('/students/:studentId/notes', authenticateToken, async (req, res) => {
+router.get('/students/:studentId/notes', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
-    const counselorId = req.user?.id;
+    const counselorId = req.user?.user?.id;
     const studentId = parseInt(req.params.studentId);
 
     if (!counselorId) {
@@ -232,9 +245,9 @@ router.get('/students/:studentId/notes', authenticateToken, async (req, res) => 
 /**
  * Create assignment for student
  */
-router.post('/students/:studentId/assignments', authenticateToken, async (req, res) => {
+router.post('/students/:studentId/assignments', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
-    const counselorId = req.user?.id;
+    const counselorId = req.user?.user?.id;
     const studentId = parseInt(req.params.studentId);
     const { assignmentType, title, description, dueDate } = req.body;
 
@@ -277,9 +290,9 @@ router.post('/students/:studentId/assignments', authenticateToken, async (req, r
 /**
  * Get assignments for student
  */
-router.get('/students/:studentId/assignments', authenticateToken, async (req, res) => {
+router.get('/students/:studentId/assignments', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
-    const counselorId = req.user?.id;
+    const counselorId = req.user?.user?.id;
     const studentId = parseInt(req.params.studentId);
 
     if (!counselorId) {
@@ -309,7 +322,7 @@ router.get('/students/:studentId/assignments', authenticateToken, async (req, re
 /**
  * Update assignment status
  */
-router.patch('/assignments/:assignmentId/status', authenticateToken, async (req, res) => {
+router.patch('/assignments/:assignmentId/status', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
     const assignmentId = parseInt(req.params.assignmentId);
     const { status } = req.body;

@@ -5,7 +5,7 @@ const defaultApiUrl = process.env.NEXT_PUBLIC_API_URL || (isProduction
   : 'http://localhost:3002');
 
 const nextConfig = {
-  output: 'export',
+  // Removed 'output: export' to support dynamic routes and server-side functionality
   trailingSlash: true,
   images: {
     unoptimized: true
