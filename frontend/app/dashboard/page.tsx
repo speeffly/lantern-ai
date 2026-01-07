@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import JobListings from '../components/JobListings';
+import StudentAssignments from '../components/StudentAssignments';
 
 interface User {
   id: string;
@@ -309,6 +310,26 @@ export default function DashboardPage() {
               Edit Profile
             </Link>
           </div>
+        </div>
+
+        {/* Assignment Widget */}
+        <div className="mt-8 bg-white rounded-lg shadow p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">📚 My Assignments</h3>
+            <Link 
+              href="/assignments"
+              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+            >
+              View All Assignments →
+            </Link>
+          </div>
+          <p className="text-gray-600 mb-4">
+            Track assignments from your counselor and update your progress.
+          </p>
+          <StudentAssignments 
+            limit={3}
+            showTitle={false}
+          />
         </div>
 
         {/* Job Opportunities Widget */}
