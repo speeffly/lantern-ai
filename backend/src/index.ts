@@ -15,6 +15,7 @@ import feedbackRoutes from './routes/feedback';
 import comprehensiveGuidanceRoutes from './routes/comprehensiveGuidance';
 import debugRoutes from './routes/debug';
 import dynamicSalaryRoutes from './routes/dynamicSalary';
+import counselorRoutes from './routes/counselor';
 import { DatabaseAdapter } from './services/databaseAdapter';
 
 // Load environment variables
@@ -214,6 +215,7 @@ app.use('/api/action-plans', actionPlansRoutes);
 app.use('/api/feedback', feedbackRoutes); // Feedback system for AI improvement
 app.use('/api/comprehensive-guidance', comprehensiveGuidanceRoutes); // Complete career guidance package
 app.use('/api/dynamic-salary', dynamicSalaryRoutes); // Dynamic salary calculation from real job data
+app.use('/api/counselor', counselorRoutes); // Counselor functionality for student management
 app.use('/api/debug', debugRoutes); // Environment and configuration debugging
 
 // Debug endpoints for troubleshooting

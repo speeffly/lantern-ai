@@ -13,6 +13,112 @@ interface Counselor {
   role: 'counselor';
 }
 
+interface CounselorStats {
+  totalStudents: number;
+  studentsWithAssessments: number;
+  studentsWithCareerPlans: number;
+  totalAssignments: number;
+  completedAssignments: number;
+  assessmentCompletionRate: number;
+  careerPlanCompletionRate: number;
+  assignmentCompletionRate: number;
+}
+
+function CounselorStatsComponent() {
+  const [stats, setStats] = useState<CounselorStats | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadStats();
+  }, []);
+
+  const loadStats = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const statsUrl = `${apiUrl}/api/counselor/stats`;
+      
+      const response = await fetch(statsUrl, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setStats(data.data);
+      }
+    } catch (error) {
+      console.error('❌ Error loading stats:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="text-center animate-pulse">
+            <div className="h-8 bg-gray-200 rounded mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded"></div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (!stats) {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="text-center">
+          <div className="text-2xl font-bold text-blue-600">0</div>
+          <div className="text-sm text-gray-500">Active Students</div>
+        </div>
+        <div className="text-center">
+          <div className="text-2xl font-bold text-green-600">0</div>
+          <div className="text-sm text-gray-500">Completed Assessments</div>
+        </div>
+        <div className="text-center">
+          <div className="text-2xl font-bold text-purple-600">0</div>
+          <div className="text-sm text-gray-500">Career Plans</div>
+        </div>
+        <div className="text-center">
+          <div className="text-2xl font-bold text-orange-600">0</div>
+          <div className="text-sm text-gray-500">Assignments</div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="text-center">
+        <div className="text-2xl font-bold text-blue-600">{stats.totalStudents}</div>
+        <div className="text-sm text-gray-500">Active Students</div>
+      </div>
+      <div className="text-center">
+        <div className="text-2xl font-bold text-green-600">{stats.studentsWithAssessments}</div>
+        <div className="text-sm text-gray-500">Completed Assessments</div>
+        <div className="text-xs text-gray-400">({stats.assessmentCompletionRate}%)</div>
+      </div>
+      <div className="text-center">
+        <div className="text-2xl font-bold text-purple-600">{stats.studentsWithCareerPlans}</div>
+        <div className="text-sm text-gray-500">Career Plans</div>
+        <div className="text-xs text-gray-400">({stats.careerPlanCompletionRate}%)</div>
+      </div>
+      <div className="text-center">
+        <div className="text-2xl font-bold text-orange-600">{stats.completedAssignments}/{stats.totalAssignments}</div>
+        <div className="text-sm text-gray-500">Assignments</div>
+        <div className="text-xs text-gray-400">({stats.assignmentCompletionRate}%)</div>
+      </div>
+    </div>
+  );
+}
+
 export default function CounselorDashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<Counselor | null>(null);
@@ -284,24 +390,7 @@ export default function CounselorDashboardPage() {
         {/* Quick Stats */}
         <div className="mt-8 bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Overview</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">0</div>
-              <div className="text-sm text-gray-500">Active Students</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">0</div>
-              <div className="text-sm text-gray-500">Completed Assessments</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">0</div>
-              <div className="text-sm text-gray-500">Action Plans Created</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">0</div>
-              <div className="text-sm text-gray-500">Parent Summaries Sent</div>
-            </div>
-          </div>
+          <CounselorStatsComponent />
         </div>
       </div>
     </div>

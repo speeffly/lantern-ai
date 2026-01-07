@@ -203,6 +203,45 @@ export class DatabaseServicePG {
             feedback_score DECIMAL(3,2),
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
+        `,
+        
+        // Group 5: Relationship and counselor functionality tables
+        `
+        CREATE TABLE IF NOT EXISTS user_relationships (
+            id SERIAL PRIMARY KEY,
+            primary_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            secondary_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            relationship_type VARCHAR(20) NOT NULL CHECK (relationship_type IN ('parent_child', 'counselor_student')),
+            status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'pending')),
+            created_by INTEGER REFERENCES users(id),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(primary_user_id, secondary_user_id, relationship_type)
+        );
+
+        CREATE TABLE IF NOT EXISTS counselor_notes (
+            id SERIAL PRIMARY KEY,
+            student_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            counselor_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            note_type VARCHAR(30) NOT NULL CHECK (note_type IN ('general', 'career_guidance', 'academic', 'personal', 'parent_communication')),
+            title VARCHAR(200) NOT NULL,
+            content TEXT NOT NULL,
+            is_shared_with_parent BOOLEAN DEFAULT false,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS student_assignments (
+            id SERIAL PRIMARY KEY,
+            counselor_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            student_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            assignment_type VARCHAR(30) NOT NULL CHECK (assignment_type IN ('assessment', 'career_research', 'skill_development', 'course_planning')),
+            title VARCHAR(200) NOT NULL,
+            description TEXT NOT NULL,
+            due_date TIMESTAMP,
+            status VARCHAR(20) DEFAULT 'assigned' CHECK (status IN ('assigned', 'in_progress', 'completed', 'overdue')),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
         `
       ];
       
