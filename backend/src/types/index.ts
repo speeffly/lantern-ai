@@ -114,6 +114,11 @@ export interface CareerMatch {
     location: string;
   };
   localEmployers: string[];
+  localSalaryData?: {
+    source: 'adzuna' | 'static';
+    jobCount: number;
+    lastUpdated: Date;
+  };
 }
 
 // Pathway Types
