@@ -1,6 +1,6 @@
 import { CareerMatch, StudentProfile, AssessmentAnswer } from '../types';
 import { DynamicSalaryService, LocalSalaryData } from './dynamicSalaryService';
-import { CareerMatchingService } from './careerMatchingService';
+import { CareerService } from './careerService';
 
 /**
  * Enhanced career service that integrates dynamic salary data from real job market
@@ -27,7 +27,7 @@ export class EnhancedCareerService {
       console.log('🎯 Getting enhanced career matches with dynamic salary data...');
 
       // Step 1: Get initial career matches
-      const initialMatches = await CareerMatchingService.getMatches(profile, answers);
+      const initialMatches = CareerService.getCareerMatches(profile, zipCode);
       console.log(`📊 Found ${initialMatches.length} initial career matches`);
 
       // Step 2: Get dynamic salary data for the area
@@ -58,7 +58,7 @@ export class EnhancedCareerService {
       console.error('❌ Enhanced career analysis failed:', error);
       
       // Fallback to basic career matches
-      const basicMatches = await CareerMatchingService.getMatches(profile, answers);
+      const basicMatches = CareerService.getCareerMatches(profile, zipCode);
       const fallbackSalaryData = await DynamicSalaryService.getLocalSalaryData(zipCode, basicMatches, 25);
       
       return {

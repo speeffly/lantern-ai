@@ -1,7 +1,7 @@
 import express from 'express';
 import { DynamicSalaryService } from '../services/dynamicSalaryService';
 import { EnhancedCareerService } from '../services/enhancedCareerService';
-import { CareerMatchingService } from '../services/careerMatchingService';
+import { CareerService } from '../services/careerService';
 
 const router = express.Router();
 
@@ -44,8 +44,7 @@ router.get('/analysis/:zipCode', async (req, res) => {
     } else {
       // Get default career matches (you might want to use a default profile)
       const defaultProfile = { interests: ['General'], skills: ['Communication'] };
-      const defaultAnswers = [{ questionId: 'interests', answer: 'General', timestamp: new Date() }];
-      careerMatches = await CareerMatchingService.getEnhancedMatches(defaultProfile, defaultAnswers, []);
+      careerMatches = CareerService.getCareerMatches(defaultProfile, zipCode);
     }
 
     // Get dynamic salary data
