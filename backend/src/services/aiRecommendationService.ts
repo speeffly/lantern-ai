@@ -758,9 +758,14 @@ Provide your analysis in the following JSON format:
       
       // Step 3: Fix common JSON issues that cause parsing errors
       jsonString = jsonString
-        // Fix leading commas after opening braces (common AI error)
-        .replace(/{\s*,/g, '{')
-        .replace(/\[\s*,/g, '[')
+        // CRITICAL FIX: Remove leading commas after opening braces (main issue causing the error)
+        .replace(/{\s*,+\s*/g, '{')
+        .replace(/\[\s*,+\s*/g, '[')
+        // Fix specific pattern that AI generates: {, "property"
+        .replace(/{\s*,\s*"/g, '{"')
+        .replace(/\[\s*,\s*"/g, '["')
+        // Fix leading commas at start of lines
+        .replace(/^\s*,/gm, '')
         // Fix missing quotes around property names
         .replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":')
         // Fix trailing commas
@@ -837,11 +842,21 @@ Provide your analysis in the following JSON format:
             
             // Fix specific error: Expected property name or '}'
             if (errorMessage.includes("Expected property name or '}'")) {
-              // Remove leading commas and fix structure
+              console.log('   🔧 Fixing leading comma issue more aggressively...');
+              // More aggressive leading comma removal
               jsonString = jsonString
-                .replace(/{\s*,/g, '{')
+                .replace(/{\s*,+/g, '{')
                 .replace(/,\s*}/g, '}')
-                .replace(/,\s*,/g, ',');
+                .replace(/,\s*,+/g, ',')
+                // Fix specific pattern: {, "property"
+                .replace(/{\s*,\s*"/g, '{"')
+                // Fix pattern: [, "item"
+                .replace(/\[\s*,\s*"/g, '["')
+                // Remove commas at start of lines
+                .replace(/^\s*,/gm, '')
+                // Remove commas immediately after opening braces with any whitespace
+                .replace(/{\s*,+\s*/g, '{')
+                .replace(/\[\s*,+\s*/g, '[');
             }
             
             // Fix specific error: Expected ',' or '}' after property value

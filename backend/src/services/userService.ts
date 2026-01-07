@@ -197,6 +197,14 @@ export class UserService {
    */
   static async createStudentProfile(userId: number, profileData: CreateStudentProfileData): Promise<StudentProfile> {
     try {
+      // Validate ZIP code format if provided
+      if (profileData.zipCode && profileData.zipCode.trim() !== '') {
+        const zipCodeRegex = /^\d{5}$/;
+        if (!zipCodeRegex.test(profileData.zipCode)) {
+          throw new Error('ZIP code must be exactly 5 digits (e.g., 12345)');
+        }
+      }
+
       const result = await DatabaseAdapter.run(`
         INSERT INTO student_profiles (
           user_id, grade, school_name, zip_code, interests, skills, 
@@ -265,6 +273,14 @@ export class UserService {
    */
   static async updateStudentProfile(userId: number, updates: Partial<CreateStudentProfileData>): Promise<StudentProfile | null> {
     try {
+      // Validate ZIP code format if provided
+      if (updates.zipCode !== undefined && updates.zipCode !== null && updates.zipCode !== '') {
+        const zipCodeRegex = /^\d{5}$/;
+        if (!zipCodeRegex.test(updates.zipCode)) {
+          throw new Error('ZIP code must be exactly 5 digits (e.g., 12345)');
+        }
+      }
+
       const updateFields: string[] = [];
       const updateValues: any[] = [];
 

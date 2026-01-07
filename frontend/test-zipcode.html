@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZIP Code Validation Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-case {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        input {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 200px;
+        }
+        .valid { border-color: green; background-color: #f0fff0; }
+        .invalid { border-color: red; background-color: #fff0f0; }
+        button {
+            padding: 10px 20px;
+            margin-left: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <h1>🧪 ZIP Code Validation Test</h1>
+    <p>This page tests the ZIP code validation logic that's implemented in the application.</p>
+
+    <div class="test-case">
+        <h3>Real-time Input Filtering Test</h3>
+        <p>Try typing letters, spaces, or more than 5 digits:</p>
+        <input type="text" id="realtimeInput" placeholder="Type anything..." maxlength="5">
+        <div id="realtimeResult" class="result"></div>
+        <script>
+            document.getElementById('realtimeInput').addEventListener('input', function(e) {
+                // Apply the same filtering logic as the app
+                let value = e.target.value;
+                const originalValue = value;
+                
+                // Only allow digits and limit to 5 characters
+                value = value.replace(/\D/g, '').slice(0, 5);
+                
+                // Update the input value
+                e.target.value = value;
+                
+                // Show result
+                const resultDiv = document.getElementById('realtimeResult');
+                if (originalValue !== value) {
+                    resultDiv.innerHTML = `<strong>Filtered:</strong> "${originalValue}" → "${value}" (removed non-digits/excess chars)`;
+                    resultDiv.className = 'result error';
+                } else if (value.length === 5) {
+                    resultDiv.innerHTML = `<strong>Valid:</strong> "${value}" ✅`;
+                    resultDiv.className = 'result success';
+                } else if (value.length > 0) {
+                    resultDiv.innerHTML = `<strong>Partial:</strong> "${value}" (need ${5 - value.length} more digits)`;
+                    resultDiv.className = 'result';
+                } else {
+                    resultDiv.innerHTML = '';
+                    resultDiv.className = 'result';
+                }
+            });
+        </script>
+    </div>
+
+    <div class="test-case">
+        <h3>Validation Logic Test</h3>
+        <p>Test various ZIP code formats:</p>
+        
+        <div style="margin: 10px 0;">
+            <input type="text" id="testInput" placeholder="Enter ZIP code">
+            <button onclick="testValidation()">Test Validation</button>
+        </div>
+        
+        <div id="validationResult" class="result"></div>
+        
+        <h4>Quick Test Cases:</h4>
+        <button onclick="testCase('78724')">78724 (Valid)</button>
+        <button onclick="testCase('ABCDE')">ABCDE (Invalid)</button>
+        <button onclick="testCase('1234')">1234 (Invalid)</button>
+        <button onclick="testCase('123456')">123456 (Invalid)</button>
+        <button onclick="testCase('12A34')">12A34 (Invalid)</button>
+        <button onclick="testCase('12 34')">12 34 (Invalid)</button>
+        <button onclick="testCase('')">Empty (Invalid)</button>
+    </div>
+
+    <script>
+        function testValidation() {
+            const input = document.getElementById('testInput');
+            const zipCode = input.value;
+            testCase(zipCode);
+        }
+
+        function testCase(zipCode) {
+            const input = document.getElementById('testInput');
+            const resultDiv = document.getElementById('validationResult');
+            
+            input.value = zipCode;
+            
+            // Apply the same validation logic as the app
+            const zipCodeRegex = /^\d{5}$/;
+            const isValid = zipCodeRegex.test(zipCode);
+            
+            if (isValid) {
+                resultDiv.innerHTML = `<strong>✅ VALID:</strong> "${zipCode}" passes validation`;
+                resultDiv.className = 'result success';
+                input.className = 'valid';
+            } else {
+                let reason = '';
+                if (zipCode === '') {
+                    reason = 'Empty ZIP code';
+                } else if (!/^\d+$/.test(zipCode)) {
+                    reason = 'Contains non-digit characters';
+                } else if (zipCode.length < 5) {
+                    reason = `Too short (${zipCode.length} digits, need 5)`;
+                } else if (zipCode.length > 5) {
+                    reason = `Too long (${zipCode.length} digits, need 5)`;
+                }
+                
+                resultDiv.innerHTML = `<strong>❌ INVALID:</strong> "${zipCode}" - ${reason}`;
+                resultDiv.className = 'result error';
+                input.className = 'invalid';
+            }
+        }
+
+        // Test on page load
+        window.onload = function() {
+            testCase('78724');
+        };
+    </script>
+
+    <div class="test-case">
+        <h3>Expected Behavior</h3>
+        <ul>
+            <li>✅ <strong>Valid:</strong> Exactly 5 digits (e.g., 12345, 78724, 90210)</li>
+            <li>❌ <strong>Invalid:</strong> Letters (ABCDE, 12A34)</li>
+            <li>❌ <strong>Invalid:</strong> Wrong length (1234, 123456)</li>
+            <li>❌ <strong>Invalid:</strong> Spaces or special chars (12 345, 12-345)</li>
+            <li>❌ <strong>Invalid:</strong> Empty or null values</li>
+        </ul>
+        <p><strong>Error Message:</strong> "ZIP code must be exactly 5 digits (e.g., 12345)"</p>
+    </div>
+</body>
+</html>

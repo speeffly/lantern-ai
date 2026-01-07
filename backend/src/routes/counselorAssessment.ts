@@ -405,6 +405,15 @@ router.post('/submit', upload.single('transcriptFile'), async (req, res) => {
       } as ApiResponse);
     }
 
+    // Validate ZIP code format (5 digits only)
+    const zipCodeRegex = /^\d{5}$/;
+    if (!zipCodeRegex.test(responses.zipCode)) {
+      return res.status(400).json({
+        success: false,
+        error: 'ZIP code must be exactly 5 digits (e.g., 12345)'
+      } as ApiResponse);
+    }
+
     console.log('🎓 Processing counselor assessment submission...');
 
     // Generate comprehensive counselor recommendations

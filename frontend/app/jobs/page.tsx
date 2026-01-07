@@ -20,6 +20,13 @@ export default function JobsPage() {
   }, []);
 
   const handleSearch = () => {
+    // Validate ZIP code format
+    const zipCodeRegex = /^\d{5}$/;
+    if (!zipCodeRegex.test(zipCode)) {
+      alert('Please enter a valid 5-digit ZIP code (e.g., 12345)');
+      return;
+    }
+    
     if (zipCode) {
       localStorage.setItem('zipCode', zipCode);
       setShowResults(true);
@@ -65,8 +72,13 @@ export default function JobsPage() {
                 <input
                   type="text"
                   value={zipCode}
-                  onChange={(e) => setZipCode(e.target.value)}
-                  placeholder="Enter your ZIP code"
+                  onChange={(e) => {
+                    // Only allow digits and limit to 5 characters
+                    const value = e.target.value.replace(/\D/g, '').slice(0, 5);
+                    setZipCode(value);
+                  }}
+                  placeholder="Enter your ZIP code (5 digits)"
+                  maxLength={5}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>

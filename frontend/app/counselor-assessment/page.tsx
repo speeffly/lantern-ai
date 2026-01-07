@@ -448,6 +448,13 @@ function CounselorAssessmentContent() {
         alert('Please fill in both grade and ZIP code');
         return;
       }
+      
+      // Validate ZIP code format
+      const zipCodeRegex = /^\d{5}$/;
+      if (!zipCodeRegex.test(currentAnswer.zipCode)) {
+        alert('ZIP code must be exactly 5 digits (e.g., 12345)');
+        return;
+      }
     } else if (currentQuestion.type === 'combined_input') {
       // For combined_input (academic performance), it's optional
       const inputMethod = currentAnswer?.inputMethod;
@@ -654,10 +661,20 @@ function CounselorAssessmentContent() {
                 <input
                   type="text"
                   value={currentAnswer?.[fieldName] || ''}
-                  onChange={(e) => handleAnswerChange(question.id, {
-                    ...currentAnswer,
-                    [fieldName]: e.target.value
-                  })}
+                  onChange={(e) => {
+                    let value = e.target.value;
+                    
+                    // Special handling for ZIP code field
+                    if (fieldName === 'zipCode') {
+                      // Only allow digits and limit to 5 characters
+                      value = value.replace(/\D/g, '').slice(0, 5);
+                    }
+                    
+                    handleAnswerChange(question.id, {
+                      ...currentAnswer,
+                      [fieldName]: value
+                    });
+                  }}
                   placeholder={fieldConfig.placeholder}
                   maxLength={fieldConfig.maxLength}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg"
