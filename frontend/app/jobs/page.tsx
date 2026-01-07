@@ -42,6 +42,13 @@ export default function JobsPage() {
         searchKeywords,
         selectedCareer
       });
+      console.log('🔧 JobListings will be rendered with:', {
+        careerTitle: selectedCareer || undefined,
+        zipCode: zipCode,
+        keywords: searchKeywords || undefined,
+        limit: 20,
+        showTitle: false
+      });
     }
   };
 
@@ -222,14 +229,6 @@ export default function JobsPage() {
                   {selectedCareer && ` • Career: ${selectedCareer}`}
                 </div>
               </div>
-
-              {console.log('🔧 Rendering JobListings component with:', {
-                careerTitle: selectedCareer || undefined,
-                zipCode: zipCode,
-                keywords: searchKeywords || undefined,
-                limit: 20,
-                showTitle: false
-              })}
 
               <JobListings 
                 careerTitle={selectedCareer || undefined}
