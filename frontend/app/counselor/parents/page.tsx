@@ -14,25 +14,51 @@ export default function CounselorParentsPage() {
 
   const checkAuth = async () => {
     const token = localStorage.getItem('token');
+    console.log('🔍 Counselor Parents - Checking authentication...');
+    console.log('🎫 Token exists:', !!token);
+    
     if (!token) {
+      console.log('❌ No token found, redirecting to login');
       router.push('/login');
       return;
     }
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const profileUrl = `${apiUrl}/api/auth-db/profile`;
+      
+      console.log('📡 Making profile request to:', profileUrl);
+
+      const response = await fetch(profileUrl, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
 
+      console.log('📊 Profile response status:', response.status);
+
       const data = await response.json();
+      console.log('🔍 Counselor Parents - Profile response:', data);
+      
       if (!data.success || data.data.role !== 'counselor') {
+        console.log('❌ Authentication failed or not a counselor:', {
+          success: data.success,
+          role: data.data?.role,
+          error: data.error
+        });
+        console.log('🧹 Clearing tokens and redirecting to login');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
         router.push('/login');
         return;
       }
+      
+      console.log('✅ Counselor authentication successful for parents page');
     } catch (error) {
-      console.error('Auth check failed:', error);
+      console.error('❌ Auth check failed:', error);
+      console.log('🧹 Clearing tokens and redirecting to login');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
       router.push('/login');
       return;
     } finally {

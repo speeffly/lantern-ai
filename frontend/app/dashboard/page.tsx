@@ -57,20 +57,35 @@ export default function DashboardPage() {
 
   const checkAuth = async () => {
     const token = localStorage.getItem('token');
+    console.log('🔍 Dashboard - Checking authentication...');
+    console.log('🎫 Token exists:', !!token);
+    
     if (!token) {
+      console.log('❌ No token found, redirecting to login');
       router.push('/login');
       return;
     }
 
+    console.log('🎫 Token preview:', token.substring(0, 50) + '...');
+
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth-db/profile`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const profileUrl = `${apiUrl}/api/auth-db/profile`;
+      
+      console.log('📡 Making profile request to:', profileUrl);
+      console.log('🔑 Authorization header:', `Bearer ${token.substring(0, 20)}...`);
+
+      const response = await fetch(profileUrl, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
 
+      console.log('📊 Profile response status:', response.status);
+      console.log('📊 Profile response ok:', response.ok);
+
       const data = await response.json();
-      console.log('🔍 Dashboard - Profile data received:', data);
+      console.log('🔍 Dashboard - Profile response data:', data);
       
       if (data.success) {
         // Check if enhanced assessment was completed for this specific user
@@ -99,12 +114,17 @@ export default function DashboardPage() {
         console.log('🔍 Dashboard - Final user data:', userData);
         setUser(userData);
       } else {
+        console.log('❌ Profile request failed:', data.error);
+        console.log('🧹 Clearing tokens and redirecting to login');
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         router.push('/login');
       }
     } catch (error) {
-      console.error('Auth check failed:', error);
+      console.error('❌ Auth check failed with error:', error);
+      console.log('🧹 Clearing tokens and redirecting to login');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
       router.push('/login');
     } finally {
       setIsLoading(false);

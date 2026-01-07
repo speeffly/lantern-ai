@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Counselor Authentication Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-2xl font-bold mb-6">Counselor Authentication Test</h1>
+        
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Current Authentication Status</h2>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Token Status:</label>
+                    <div id="tokenStatus" class="p-3 bg-gray-100 rounded text-sm font-mono">
+                        Checking...
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">User Data:</label>
+                    <div id="userData" class="p-3 bg-gray-100 rounded text-sm font-mono">
+                        Checking...
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Profile API Response:</label>
+                    <div id="profileResponse" class="p-3 bg-gray-100 rounded text-sm font-mono max-h-40 overflow-auto">
+                        Not tested yet
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-6 flex gap-4">
+                <button
+                    id="testAuthBtn"
+                    class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                    Test Authentication
+                </button>
+                <button
+                    id="clearTokenBtn"
+                    class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                >
+                    Clear Token
+                </button>
+                <button
+                    id="goToDashboardBtn"
+                    class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                >
+                    Go to Counselor Dashboard
+                </button>
+            </div>
+        </div>
+
+        <!-- Login Form -->
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <h2 class="text-xl font-semibold mb-4">Test Login</h2>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Email:</label>
+                    <input
+                        type="email"
+                        id="loginEmail"
+                        placeholder="counselor@example.com"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                    />
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Password:</label>
+                    <input
+                        type="password"
+                        id="loginPassword"
+                        placeholder="password"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                    />
+                </div>
+                
+                <button
+                    id="testLoginBtn"
+                    class="w-full px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                >
+                    Test Login
+                </button>
+                
+                <div id="loginResult" class="p-3 bg-gray-100 rounded text-sm font-mono">
+                    No login attempts yet
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://lantern-ai.onrender.com';
+        
+        function updateTokenStatus() {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            
+            document.getElementById('tokenStatus').textContent = token 
+                ? `Token exists: ${token.substring(0, 50)}...` 
+                : 'No token found';
+                
+            document.getElementById('userData').textContent = user 
+                ? `User data: ${user}` 
+                : 'No user data found';
+        }
+
+        async function testAuthentication() {
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                document.getElementById('profileResponse').textContent = 'No token to test';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/api/auth-db/profile`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                document.getElementById('profileResponse').textContent = JSON.stringify({
+                    status: response.status,
+                    ok: response.ok,
+                    data: data
+                }, null, 2);
+                
+                console.log('Profile API Response:', data);
+                
+            } catch (error) {
+                document.getElementById('profileResponse').textContent = `Error: ${error.message}`;
+                console.error('Profile API Error:', error);
+            }
+        }
+
+        async function testLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!email || !password) {
+                document.getElementById('loginResult').textContent = 'Please enter email and password';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/api/auth-db/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                document.getElementById('loginResult').textContent = JSON.stringify({
+                    status: response.status,
+                    data: data
+                }, null, 2);
+                
+                if (data.success) {
+                    localStorage.setItem('token', data.data.token);
+                    localStorage.setItem('user', JSON.stringify(data.data.user));
+                    updateTokenStatus();
+                    console.log('Login successful:', data);
+                } else {
+                    console.log('Login failed:', data);
+                }
+                
+            } catch (error) {
+                document.getElementById('loginResult').textContent = `Error: ${error.message}`;
+                console.error('Login Error:', error);
+            }
+        }
+
+        function clearToken() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            updateTokenStatus();
+            document.getElementById('profileResponse').textContent = 'Token cleared';
+        }
+
+        function goToDashboard() {
+            window.location.href = '/counselor/dashboard';
+        }
+
+        // Event listeners
+        document.getElementById('testAuthBtn').addEventListener('click', testAuthentication);
+        document.getElementById('clearTokenBtn').addEventListener('click', clearToken);
+        document.getElementById('goToDashboardBtn').addEventListener('click', goToDashboard);
+        document.getElementById('testLoginBtn').addEventListener('click', testLogin);
+
+        // Initialize
+        updateTokenStatus();
+    </script>
+</body>
+</html>
