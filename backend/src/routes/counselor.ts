@@ -189,6 +189,18 @@ router.post('/students/:studentId/notes', async (req, res) => {
     }
 
     const { noteType, title, content, isSharedWithParent } = req.body;
+    
+    // Debug: Log the exact values received
+    console.log('🔍 DEBUG - Note creation request body:', {
+      noteType,
+      title,
+      content,
+      isSharedWithParent,
+      fullBody: req.body
+    });
+    console.log('🔍 DEBUG - noteType type:', typeof noteType);
+    console.log('🔍 DEBUG - noteType value:', JSON.stringify(noteType));
+    
     if (!noteType || !title || !content) {
       return res.status(400).json({ 
         success: false, 

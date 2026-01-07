@@ -238,6 +238,38 @@ export class CounselorService {
         throw new Error('Access denied');
       }
 
+      // Validate note_type against allowed values
+      const validNoteTypes = ['general', 'career_guidance', 'academic', 'personal', 'parent_communication'];
+      if (!validNoteTypes.includes(noteData.noteType)) {
+        throw new Error(`Invalid note_type: "${noteData.noteType}". Must be one of: ${validNoteTypes.join(', ')}`);
+      }
+      
+      // Verify both users exist and have correct roles
+      const student = await DatabaseAdapter.get(`
+        SELECT id, role FROM users WHERE id = ? AND role = 'student'
+      `, [studentId]);
+      
+      const counselor = await DatabaseAdapter.get(`
+        SELECT id, role FROM users WHERE id = ? AND role = 'counselor'
+      `, [counselorId]);
+      
+      if (!student) {
+        throw new Error(`Student with ID ${studentId} not found or not a student`);
+      }
+      
+      if (!counselor) {
+        throw new Error(`Counselor with ID ${counselorId} not found or not a counselor`);
+      }
+
+      // Debug: Log the exact values being inserted
+      console.log('🔍 DEBUG - CounselorService.createCounselorNote params:', {
+        studentId,
+        counselorId,
+        noteData,
+        noteType: noteData.noteType,
+        noteTypeType: typeof noteData.noteType
+      });
+
       const result = await DatabaseAdapter.run(`
         INSERT INTO counselor_notes (
           student_id, counselor_id, note_type, title, content, is_shared_with_parent
@@ -274,6 +306,28 @@ export class CounselorService {
    */
   static async getCounselorNotesForStudent(counselorId: number, studentId: number): Promise<CounselorNote[]> {
     try {
+      // Add validation to prevent constraint errors
+      console.log(`🔍 Getting notes for student ${studentId}, counselor ${counselorId}`);
+      
+      // Verify both users exist and have correct roles
+      const student = await DatabaseAdapter.get(`
+        SELECT id, role FROM users WHERE id = ? AND role = 'student'
+      `, [studentId]);
+      
+      const counselor = await DatabaseAdapter.get(`
+        SELECT id, role FROM users WHERE id = ? AND role = 'counselor'
+      `, [counselorId]);
+      
+      if (!student) {
+        console.log(`⚠️ Student ${studentId} not found or not a student`);
+        return [];
+      }
+      
+      if (!counselor) {
+        console.log(`⚠️ Counselor ${counselorId} not found or not a counselor`);
+        return [];
+      }
+      
       const notes = await DatabaseAdapter.all<CounselorNote>(`
         SELECT * FROM counselor_notes 
         WHERE student_id = ? AND counselor_id = ?
