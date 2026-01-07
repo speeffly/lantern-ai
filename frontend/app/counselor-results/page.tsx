@@ -82,14 +82,80 @@ export default function CounselorResultsPage() {
     loadResults();
   }, []);
 
+  // Helper function to get user-specific storage key
+  const getUserSpecificKey = (baseKey: string): string => {
+    const storedUser = localStorage.getItem('user');
+    if (!storedUser) {
+      return `${baseKey}_anonymous`;
+    }
+    
+    try {
+      const user = JSON.parse(storedUser);
+      if (user?.email) {
+        return `${baseKey}_user_${user.email}`;
+      }
+    } catch (error) {
+      console.error('Error parsing user data:', error);
+    }
+    
+    return `${baseKey}_anonymous`;
+  };
+
   const loadResults = () => {
     try {
-      const storedResults = localStorage.getItem('counselorAssessmentResults');
-      console.log('🔍 Checking for stored results:', !!storedResults);
+      // Try user-specific key first
+      const userSpecificKey = getUserSpecificKey('counselorAssessmentResults');
+      let storedResults = localStorage.getItem(userSpecificKey);
+      
+      console.log('🔍 Checking for user-specific results:', userSpecificKey, !!storedResults);
+      
+      // If no user-specific results, check old key for migration
+      if (!storedResults) {
+        storedResults = localStorage.getItem('counselorAssessmentResults');
+        console.log('🔍 Checking for old results:', !!storedResults);
+        
+        if (storedResults) {
+          // Migrate old results to user-specific key if user is logged in
+          const storedUser = localStorage.getItem('user');
+          if (storedUser) {
+            try {
+              const user = JSON.parse(storedUser);
+              const results = JSON.parse(storedResults);
+              
+              // Only migrate if results belong to current user
+              if (results.userEmail === user.email || !results.userEmail) {
+                console.log('🔄 Migrating old results to user-specific storage');
+                localStorage.setItem(userSpecificKey, storedResults);
+                localStorage.removeItem('counselorAssessmentResults');
+              } else {
+                console.log('⚠️ Old results belong to different user, not migrating');
+                storedResults = null;
+              }
+            } catch (error) {
+              console.error('Error during migration:', error);
+              storedResults = null;
+            }
+          }
+        }
+      }
       
       if (storedResults) {
         const data = JSON.parse(storedResults);
-        console.log('✅ Results loaded successfully:', data);
+        
+        // Additional security check: verify user match
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          if (data.userEmail && data.userEmail !== user.email) {
+            console.log('⚠️ Results belong to different user, clearing and redirecting');
+            localStorage.removeItem(userSpecificKey);
+            alert('Please complete the Enhanced Assessment to see your results.');
+            router.push('/counselor-assessment');
+            return;
+          }
+        }
+        
+        console.log('✅ Results loaded successfully for current user');
         setResults(data);
         setIsLoading(false);
       } else {

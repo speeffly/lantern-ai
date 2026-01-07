@@ -82,8 +82,57 @@ function CounselorAssessmentContent() {
   const [showPreviousResults, setShowPreviousResults] = useState(false);
   const [hasRestoredAnswers, setHasRestoredAnswers] = useState(false);
   const ANSWER_STORAGE_KEY = 'counselorAssessmentAnswers';
+  const RESULTS_STORAGE_KEY = 'counselorAssessmentResults';
   const ANSWER_STALE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
   const forceRetake = searchParams.get('retake') === 'true';
+
+  // Helper function to get user-specific storage key
+  const getUserSpecificKey = (baseKey: string): string => {
+    const storedUser = localStorage.getItem('user');
+    if (!storedUser) {
+      // For anonymous users, use a special anonymous key
+      return `${baseKey}_anonymous`;
+    }
+    
+    try {
+      const user = JSON.parse(storedUser);
+      if (user?.email) {
+        // For logged-in users, use email-based key
+        return `${baseKey}_user_${user.email}`;
+      }
+    } catch (error) {
+      console.error('Error parsing user data:', error);
+    }
+    
+    // Fallback to anonymous key
+    return `${baseKey}_anonymous`;
+  };
+
+  // Helper function to clear all assessment data for current user context
+  const clearCurrentUserAssessmentData = () => {
+    const currentKey = getUserSpecificKey(ANSWER_STORAGE_KEY);
+    const currentResultsKey = getUserSpecificKey(RESULTS_STORAGE_KEY);
+    
+    localStorage.removeItem(currentKey);
+    localStorage.removeItem(currentResultsKey);
+    
+    // Also clear the old non-user-specific keys for cleanup
+    localStorage.removeItem(ANSWER_STORAGE_KEY);
+    localStorage.removeItem(RESULTS_STORAGE_KEY);
+    
+    console.log('🧹 Cleared assessment data for current user context');
+  };
+
+  // Helper function to clear anonymous data when user logs in
+  const clearAnonymousDataOnLogin = () => {
+    const anonymousAnswerKey = `${ANSWER_STORAGE_KEY}_anonymous`;
+    const anonymousResultsKey = `${RESULTS_STORAGE_KEY}_anonymous`;
+    
+    localStorage.removeItem(anonymousAnswerKey);
+    localStorage.removeItem(anonymousResultsKey);
+    
+    console.log('🧹 Cleared anonymous assessment data on login');
+  };
 
   useEffect(() => {
     checkForPreviousResults();
@@ -124,19 +173,43 @@ function CounselorAssessmentContent() {
 
   const loadStoredAnswers = () => {
     try {
-      const raw = localStorage.getItem(ANSWER_STORAGE_KEY);
-      if (!raw) return null;
+      const userSpecificKey = getUserSpecificKey(ANSWER_STORAGE_KEY);
+      const raw = localStorage.getItem(userSpecificKey);
+      
+      if (!raw) {
+        // Check for old non-user-specific data and migrate/clear it
+        const oldRaw = localStorage.getItem(ANSWER_STORAGE_KEY);
+        if (oldRaw) {
+          console.log('🔄 Found old non-user-specific data, clearing it for security');
+          localStorage.removeItem(ANSWER_STORAGE_KEY);
+        }
+        return null;
+      }
 
       const stored = JSON.parse(raw);
       const storedUser = localStorage.getItem('user');
       const user = storedUser ? JSON.parse(storedUser) : null;
+      
+      // Check if data is recent
       const isRecent = stored.timestamp && new Date(stored.timestamp).getTime() > Date.now() - ANSWER_STALE_MS;
+      
+      // For user-specific keys, we don't need to check email match since the key already ensures user isolation
+      // But we still validate for extra security
       const userMatches = !stored.userEmail || !user?.email || stored.userEmail === user.email;
 
-      if (!isRecent || !userMatches) {
+      if (!isRecent) {
+        console.log('⚠️ Stored answers are too old, clearing them');
+        localStorage.removeItem(userSpecificKey);
         return null;
       }
 
+      if (!userMatches) {
+        console.log('⚠️ Stored answers belong to different user, clearing them');
+        localStorage.removeItem(userSpecificKey);
+        return null;
+      }
+
+      console.log('✅ Loaded stored answers for current user');
       return {
         selectedAnswers: stored.selectedAnswers || {},
         responses: stored.responses || {}
@@ -155,13 +228,21 @@ function CounselorAssessmentContent() {
 
       const storedUser = localStorage.getItem('user');
       const user = storedUser ? JSON.parse(storedUser) : null;
+      const userSpecificKey = getUserSpecificKey(ANSWER_STORAGE_KEY);
 
-      localStorage.setItem(ANSWER_STORAGE_KEY, JSON.stringify({
+      const dataToStore = {
         timestamp: new Date().toISOString(),
         userEmail: user?.email || null,
         responses: sanitizedResponses,
         selectedAnswers: sanitizedSelectedAnswers
-      }));
+      };
+
+      localStorage.setItem(userSpecificKey, JSON.stringify(dataToStore));
+      
+      // Clear old non-user-specific data for cleanup
+      localStorage.removeItem(ANSWER_STORAGE_KEY);
+      
+      console.log('💾 Saved assessment answers with user-specific key:', userSpecificKey);
     } catch (error) {
       console.error('❌ Error saving assessment answers for retake:', error);
     }
@@ -177,22 +258,37 @@ function CounselorAssessmentContent() {
     }
     
     const token = localStorage.getItem('token');
+    const storedUser = localStorage.getItem('user');
+    
+    // If user just logged in, clear any anonymous data
+    if (token && storedUser) {
+      clearAnonymousDataOnLogin();
+    }
+    
     if (!token) {
-      console.log('❌ No token found, proceeding with normal assessment');
+      console.log('❌ No token found, proceeding with normal assessment (anonymous mode)');
       fetchQuestions();
       return;
     }
 
     try {
-      // Check for previous results in localStorage first (faster and more reliable)
-      const storedResults = localStorage.getItem('counselorAssessmentResults');
-      const storedUser = localStorage.getItem('user');
+      // Check for previous results using user-specific key
+      const userSpecificResultsKey = getUserSpecificKey(RESULTS_STORAGE_KEY);
+      const storedResults = localStorage.getItem(userSpecificResultsKey);
       
+      console.log('📦 Checking user-specific results key:', userSpecificResultsKey);
       console.log('📦 Stored results found:', !!storedResults);
       console.log('👤 Stored user found:', !!storedUser);
       
+      // Clean up old non-user-specific results
+      const oldResults = localStorage.getItem(RESULTS_STORAGE_KEY);
+      if (oldResults) {
+        console.log('🧹 Cleaning up old non-user-specific results');
+        localStorage.removeItem(RESULTS_STORAGE_KEY);
+      }
+      
       if (storedResults && storedUser) {
-        console.log('✅ Found previous assessment results in localStorage');
+        console.log('✅ Found previous assessment results for current user');
         const results = JSON.parse(storedResults);
         const user = JSON.parse(storedUser);
         
@@ -203,30 +299,31 @@ function CounselorAssessmentContent() {
           userEmail: results.userEmail
         });
         
-        // Check if results are recent (within last 30 days) and belong to current user
+        // Check if results are recent (within last 30 days)
         const resultDate = new Date(results.timestamp || 0);
         const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
         
         console.log('📅 Result date:', resultDate);
         console.log('📅 Thirty days ago:', thirtyDaysAgo);
         console.log('📅 Is recent:', resultDate > thirtyDaysAgo);
-        console.log('👤 User match:', results.userEmail === user.email || !results.userEmail);
         
-        if (resultDate > thirtyDaysAgo && (results.userEmail === user.email || !results.userEmail)) {
-          console.log('✅ Showing previous results');
+        // Double-check user match for extra security
+        const userMatches = results.userEmail === user.email || !results.userEmail;
+        console.log('👤 User match:', userMatches);
+        
+        if (resultDate > thirtyDaysAgo && userMatches) {
+          console.log('✅ Showing previous results for authenticated user');
           setPreviousResults(results);
           setShowPreviousResults(true);
           setIsLoading(false);
           return;
         } else {
-          console.log('⚠️ Results are old or belong to different user, removing them');
-          localStorage.removeItem('counselorAssessmentResults');
+          console.log('⚠️ Results are old or user mismatch, removing them');
+          localStorage.removeItem(userSpecificResultsKey);
         }
       }
 
-      console.log('📡 No valid localStorage results, checking server...');
-      // Try to fetch from server if available (this is optional)
-      // For now, just proceed with normal assessment since localStorage is more reliable
+      console.log('📡 No valid user-specific results found, proceeding with new assessment');
       fetchQuestions();
       
     } catch (error) {
@@ -276,8 +373,8 @@ function CounselorAssessmentContent() {
     setSelectedAnswers({});
     setHasRestoredAnswers(false);
     setIsLoading(true);
-    // Clear old results from localStorage
-    localStorage.removeItem('counselorAssessmentResults');
+    // Clear user-specific assessment data
+    clearCurrentUserAssessmentData();
     fetchQuestions();
   };
 
@@ -614,9 +711,18 @@ function CounselorAssessmentContent() {
           timestamp: new Date().toISOString(),
           userEmail: user?.email || 'unknown'
         };
-        localStorage.setItem('counselorAssessmentResults', JSON.stringify(resultsWithTimestamp));
+        
+        // Save results with user-specific key
+        const userSpecificResultsKey = getUserSpecificKey(RESULTS_STORAGE_KEY);
+        localStorage.setItem(userSpecificResultsKey, JSON.stringify(resultsWithTimestamp));
+        
+        // Clear old non-user-specific results for cleanup
+        localStorage.removeItem('counselorAssessmentResults');
+        
         localStorage.setItem('zipCode', finalResponses.zipCode || '');
         saveStoredAnswers(finalResponses);
+        
+        console.log('💾 Saved assessment results with user-specific key:', userSpecificResultsKey);
         
         // Navigate to enhanced results page
         router.push('/counselor-results');

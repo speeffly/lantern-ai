@@ -20,6 +20,37 @@ export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Helper function to get user-specific storage key
+  const getUserSpecificKey = (baseKey: string, userEmail?: string): string => {
+    if (!userEmail) {
+      return `${baseKey}_anonymous`;
+    }
+    return `${baseKey}_user_${userEmail}`;
+  };
+
+  // Helper function to check for user-specific assessment results
+  const checkUserAssessmentResults = (userEmail?: string): boolean => {
+    if (!userEmail) return false;
+    
+    const userSpecificKey = getUserSpecificKey('counselorAssessmentResults', userEmail);
+    const hasUserSpecificResults = !!localStorage.getItem(userSpecificKey);
+    
+    // Also check old key for backward compatibility, but only if it belongs to current user
+    if (!hasUserSpecificResults) {
+      const oldResults = localStorage.getItem('counselorAssessmentResults');
+      if (oldResults) {
+        try {
+          const results = JSON.parse(oldResults);
+          return results.userEmail === userEmail;
+        } catch (error) {
+          return false;
+        }
+      }
+    }
+    
+    return hasUserSpecificResults;
+  };
+
   useEffect(() => {
     checkAuth();
   }, []);
@@ -42,13 +73,15 @@ export default function DashboardPage() {
       console.log('🔍 Dashboard - Profile data received:', data);
       
       if (data.success) {
-        // Check if enhanced assessment was completed
-        const hasEnhancedResults = !!localStorage.getItem('counselorAssessmentResults');
+        // Check if enhanced assessment was completed for this specific user
+        const userEmail = data.data.email;
+        const hasEnhancedResults = checkUserAssessmentResults(userEmail);
         const hasQuickResults = !!localStorage.getItem('sessionId');
         
         console.log('🔍 Dashboard - Assessment status:', {
           hasEnhancedResults,
           hasQuickResults,
+          userEmail,
           profileData: data.data
         });
         
@@ -79,10 +112,25 @@ export default function DashboardPage() {
   };
 
   const handleLogout = () => {
+    // Clear user-specific assessment data before logout
+    if (user?.email) {
+      const userSpecificAnswerKey = getUserSpecificKey('counselorAssessmentAnswers', user.email);
+      const userSpecificResultsKey = getUserSpecificKey('counselorAssessmentResults', user.email);
+      localStorage.removeItem(userSpecificAnswerKey);
+      localStorage.removeItem(userSpecificResultsKey);
+    }
+    
+    // Clear general user data
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('sessionId');
     localStorage.removeItem('zipCode');
+    
+    // Clear any old non-user-specific data for cleanup
+    localStorage.removeItem('counselorAssessmentAnswers');
+    localStorage.removeItem('counselorAssessmentResults');
+    
+    console.log('🧹 Cleared all user data on logout');
     router.push('/');
   };
 
@@ -181,7 +229,7 @@ export default function DashboardPage() {
               }
             </p>
             {(() => {
-              const hasEnhancedResults = !!localStorage.getItem('counselorAssessmentResults');
+              const hasEnhancedResults = checkUserAssessmentResults(user?.email);
               const hasQuickResults = !!localStorage.getItem('sessionId');
               
               if (hasEnhancedResults || hasQuickResults) {
@@ -271,7 +319,7 @@ export default function DashboardPage() {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Status</h3>
           <div className="space-y-3">
             {(() => {
-              const hasEnhancedResults = !!localStorage.getItem('counselorAssessmentResults');
+              const hasEnhancedResults = checkUserAssessmentResults(user?.email);
               const hasQuickResults = !!localStorage.getItem('sessionId');
               
               return (

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Data Isolation Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .user-section {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 5px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .clear-btn {
+            background-color: #dc3545;
+        }
+        .clear-btn:hover {
+            background-color: #c82333;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #e9ecef;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .warning { background-color: #fff3cd; color: #856404; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 User Data Isolation Test</h1>
+    <p>This page tests the user-specific data storage to ensure assessment data doesn't leak between users.</p>
+
+    <div class="test-section">
+        <h3>User Simulation</h3>
+        <p>Simulate different users and test data isolation:</p>
+        
+        <div class="user-section">
+            <h4>👤 User A (john@example.com)</h4>
+            <button onclick="simulateUser('john@example.com')">Login as John</button>
+            <button onclick="saveAssessmentData('john@example.com', 'John Assessment Data')">Save Assessment</button>
+            <button onclick="loadAssessmentData('john@example.com')">Load Assessment</button>
+        </div>
+        
+        <div class="user-section">
+            <h4>👤 User B (jane@example.com)</h4>
+            <button onclick="simulateUser('jane@example.com')">Login as Jane</button>
+            <button onclick="saveAssessmentData('jane@example.com', 'Jane Assessment Data')">Save Assessment</button>
+            <button onclick="loadAssessmentData('jane@example.com')">Load Assessment</button>
+        </div>
+        
+        <div class="user-section">
+            <h4>👤 Anonymous User</h4>
+            <button onclick="simulateAnonymous()">Use as Anonymous</button>
+            <button onclick="saveAssessmentData(null, 'Anonymous Assessment Data')">Save Assessment</button>
+            <button onclick="loadAssessmentData(null)">Load Assessment</button>
+        </div>
+        
+        <div class="user-section">
+            <h4>🧹 Cleanup</h4>
+            <button class="clear-btn" onclick="clearAllData()">Clear All Data</button>
+            <button onclick="showAllStorageKeys()">Show All Storage Keys</button>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>Current User Context</h3>
+        <div id="currentUser" class="result">No user logged in</div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Results</h3>
+        <div id="testResults" class="result">No tests run yet</div>
+    </div>
+
+    <div class="test-section">
+        <h3>Storage Contents</h3>
+        <button onclick="showAllStorageKeys()">Refresh Storage View</button>
+        <div id="storageContents" class="result">
+            <pre id="storageData">Click "Show All Storage Keys" to view</pre>
+        </div>
+    </div>
+
+    <script>
+        // Helper function to get user-specific storage key (same as in the app)
+        function getUserSpecificKey(baseKey, userEmail) {
+            if (!userEmail) {
+                return `${baseKey}_anonymous`;
+            }
+            return `${baseKey}_user_${userEmail}`;
+        }
+
+        // Simulate user login
+        function simulateUser(email) {
+            const userData = {
+                email: email,
+                firstName: email.split('@')[0],
+                lastName: 'User'
+            };
+            
+            localStorage.setItem('user', JSON.stringify(userData));
+            localStorage.setItem('token', 'fake-token-' + Date.now());
+            
+            updateCurrentUser();
+            logResult(`✅ Logged in as ${email}`, 'success');
+        }
+
+        // Simulate anonymous user
+        function simulateAnonymous() {
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');
+            
+            updateCurrentUser();
+            logResult('✅ Switched to anonymous mode', 'success');
+        }
+
+        // Save assessment data for current user context
+        function saveAssessmentData(userEmail, data) {
+            const assessmentData = {
+                timestamp: new Date().toISOString(),
+                userEmail: userEmail,
+                data: data,
+                testData: true
+            };
+
+            // Save answers
+            const answerKey = getUserSpecificKey('counselorAssessmentAnswers', userEmail);
+            localStorage.setItem(answerKey, JSON.stringify({
+                ...assessmentData,
+                type: 'answers'
+            }));
+
+            // Save results
+            const resultsKey = getUserSpecificKey('counselorAssessmentResults', userEmail);
+            localStorage.setItem(resultsKey, JSON.stringify({
+                ...assessmentData,
+                type: 'results'
+            }));
+
+            logResult(`💾 Saved assessment data for ${userEmail || 'anonymous user'}`, 'success');
+            showAllStorageKeys();
+        }
+
+        // Load assessment data for current user context
+        function loadAssessmentData(userEmail) {
+            const answerKey = getUserSpecificKey('counselorAssessmentAnswers', userEmail);
+            const resultsKey = getUserSpecificKey('counselorAssessmentResults', userEmail);
+            
+            const answers = localStorage.getItem(answerKey);
+            const results = localStorage.getItem(resultsKey);
+
+            if (answers || results) {
+                const answerData = answers ? JSON.parse(answers) : null;
+                const resultData = results ? JSON.parse(results) : null;
+                
+                logResult(`✅ Found data for ${userEmail || 'anonymous user'}:
+                    - Answers: ${answerData ? answerData.data : 'None'}
+                    - Results: ${resultData ? resultData.data : 'None'}`, 'success');
+            } else {
+                logResult(`⚠️ No data found for ${userEmail || 'anonymous user'}`, 'warning');
+            }
+        }
+
+        // Clear all assessment data
+        function clearAllData() {
+            const keys = Object.keys(localStorage);
+            const assessmentKeys = keys.filter(key => 
+                key.includes('counselorAssessment') || 
+                key.includes('Assessment')
+            );
+            
+            assessmentKeys.forEach(key => localStorage.removeItem(key));
+            
+            logResult(`🧹 Cleared ${assessmentKeys.length} assessment-related keys`, 'success');
+            showAllStorageKeys();
+        }
+
+        // Show all storage keys
+        function showAllStorageKeys() {
+            const keys = Object.keys(localStorage);
+            const assessmentKeys = keys.filter(key => 
+                key.includes('counselorAssessment') || 
+                key.includes('Assessment') ||
+                key === 'user' ||
+                key === 'token'
+            );
+
+            let output = 'Assessment-related localStorage keys:\n\n';
+            
+            if (assessmentKeys.length === 0) {
+                output += 'No assessment keys found.\n';
+            } else {
+                assessmentKeys.forEach(key => {
+                    const value = localStorage.getItem(key);
+                    let preview = value;
+                    
+                    try {
+                        const parsed = JSON.parse(value);
+                        preview = JSON.stringify(parsed, null, 2);
+                    } catch (e) {
+                        // Keep original value if not JSON
+                    }
+                    
+                    output += `${key}:\n${preview}\n\n`;
+                });
+            }
+
+            document.getElementById('storageData').textContent = output;
+        }
+
+        // Update current user display
+        function updateCurrentUser() {
+            const user = localStorage.getItem('user');
+            const token = localStorage.getItem('token');
+            
+            let display = '';
+            if (user && token) {
+                const userData = JSON.parse(user);
+                display = `✅ Logged in as: ${userData.email}`;
+            } else {
+                display = '👤 Anonymous user';
+            }
+            
+            document.getElementById('currentUser').innerHTML = display;
+        }
+
+        // Log test results
+        function logResult(message, type = 'result') {
+            const timestamp = new Date().toLocaleTimeString();
+            const resultDiv = document.getElementById('testResults');
+            
+            const newResult = document.createElement('div');
+            newResult.className = `result ${type}`;
+            newResult.innerHTML = `[${timestamp}] ${message}`;
+            
+            resultDiv.appendChild(newResult);
+            resultDiv.scrollTop = resultDiv.scrollHeight;
+        }
+
+        // Run automatic tests
+        function runAutomaticTests() {
+            logResult('🧪 Starting automatic user isolation tests...', 'success');
+            
+            // Test 1: Save data as User A
+            simulateUser('alice@test.com');
+            saveAssessmentData('alice@test.com', 'Alice Test Data');
+            
+            // Test 2: Switch to User B and verify no data leakage
+            setTimeout(() => {
+                simulateUser('bob@test.com');
+                loadAssessmentData('bob@test.com'); // Should find no data
+                
+                // Test 3: Save data as User B
+                saveAssessmentData('bob@test.com', 'Bob Test Data');
+                
+                // Test 4: Switch back to User A and verify data is still there
+                setTimeout(() => {
+                    simulateUser('alice@test.com');
+                    loadAssessmentData('alice@test.com'); // Should find Alice's data
+                    
+                    // Test 5: Test anonymous user isolation
+                    setTimeout(() => {
+                        simulateAnonymous();
+                        loadAssessmentData(null); // Should find no data
+                        saveAssessmentData(null, 'Anonymous Test Data');
+                        
+                        // Test 6: Switch back to User B and verify no anonymous data leakage
+                        setTimeout(() => {
+                            simulateUser('bob@test.com');
+                            loadAssessmentData('bob@test.com'); // Should only find Bob's data
+                            
+                            logResult('✅ All automatic tests completed!', 'success');
+                        }, 500);
+                    }, 500);
+                }, 500);
+            }, 500);
+        }
+
+        // Initialize
+        window.onload = function() {
+            updateCurrentUser();
+            showAllStorageKeys();
+            
+            // Add automatic test button
+            const testSection = document.querySelector('.test-section');
+            const autoTestBtn = document.createElement('button');
+            autoTestBtn.textContent = '🤖 Run Automatic Tests';
+            autoTestBtn.onclick = runAutomaticTests;
+            autoTestBtn.style.backgroundColor = '#28a745';
+            testSection.appendChild(autoTestBtn);
+        };
+    </script>
+</body>
+</html>
