@@ -35,7 +35,13 @@ export default function JobsPage() {
     if (zipCode) {
       localStorage.setItem('zipCode', zipCode);
       setShowResults(true);
-      console.log('✅ Search results enabled');
+      console.log('✅ Search results enabled, showResults set to true');
+      console.log('🔧 Current state after search:', {
+        showResults: true,
+        zipCode,
+        searchKeywords,
+        selectedCareer
+      });
     }
   };
 
@@ -193,8 +199,20 @@ export default function JobsPage() {
             </div>
           </div>
 
+          {/* Debug Section - Remove in production */}
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-8">
+            <h3 className="font-semibold text-yellow-800 mb-2">Debug Info:</h3>
+            <div className="text-sm text-yellow-700 space-y-1">
+              <div><strong>showResults:</strong> {showResults.toString()}</div>
+              <div><strong>zipCode:</strong> "{zipCode}"</div>
+              <div><strong>searchKeywords:</strong> "{searchKeywords}"</div>
+              <div><strong>selectedCareer:</strong> "{selectedCareer}"</div>
+              <div><strong>Should render JobListings:</strong> {(showResults && zipCode).toString()}</div>
+            </div>
+          </div>
+
           {/* Results */}
-          {showResults && zipCode && (
+          {showResults && zipCode ? (
             <div className="bg-white rounded-lg shadow-lg p-8">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-semibold">Job Results</h2>
@@ -205,6 +223,14 @@ export default function JobsPage() {
                 </div>
               </div>
 
+              {console.log('🔧 Rendering JobListings component with:', {
+                careerTitle: selectedCareer || undefined,
+                zipCode: zipCode,
+                keywords: searchKeywords || undefined,
+                limit: 20,
+                showTitle: false
+              })}
+
               <JobListings 
                 careerTitle={selectedCareer || undefined}
                 zipCode={zipCode}
@@ -212,6 +238,12 @@ export default function JobsPage() {
                 limit={20}
                 showTitle={false}
               />
+            </div>
+          ) : (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
+              <p className="text-gray-600">
+                {!showResults ? 'Click "Search Jobs" to see results' : 'Enter a ZIP code to search for jobs'}
+              </p>
             </div>
           )}
 

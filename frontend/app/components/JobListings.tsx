@@ -37,9 +37,21 @@ export default function JobListings({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  console.log('🔧 JobListings component rendered with props:', {
+    careerTitle,
+    zipCode,
+    keywords,
+    limit,
+    showTitle
+  });
+
   useEffect(() => {
+    console.log('🔧 JobListings useEffect triggered:', { zipCode, careerTitle, keywords, limit });
     if (zipCode) {
+      console.log('✅ ZIP code exists, calling fetchJobs');
       fetchJobs();
+    } else {
+      console.log('❌ No ZIP code, skipping fetchJobs');
     }
   }, [careerTitle, zipCode, keywords, limit]);
 
