@@ -132,6 +132,23 @@ export default function JobsPage() {
                 🔍 Search Jobs
               </button>
               
+              {/* Clear Search Button */}
+              {(searchKeywords || selectedCareer) && (
+                <button
+                  onClick={() => {
+                    console.log('🧹 Clearing search filters');
+                    setSearchKeywords('');
+                    setSelectedCareer('');
+                    if (zipCode && zipCode.length === 5) {
+                      setShowResults(true);
+                    }
+                  }}
+                  className="w-full md:w-auto px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                >
+                  🧹 Clear Filters
+                </button>
+              )}
+              
               {/* Button Status Indicator */}
               <div className="text-sm text-gray-500">
                 {!zipCode ? (
@@ -183,12 +200,15 @@ export default function JobsPage() {
                 <h2 className="text-2xl font-semibold">Job Results</h2>
                 <div className="text-sm text-gray-500">
                   Showing jobs within 40 miles of {zipCode}
+                  {searchKeywords && ` • Keywords: "${searchKeywords}"`}
+                  {selectedCareer && ` • Career: ${selectedCareer}`}
                 </div>
               </div>
 
               <JobListings 
                 careerTitle={selectedCareer || undefined}
                 zipCode={zipCode}
+                keywords={searchKeywords || undefined}
                 limit={20}
                 showTitle={false}
               />

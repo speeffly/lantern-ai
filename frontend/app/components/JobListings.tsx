@@ -21,6 +21,7 @@ interface JobListing {
 interface JobListingsProps {
   careerTitle?: string;
   zipCode?: string;
+  keywords?: string;
   limit?: number;
   showTitle?: boolean;
 }
@@ -28,6 +29,7 @@ interface JobListingsProps {
 export default function JobListings({ 
   careerTitle, 
   zipCode, 
+  keywords,
   limit = 5, 
   showTitle = true 
 }: JobListingsProps) {
@@ -39,7 +41,7 @@ export default function JobListings({
     if (zipCode) {
       fetchJobs();
     }
-  }, [careerTitle, zipCode, limit]);
+  }, [careerTitle, zipCode, keywords, limit]);
 
   const fetchJobs = async () => {
     try {
@@ -48,20 +50,29 @@ export default function JobListings({
 
       let url = `${process.env.NEXT_PUBLIC_API_URL}/api/jobs/search?zipCode=${zipCode}&limit=${limit}`;
       
-      if (careerTitle) {
+      // Priority: keywords > careerTitle
+      if (keywords && keywords.trim()) {
+        url += `&keywords=${encodeURIComponent(keywords.trim())}`;
+        console.log('🔍 Searching with keywords:', keywords.trim());
+      } else if (careerTitle) {
         url += `&career=${encodeURIComponent(careerTitle)}`;
+        console.log('🎯 Searching with career:', careerTitle);
       }
+
+      console.log('📡 Job search URL:', url);
 
       const response = await fetch(url);
       const data = await response.json();
 
       if (data.success) {
+        console.log('✅ Jobs found:', data.data.length);
         setJobs(data.data);
       } else {
+        console.log('❌ Job search failed:', data.error);
         setError('Failed to load job listings');
       }
     } catch (error) {
-      console.error('Error fetching jobs:', error);
+      console.error('❌ Error fetching jobs:', error);
       setError('Failed to connect to job service');
     } finally {
       setIsLoading(false);
@@ -142,10 +153,12 @@ export default function JobListings({
     return (
       <div className="bg-gray-50 rounded-lg p-6 text-center">
         <p className="text-gray-600">
-          No current openings found for {careerTitle || 'entry-level positions'} in your area.
+          No current openings found for 
+          {keywords && keywords.trim() ? ` "${keywords.trim()}"` : 
+           careerTitle ? ` ${careerTitle}` : ' entry-level positions'} in your area.
         </p>
         <p className="text-gray-500 text-sm mt-2">
-          Check back regularly as new positions are posted frequently.
+          Try different keywords or check back regularly as new positions are posted frequently.
         </p>
       </div>
     );
@@ -156,7 +169,9 @@ export default function JobListings({
       {showTitle && (
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-gray-900">
-            Current Job Openings {careerTitle && `- ${careerTitle}`}
+            Current Job Openings
+            {keywords && keywords.trim() && ` - "${keywords.trim()}"`}
+            {!keywords && careerTitle && ` - ${careerTitle}`}
           </h3>
           <span className="text-sm text-gray-500">
             {jobs.length} position{jobs.length !== 1 ? 's' : ''} found
