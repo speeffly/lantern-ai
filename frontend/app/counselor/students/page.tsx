@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import StudentDetailClient from './StudentDetailClient';
 
 interface StudentProgress {
   student: {
@@ -42,8 +43,10 @@ interface CounselorStats {
   assignmentCompletionRate: number;
 }
 
-export default function CounselorStudentsPage() {
+function CounselorStudentsContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const studentId = searchParams.get('studentId');
   const [isLoading, setIsLoading] = useState(true);
   const [students, setStudents] = useState<StudentProgress[]>([]);
   const [stats, setStats] = useState<CounselorStats | null>(null);
@@ -222,6 +225,11 @@ export default function CounselorStudentsPage() {
         <div className="text-xl">Loading students...</div>
       </div>
     );
+  }
+
+  // If studentId is provided, show student detail view
+  if (studentId) {
+    return <StudentDetailClient studentId={studentId} />;
   }
 
   return (
@@ -410,12 +418,12 @@ export default function CounselorStudentsPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <Link
-                          href={`/counselor/students/${studentProgress.student.id}`}
+                        <button
+                          onClick={() => router.push(`/counselor/students?studentId=${studentProgress.student.id}`)}
                           className="text-blue-600 hover:text-blue-900 mr-4"
                         >
                           View Details
-                        </Link>
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -469,5 +477,13 @@ export default function CounselorStudentsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function CounselorStudentsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="text-xl">Loading...</div></div>}>
+      <CounselorStudentsContent />
+    </Suspense>
   );
 }

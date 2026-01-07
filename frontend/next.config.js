@@ -5,8 +5,8 @@ const defaultApiUrl = process.env.NEXT_PUBLIC_API_URL || (isProduction
   : 'http://localhost:3002');
 
 const nextConfig = {
-  // Temporarily remove static export to fix deployment issue
-  // output: 'export',
+  // Use static export for Amplify compatibility
+  output: 'export',
   trailingSlash: true,
   images: {
     unoptimized: true
