@@ -1,0 +1,10 @@
+# Amplify redirect rules for dynamic routes
+
+# Handle counselor student detail pages
+/counselor/students/* /counselor/students/[studentId] 200
+
+# Handle other dynamic routes
+/counselor/* /counselor/dashboard 200
+
+# Fallback for SPA routing
+/* /index.html 200
