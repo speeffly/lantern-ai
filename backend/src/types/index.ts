@@ -2,7 +2,7 @@
 
 export type UserRole = 'student' | 'counselor' | 'parent' | 'teacher' | 'admin';
 
-export type Sector = 'healthcare' | 'infrastructure';
+export type Sector = 'healthcare' | 'infrastructure' | 'technology' | 'education' | 'business' | 'creative' | 'public-service' | 'agriculture' | 'transportation' | 'hospitality' | 'manufacturing' | 'retail' | 'finance' | 'legal' | 'science';
 
 export type EducationLevel = 'high-school' | 'certificate' | 'associate' | 'bachelor';
 

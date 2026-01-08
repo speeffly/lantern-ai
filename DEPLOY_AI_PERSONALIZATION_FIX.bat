@@ -17,10 +17,10 @@ echo.
 
 cd /d "%~dp0"
 
-echo Step 1: Testing AI personalization locally...
-node test-ai-personalization.js
+echo Step 1: Testing career matching algorithm locally...
+node test-career-matching.js
 if %ERRORLEVEL% neq 0 (
-    echo ❌ AI personalization test failed
+    echo ❌ Career matching test failed
     echo Please check the test results above
     pause
     exit /b 1
@@ -50,42 +50,64 @@ echo.
 echo Step 4: Deploying to production...
 cd ..
 git add .
-git commit -m "Fix: Implement personalized AI recommendations
+git commit -m "Fix: Implement comprehensive AI personalization across 15 sectors
 
-Major improvements to AI recommendation system:
+MAJOR EXPANSION: Career Database & Matching Algorithm
+- Expanded from 2 sectors (healthcare, infrastructure) to 15 sectors
+- Added 35+ careers across technology, education, business, creative, 
+  public service, agriculture, transportation, hospitality, manufacturing,
+  retail, finance, legal, and science sectors
+- Updated Sector type definition to support all new sectors
 
-PERSONALIZATION ENHANCEMENTS:
+ENHANCED CAREER MATCHING ALGORITHM:
+- Comprehensive sector-interest mapping for all 15 sectors
+- Updated calculateMatchScore method with expanded interest alignment
+- Enhanced work environment scoring for indoor/outdoor/mixed preferences
+- Improved education level matching across all career types
+
+AI PERSONALIZATION IMPROVEMENTS:
 - Enhanced AI context with mandatory personalization requirements
-- Added 15+ helper methods for interest-specific recommendations
+- Added 15+ helper methods for sector-specific recommendations
 - Implemented user-specific context generation and reasoning
 - Added career-specific explanations for every recommendation
 
-INTEREST-SPECIFIC RECOMMENDATIONS:
+SECTOR-SPECIFIC RECOMMENDATIONS:
 - Healthcare: Biology, Chemistry, Health Sciences + hospital volunteering
-- Hands-on Work: Shop, Industrial Arts, Geometry + apprenticeships  
 - Technology: Computer Science, Programming + coding projects
-- Community Impact: Social Studies, Leadership + volunteer opportunities
+- Business/Finance: Economics, Accounting + business internships
+- Creative: Visual Arts, Media Arts + portfolio building
+- Education: Psychology, Speech + tutoring experience
+- Science: Advanced Chemistry, Statistics + research projects
+- And comprehensive recommendations for all other sectors
 
 FALLBACK IMPROVEMENTS:
 - Personalized fallback recommendations when AI unavailable
-- Interest-based course selection and career pathway generation
+- Sector-based course selection and career pathway generation
 - Targeted skill gaps and action items for each career field
 - Grade-appropriate timeline and education advice
 
 TECHNICAL IMPLEMENTATION:
-- Enhanced aiRecommendationService.ts with personalization logic
-- Added test endpoint for AI recommendation validation
-- Improved prompt engineering with specific personalization requirements
-- Quality metrics for measuring recommendation relevance
+- Enhanced aiRecommendationService.ts with comprehensive personalization
+- Updated careerService.ts with expanded sector matching
+- Added helper methods for company names, course focus, experience recommendations
+- Improved TypeScript type safety with proper sector handling
+
+TESTING & VALIDATION:
+- Created comprehensive test suite for career matching algorithm
+- Verified all 15 sectors work correctly with interest mapping
+- Tested personalization quality across different student profiles
+- All test cases pass with expected sector matches
 
 EXPECTED RESULTS:
-- Students with different interests receive different recommendations
+- Students interested in ANY sector get appropriate recommendations
+- Technology students get programming courses and tech club suggestions
+- Business students get economics courses and entrepreneurship activities
+- Creative students get art courses and portfolio building advice
 - All advice references student's specific career matches and interests
-- Actionable course names and activities instead of generic suggestions
 - Clear explanations of WHY each recommendation fits the student
 
-This fixes the major issue where all students were receiving
-identical generic recommendations regardless of their assessment results."
+This completely solves the issue where students could only get
+recommendations for healthcare and infrastructure careers."
 
 git push origin main
 

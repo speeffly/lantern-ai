@@ -1023,7 +1023,7 @@ Provide your analysis in the following JSON format:
       
       jobs.push({
         title: match.career.title,
-        company: `Local ${match.career.sector === 'healthcare' ? 'Hospital' : 'Company'} ${index + 1}`,
+        company: this.getCompanyNameBySector(match.career.sector, index + 1),
         location: `${distance} miles from ZIP ${zipCode}`,
         distance,
         salary: `${Math.round(match.career.averageSalary * 0.8 / 1000)}k - ${Math.round(match.career.averageSalary * 1.2 / 1000)}k`,
@@ -1058,10 +1058,10 @@ Provide your analysis in the following JSON format:
       zipCode
     });
     
-    // Determine primary interest area for personalization
-    const isHealthcareInterested = interests.includes('Healthcare') || topCareer?.sector === 'healthcare';
-    const isHandsOnInterested = interests.includes('Hands-on Work') || topCareer?.sector === 'infrastructure';
-    const isTechInterested = interests.includes('Technology');
+    // Determine primary interest areas for personalization across all sectors
+    const sectorInterests = this.mapInterestsToSectors(interests, topCareer?.sector);
+    
+    console.log('🔄 Sector interests mapping:', sectorInterests);
     
     return {
       academicPlan: {
@@ -1161,7 +1161,7 @@ Provide your analysis in the following JSON format:
       }
       
       // Technology courses
-      if (interests.includes('Technology')) {
+      if (interests.includes('Technology') || topCareer?.sector === 'technology') {
         courses.push(
           {
             courseCode: 'CS101',
@@ -1186,13 +1186,117 @@ Provide your analysis in the following JSON format:
         );
       }
       
-      // Community Impact courses
-      if (interests.includes('Community Impact')) {
+      // Education courses
+      if (interests.includes('Education') || interests.includes('Teaching') || topCareer?.sector === 'education') {
+        courses.push(
+          {
+            courseCode: 'PSYCH101',
+            courseName: 'Psychology',
+            description: `Essential for ${topCareer?.title || 'education careers'} - understand how people learn and develop`,
+            credits: 1,
+            prerequisites: [],
+            provider: 'High School',
+            semester: 'Both',
+            priority: 'high'
+          },
+          {
+            courseCode: 'SPEECH101',
+            courseName: 'Speech & Communication',
+            description: `Critical for ${topCareer?.title || 'teaching roles'} - develop presentation and communication skills`,
+            credits: 1,
+            prerequisites: [],
+            provider: 'High School',
+            semester: 'Both',
+            priority: 'high'
+          }
+        );
+      }
+      
+      // Business & Finance courses
+      if (interests.includes('Business') || interests.includes('Finance') || topCareer?.sector === 'business' || topCareer?.sector === 'finance') {
+        courses.push(
+          {
+            courseCode: 'ECON101',
+            courseName: 'Economics',
+            description: `Important for ${topCareer?.title || 'business careers'} - understand markets, money, and economic principles`,
+            credits: 1,
+            prerequisites: [],
+            provider: 'High School',
+            semester: 'Both',
+            priority: 'high'
+          },
+          {
+            courseCode: 'ACCT101',
+            courseName: 'Accounting/Business Math',
+            description: `Essential for ${topCareer?.title || 'finance roles'} - learn financial record-keeping and analysis`,
+            credits: 1,
+            prerequisites: [],
+            provider: 'High School',
+            semester: 'Both',
+            priority: 'high'
+          }
+        );
+      }
+      
+      // Creative courses
+      if (interests.includes('Creative') || interests.includes('Art') || topCareer?.sector === 'creative') {
+        courses.push(
+          {
+            courseCode: 'ART101',
+            courseName: 'Visual Arts',
+            description: `Perfect for ${topCareer?.title || 'creative careers'} - develop artistic skills and creative thinking`,
+            credits: 1,
+            prerequisites: [],
+            provider: 'High School',
+            semester: 'Both',
+            priority: 'high'
+          },
+          {
+            courseCode: 'MEDIA101',
+            courseName: 'Media Arts',
+            description: `Great for ${topCareer?.title || 'design roles'} - learn digital design and multimedia creation`,
+            credits: 1,
+            prerequisites: [],
+            provider: 'High School',
+            semester: 'Both',
+            priority: 'medium'
+          }
+        );
+      }
+      
+      // Science courses (for science sector)
+      if (interests.includes('Science') || interests.includes('Research') || topCareer?.sector === 'science') {
+        courses.push(
+          {
+            courseCode: 'CHEM201',
+            courseName: 'Advanced Chemistry',
+            description: `Essential for ${topCareer?.title || 'science careers'} - advanced chemical principles and lab techniques`,
+            credits: 1,
+            prerequisites: ['CHEM101'],
+            provider: 'High School',
+            semester: 'Both',
+            priority: 'high'
+          },
+          {
+            courseCode: 'STAT101',
+            courseName: 'Statistics',
+            description: `Important for ${topCareer?.title || 'research roles'} - data analysis and scientific method`,
+            credits: 1,
+            prerequisites: [],
+            provider: 'High School',
+            semester: 'Both',
+            priority: 'medium'
+          }
+        );
+      }
+      
+      // Community Impact/Public Service courses
+      if (interests.includes('Community Impact') || interests.includes('Public Service') || topCareer?.sector === 'public-service') {
         courses.push(
           {
             courseCode: 'SOC101',
             courseName: 'Social Studies/Civics',
-            description: `Important for ${topCareer?.title || 'community service roles'} - understand social issues and government`,
+            description: `Important for ${topCareer?.title || 'public service roles'} - understand social issues and government`,
             credits: 1,
             prerequisites: [],
             provider: 'High School',
@@ -1241,9 +1345,9 @@ Provide your analysis in the following JSON format:
     }
 
     const steps = [
-      `Complete high school focusing on ${interests.includes('Healthcare') ? 'science' : interests.includes('Hands-on Work') ? 'math and shop' : interests.includes('Technology') ? 'computer science' : 'core'} courses`,
+      `Complete high school focusing on ${this.getRecommendedCourseFocus(interests, topCareer?.sector)} courses`,
       `Research ${topCareer.title} requirements and local opportunities`,
-      `Gain experience through ${interests.includes('Healthcare') ? 'hospital volunteering' : interests.includes('Hands-on Work') ? 'apprenticeships or internships' : interests.includes('Technology') ? 'coding projects and tech clubs' : 'relevant volunteering'}`,
+      `Gain experience through ${this.getExperienceRecommendation(interests, topCareer?.sector, topCareer?.title)}`,
       `Complete ${topCareer.requiredEducation} program focused on ${topCareer.title}`,
       `Obtain required certifications: ${topCareer.certifications?.join(', ') || 'Professional certifications as needed'}`,
       `Apply for entry-level ${topCareer.title} positions in your area`,
@@ -1325,11 +1429,44 @@ Provide your analysis in the following JSON format:
       });
     }
 
-    if (interests.includes('Community Impact')) {
+    if (interests.includes('Community Impact') || interests.includes('Public Service')) {
       skillGaps.push({
         skill: 'Leadership & Teamwork',
         importance: 'Important',
-        howToAcquire: `Important for ${topCareer?.title || 'community service'} - join student government, lead volunteer projects, participate in group activities`
+        howToAcquire: `Important for ${topCareer?.title || 'public service'} - join student government, lead volunteer projects, participate in group activities`
+      });
+    }
+
+    // Additional sector-specific skills
+    if (interests.includes('Business') || interests.includes('Finance')) {
+      skillGaps.push({
+        skill: 'Financial Literacy',
+        importance: 'Critical',
+        howToAcquire: `Essential for ${topCareer?.title || 'business careers'} - take economics courses, learn about budgeting and investments, practice with spreadsheets`
+      });
+    }
+
+    if (interests.includes('Education') || interests.includes('Teaching')) {
+      skillGaps.push({
+        skill: 'Patience & Mentoring',
+        importance: 'Critical',
+        howToAcquire: `Key for ${topCareer?.title || 'education roles'} - tutor younger students, volunteer with children, practice explaining concepts clearly`
+      });
+    }
+
+    if (interests.includes('Creative') || interests.includes('Art')) {
+      skillGaps.push({
+        skill: 'Creative Problem Solving',
+        importance: 'Important',
+        howToAcquire: `Valuable for ${topCareer?.title || 'creative careers'} - practice art projects, learn design software, develop portfolio of creative work`
+      });
+    }
+
+    if (interests.includes('Science') || interests.includes('Research')) {
+      skillGaps.push({
+        skill: 'Research & Analysis',
+        importance: 'Critical',
+        howToAcquire: `Essential for ${topCareer?.title || 'science careers'} - participate in science fairs, learn statistical analysis, practice lab techniques`
       });
     }
 
@@ -1388,7 +1525,7 @@ Provide your analysis in the following JSON format:
       );
     }
 
-    if (interests.includes('Technology')) {
+    if (interests.includes('Technology') || topCareer?.sector === 'technology') {
       actionItems.push(
         {
           title: 'Start learning programming online',
@@ -1401,6 +1538,74 @@ Provide your analysis in the following JSON format:
           description: `Connect with other tech-interested students and work on projects related to ${topCareer?.title || 'technology'}`,
           priority: 'medium',
           timeline: 'Next semester'
+        }
+      );
+    }
+
+    if (interests.includes('Education') || interests.includes('Teaching') || topCareer?.sector === 'education') {
+      actionItems.push(
+        {
+          title: 'Start tutoring younger students',
+          description: `Gain teaching experience to prepare for ${topCareer?.title || 'education careers'} - volunteer at elementary schools or offer peer tutoring`,
+          priority: 'high',
+          timeline: 'This month'
+        },
+        {
+          title: 'Observe different classroom settings',
+          description: `Visit various grade levels and teaching environments to understand ${topCareer?.title || 'education roles'}`,
+          priority: 'medium',
+          timeline: 'Next 2 months'
+        }
+      );
+    }
+
+    if (interests.includes('Business') || interests.includes('Finance') || topCareer?.sector === 'business' || topCareer?.sector === 'finance') {
+      actionItems.push(
+        {
+          title: 'Join business or entrepreneurship club',
+          description: `Develop business skills for ${topCareer?.title || 'business careers'} - learn about markets, finance, and leadership`,
+          priority: 'high',
+          timeline: 'This month'
+        },
+        {
+          title: 'Find part-time job in retail or customer service',
+          description: `Gain real-world business experience relevant to ${topCareer?.title || 'business roles'}`,
+          priority: 'medium',
+          timeline: 'Next 3 months'
+        }
+      );
+    }
+
+    if (interests.includes('Creative') || interests.includes('Art') || topCareer?.sector === 'creative') {
+      actionItems.push(
+        {
+          title: 'Build a creative portfolio',
+          description: `Create a collection of your best work for ${topCareer?.title || 'creative careers'} - art, design, writing, or multimedia projects`,
+          priority: 'high',
+          timeline: 'This month'
+        },
+        {
+          title: 'Enter art competitions or shows',
+          description: `Showcase your talents and get feedback relevant to ${topCareer?.title || 'creative fields'}`,
+          priority: 'medium',
+          timeline: 'Next 3 months'
+        }
+      );
+    }
+
+    if (interests.includes('Science') || interests.includes('Research') || topCareer?.sector === 'science') {
+      actionItems.push(
+        {
+          title: 'Participate in science fair or research project',
+          description: `Develop research skills for ${topCareer?.title || 'science careers'} - design experiments and analyze data`,
+          priority: 'high',
+          timeline: 'This semester'
+        },
+        {
+          title: 'Contact local research facilities',
+          description: `Explore internship opportunities in labs or research centers related to ${topCareer?.title || 'scientific work'}`,
+          priority: 'medium',
+          timeline: 'Next 2 months'
         }
       );
     }
@@ -1598,14 +1803,44 @@ Provide your analysis in the following JSON format:
   private static explainCareerFit(career: Career, profile: Partial<StudentProfile>): string {
     const interests = profile.interests || [];
     
+    // Comprehensive sector-based explanations
+    const sectorExplanations = {
+      'healthcare': 'You can directly help patients, work in medical settings, and make a real difference in people\'s health',
+      'infrastructure': 'You\'ll build, repair, and create things with your hands while solving practical problems',
+      'technology': 'You\'ll work with cutting-edge technology and digital tools to solve complex problems',
+      'education': 'You\'ll inspire and teach others, helping shape the next generation\'s future',
+      'business': 'You\'ll develop business strategies, manage operations, and drive organizational success',
+      'creative': 'You\'ll express creativity, design beautiful things, and bring artistic visions to life',
+      'public-service': 'You\'ll serve your community, protect others, and make a positive impact on society',
+      'agriculture': 'You\'ll work with nature, grow food, and contribute to sustainable farming practices',
+      'transportation': 'You\'ll keep people and goods moving safely and efficiently across communities',
+      'hospitality': 'You\'ll create positive experiences for guests and provide excellent customer service',
+      'manufacturing': 'You\'ll create products, operate machinery, and contribute to the production process',
+      'retail': 'You\'ll help customers find what they need and provide friendly, helpful service',
+      'finance': 'You\'ll manage money, analyze financial data, and help people make smart financial decisions',
+      'legal': 'You\'ll help people navigate legal issues and ensure justice is served fairly',
+      'science': 'You\'ll conduct research, make discoveries, and advance human knowledge through scientific inquiry'
+    };
+    
+    // Check for direct sector match
+    const explanation = sectorExplanations[career.sector as keyof typeof sectorExplanations];
+    if (explanation) {
+      return explanation;
+    }
+    
+    // Check for interest-based matches
     if (interests.includes('Healthcare') && career.sector === 'healthcare') {
-      return 'You can directly help patients, work in medical settings, and make a real difference in people\'s health';
-    } else if (interests.includes('Hands-on Work') && career.sector === 'infrastructure') {
-      return 'You\'ll build, repair, and create things with your hands while solving practical problems';
-    } else if (interests.includes('Technology')) {
-      return 'You\'ll work with cutting-edge technology and digital tools to solve complex problems';
-    } else if (interests.includes('Community Impact')) {
-      return 'You\'ll serve your local community and make a positive impact on people\'s lives';
+      return sectorExplanations['healthcare'];
+    } else if (interests.includes('Hands-on Work') && ['infrastructure', 'manufacturing', 'agriculture'].includes(career.sector)) {
+      return sectorExplanations[career.sector as keyof typeof sectorExplanations] || sectorExplanations['infrastructure'];
+    } else if (interests.includes('Technology') && career.sector === 'technology') {
+      return sectorExplanations['technology'];
+    } else if (interests.includes('Community Impact') && ['public-service', 'education', 'healthcare'].includes(career.sector)) {
+      return sectorExplanations[career.sector as keyof typeof sectorExplanations] || sectorExplanations['public-service'];
+    } else if (interests.includes('Creative') && career.sector === 'creative') {
+      return sectorExplanations['creative'];
+    } else if (interests.includes('Business') && ['business', 'finance'].includes(career.sector)) {
+      return sectorExplanations[career.sector as keyof typeof sectorExplanations] || sectorExplanations['business'];
     }
     
     return 'This career aligns with your interests and will provide meaningful work';
@@ -1840,6 +2075,86 @@ Provide your analysis in the following JSON format:
       console.error('❌ Error getting feedback improvements:', error);
       return [];
     }
+  }
+
+  /**
+   * Get recommended course focus based on interests and sector
+   */
+  private static getRecommendedCourseFocus(interests: string[], sector?: string): string {
+    if (interests.includes('Healthcare') || sector === 'healthcare') return 'science and health';
+    if (interests.includes('Hands-on Work') || sector === 'infrastructure' || sector === 'manufacturing') return 'math and shop';
+    if (interests.includes('Technology') || sector === 'technology') return 'computer science and math';
+    if (interests.includes('Business') || sector === 'business' || sector === 'finance') return 'business and economics';
+    if (interests.includes('Education') || sector === 'education') return 'psychology and communication';
+    if (interests.includes('Creative') || sector === 'creative') return 'art and media';
+    if (interests.includes('Science') || sector === 'science') return 'advanced science and math';
+    if (interests.includes('Public Service') || sector === 'public-service') return 'social studies and civics';
+    return 'core academic';
+  }
+
+  /**
+   * Get experience recommendation based on interests and sector
+   */
+  private static getExperienceRecommendation(interests: string[], sector?: string, careerTitle?: string): string {
+    if (interests.includes('Healthcare') || sector === 'healthcare') return 'hospital volunteering and healthcare shadowing';
+    if (interests.includes('Hands-on Work') || sector === 'infrastructure' || sector === 'manufacturing') return 'apprenticeships and hands-on internships';
+    if (interests.includes('Technology') || sector === 'technology') return 'coding projects and tech clubs';
+    if (interests.includes('Business') || sector === 'business' || sector === 'finance') return 'business internships and entrepreneurship activities';
+    if (interests.includes('Education') || sector === 'education') return 'tutoring and classroom volunteering';
+    if (interests.includes('Creative') || sector === 'creative') return 'portfolio building and creative competitions';
+    if (interests.includes('Science') || sector === 'science') return 'research projects and science competitions';
+    if (interests.includes('Public Service') || sector === 'public-service') return 'community service and civic engagement';
+    return `relevant volunteering and ${careerTitle || 'career'} exploration`;
+  }
+
+  /**
+   * Map interests to sectors for comprehensive personalization
+   */
+  private static mapInterestsToSectors(interests: string[], topCareerSector?: string): { [key: string]: boolean } {
+    const mapping = {
+      healthcare: interests.includes('Healthcare') || interests.includes('Helping Others') || topCareerSector === 'healthcare',
+      infrastructure: interests.includes('Infrastructure') || interests.includes('Hands-on Work') || topCareerSector === 'infrastructure',
+      technology: interests.includes('Technology') || topCareerSector === 'technology',
+      education: interests.includes('Education') || interests.includes('Teaching') || topCareerSector === 'education',
+      business: interests.includes('Business') || interests.includes('Leadership') || topCareerSector === 'business',
+      creative: interests.includes('Creative') || interests.includes('Art') || interests.includes('Design') || topCareerSector === 'creative',
+      publicService: interests.includes('Public Service') || interests.includes('Community Impact') || topCareerSector === 'public-service',
+      agriculture: interests.includes('Agriculture') || interests.includes('Farming') || interests.includes('Outdoor Work') || topCareerSector === 'agriculture',
+      transportation: interests.includes('Transportation') || interests.includes('Driving') || topCareerSector === 'transportation',
+      hospitality: interests.includes('Hospitality') || interests.includes('Customer Service') || topCareerSector === 'hospitality',
+      manufacturing: interests.includes('Manufacturing') || interests.includes('Building') || topCareerSector === 'manufacturing',
+      retail: interests.includes('Retail') || interests.includes('Sales') || topCareerSector === 'retail',
+      finance: interests.includes('Finance') || interests.includes('Money') || interests.includes('Numbers') || topCareerSector === 'finance',
+      legal: interests.includes('Legal') || interests.includes('Law') || topCareerSector === 'legal',
+      science: interests.includes('Science') || interests.includes('Research') || topCareerSector === 'science'
+    };
+    
+    return mapping;
+  }
+
+  /**
+   * Get company name based on sector
+   */
+  private static getCompanyNameBySector(sector: string, index: number): string {
+    const companyNames = {
+      'healthcare': `Local Hospital ${index}`,
+      'infrastructure': `Construction Co. ${index}`,
+      'technology': `Tech Solutions ${index}`,
+      'education': `Learning Center ${index}`,
+      'business': `Business Services ${index}`,
+      'creative': `Creative Studio ${index}`,
+      'public-service': `Public Services ${index}`,
+      'agriculture': `Farm & Agriculture ${index}`,
+      'transportation': `Transport Services ${index}`,
+      'hospitality': `Hospitality Group ${index}`,
+      'manufacturing': `Manufacturing Co. ${index}`,
+      'retail': `Retail Store ${index}`,
+      'finance': `Financial Services ${index}`,
+      'legal': `Law Firm ${index}`,
+      'science': `Research Lab ${index}`
+    };
+    
+    return companyNames[sector as keyof typeof companyNames] || `Local Company ${index}`;
   }
 
   /**

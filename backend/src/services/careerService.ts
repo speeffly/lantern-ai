@@ -2,6 +2,7 @@ import { Career, CareerMatch, StudentProfile, DemandLevel } from '../types';
 
 // Sample career data - in production, this would come from a database
 const CAREERS: Career[] = [
+  // HEALTHCARE CAREERS
   {
     id: 'rn-001',
     title: 'Registered Nurse',
@@ -67,6 +68,8 @@ const CAREERS: Career[] = [
     growthOutlook: 'Faster than average (7% growth)',
     onetCode: '29-2041.00'
   },
+
+  // INFRASTRUCTURE CAREERS
   {
     id: 'elec-001',
     title: 'Electrician',
@@ -131,6 +134,312 @@ const CAREERS: Career[] = [
     salaryRange: { min: 40000, max: 54000 },
     growthOutlook: 'Slower than average (2% growth)',
     onetCode: '51-4121.00'
+  },
+
+  // TECHNOLOGY CAREERS
+  {
+    id: 'webdev-001',
+    title: 'Web Developer',
+    sector: 'technology',
+    description: 'Design and create websites and web applications.',
+    responsibilities: ['Write code', 'Design user interfaces', 'Test websites'],
+    requiredEducation: 'associate',
+    certifications: ['Various programming certifications'],
+    averageSalary: 65000,
+    salaryRange: { min: 50000, max: 80000 },
+    growthOutlook: 'Much faster than average (13% growth)',
+    onetCode: '15-1254.00'
+  },
+  {
+    id: 'itsup-001',
+    title: 'IT Support Specialist',
+    sector: 'technology',
+    description: 'Provide technical support and troubleshoot computer problems.',
+    responsibilities: ['Diagnose problems', 'Install software', 'Train users'],
+    requiredEducation: 'certificate',
+    certifications: ['CompTIA A+', 'Microsoft certifications'],
+    averageSalary: 45000,
+    salaryRange: { min: 38000, max: 52000 },
+    growthOutlook: 'Faster than average (8% growth)',
+    onetCode: '15-1232.00'
+  },
+  {
+    id: 'cyber-001',
+    title: 'Cybersecurity Specialist',
+    sector: 'technology',
+    description: 'Protect computer systems and networks from cyber threats.',
+    responsibilities: ['Monitor security', 'Investigate breaches', 'Implement protection'],
+    requiredEducation: 'bachelor',
+    certifications: ['CISSP', 'Security+', 'CEH'],
+    averageSalary: 85000,
+    salaryRange: { min: 70000, max: 100000 },
+    growthOutlook: 'Much faster than average (35% growth)',
+    onetCode: '15-1212.00'
+  },
+
+  // EDUCATION CAREERS
+  {
+    id: 'elem-teach-001',
+    title: 'Elementary School Teacher',
+    sector: 'education',
+    description: 'Teach basic academic subjects to elementary school students.',
+    responsibilities: ['Plan lessons', 'Assess student progress', 'Communicate with parents'],
+    requiredEducation: 'bachelor',
+    certifications: ['Teaching License', 'State Certification'],
+    averageSalary: 55000,
+    salaryRange: { min: 45000, max: 65000 },
+    growthOutlook: 'Average (4% growth)',
+    onetCode: '25-2021.00'
+  },
+  {
+    id: 'para-001',
+    title: 'Paraprofessional Educator',
+    sector: 'education',
+    description: 'Assist teachers in classroom instruction and student support.',
+    responsibilities: ['Support instruction', 'Help individual students', 'Supervise activities'],
+    requiredEducation: 'associate',
+    certifications: ['Paraprofessional Certificate'],
+    averageSalary: 32000,
+    salaryRange: { min: 28000, max: 36000 },
+    growthOutlook: 'Faster than average (8% growth)',
+    onetCode: '25-9041.00'
+  },
+
+  // BUSINESS CAREERS
+  {
+    id: 'admin-001',
+    title: 'Administrative Assistant',
+    sector: 'business',
+    description: 'Provide administrative support to executives and teams.',
+    responsibilities: ['Schedule meetings', 'Manage correspondence', 'Organize files'],
+    requiredEducation: 'certificate',
+    certifications: ['Microsoft Office Specialist'],
+    averageSalary: 38000,
+    salaryRange: { min: 32000, max: 44000 },
+    growthOutlook: 'Declining (-7% growth)',
+    onetCode: '43-6011.00'
+  },
+  {
+    id: 'sales-001',
+    title: 'Sales Representative',
+    sector: 'business',
+    description: 'Sell products or services to businesses and consumers.',
+    responsibilities: ['Contact customers', 'Present products', 'Negotiate deals'],
+    requiredEducation: 'high-school',
+    certifications: ['Sales certifications (optional)'],
+    averageSalary: 48000,
+    salaryRange: { min: 35000, max: 65000 },
+    growthOutlook: 'Average (4% growth)',
+    onetCode: '41-4012.00'
+  },
+  {
+    id: 'account-001',
+    title: 'Bookkeeper',
+    sector: 'finance',
+    description: 'Maintain financial records and prepare basic financial reports.',
+    responsibilities: ['Record transactions', 'Reconcile accounts', 'Prepare reports'],
+    requiredEducation: 'certificate',
+    certifications: ['QuickBooks certification', 'Bookkeeping certificate'],
+    averageSalary: 42000,
+    salaryRange: { min: 35000, max: 49000 },
+    growthOutlook: 'Declining (-3% growth)',
+    onetCode: '43-3031.00'
+  },
+
+  // CREATIVE CAREERS
+  {
+    id: 'graph-001',
+    title: 'Graphic Designer',
+    sector: 'creative',
+    description: 'Create visual concepts to communicate ideas and inspire consumers.',
+    responsibilities: ['Design layouts', 'Select colors and images', 'Present concepts'],
+    requiredEducation: 'associate',
+    certifications: ['Adobe certifications'],
+    averageSalary: 45000,
+    salaryRange: { min: 35000, max: 55000 },
+    growthOutlook: 'Average (3% growth)',
+    onetCode: '27-1024.00'
+  },
+  {
+    id: 'photo-001',
+    title: 'Photographer',
+    sector: 'creative',
+    description: 'Capture and edit photographs for various purposes.',
+    responsibilities: ['Take photographs', 'Edit images', 'Meet with clients'],
+    requiredEducation: 'certificate',
+    certifications: ['Photography certifications'],
+    averageSalary: 38000,
+    salaryRange: { min: 25000, max: 55000 },
+    growthOutlook: 'Declining (-4% growth)',
+    onetCode: '27-4021.00'
+  },
+
+  // PUBLIC SERVICE CAREERS
+  {
+    id: 'police-001',
+    title: 'Police Officer',
+    sector: 'public-service',
+    description: 'Protect and serve communities by enforcing laws.',
+    responsibilities: ['Patrol areas', 'Investigate crimes', 'Write reports'],
+    requiredEducation: 'certificate',
+    certifications: ['Police Academy certification'],
+    averageSalary: 55000,
+    salaryRange: { min: 45000, max: 65000 },
+    growthOutlook: 'Average (5% growth)',
+    onetCode: '33-3051.00'
+  },
+  {
+    id: 'fire-001',
+    title: 'Firefighter',
+    sector: 'public-service',
+    description: 'Respond to fires and emergency situations to protect life and property.',
+    responsibilities: ['Fight fires', 'Rescue people', 'Provide emergency medical care'],
+    requiredEducation: 'certificate',
+    certifications: ['Fire Academy certification', 'EMT certification'],
+    averageSalary: 52000,
+    salaryRange: { min: 42000, max: 62000 },
+    growthOutlook: 'Faster than average (8% growth)',
+    onetCode: '33-2011.00'
+  },
+
+  // AGRICULTURE CAREERS
+  {
+    id: 'farm-001',
+    title: 'Farm Worker',
+    sector: 'agriculture',
+    description: 'Plant, cultivate, and harvest crops on farms.',
+    responsibilities: ['Plant seeds', 'Operate equipment', 'Harvest crops'],
+    requiredEducation: 'high-school',
+    certifications: ['Equipment operation licenses'],
+    averageSalary: 28000,
+    salaryRange: { min: 24000, max: 32000 },
+    growthOutlook: 'Declining (-1% growth)',
+    onetCode: '45-2092.00'
+  },
+  {
+    id: 'vet-tech-001',
+    title: 'Veterinary Technician',
+    sector: 'agriculture',
+    description: 'Assist veterinarians in caring for animals.',
+    responsibilities: ['Assist in surgery', 'Take X-rays', 'Collect samples'],
+    requiredEducation: 'associate',
+    certifications: ['Veterinary Technician License'],
+    averageSalary: 38000,
+    salaryRange: { min: 32000, max: 44000 },
+    growthOutlook: 'Much faster than average (16% growth)',
+    onetCode: '29-2056.00'
+  },
+
+  // TRANSPORTATION CAREERS
+  {
+    id: 'truck-001',
+    title: 'Truck Driver',
+    sector: 'transportation',
+    description: 'Drive trucks to transport goods over long distances.',
+    responsibilities: ['Drive safely', 'Load/unload cargo', 'Maintain logs'],
+    requiredEducation: 'certificate',
+    certifications: ['CDL License'],
+    averageSalary: 48000,
+    salaryRange: { min: 40000, max: 56000 },
+    growthOutlook: 'Faster than average (6% growth)',
+    onetCode: '53-3032.00'
+  },
+  {
+    id: 'auto-tech-001',
+    title: 'Automotive Technician',
+    sector: 'transportation',
+    description: 'Diagnose and repair problems in automobiles.',
+    responsibilities: ['Diagnose problems', 'Repair vehicles', 'Test systems'],
+    requiredEducation: 'certificate',
+    certifications: ['ASE Certification'],
+    averageSalary: 44000,
+    salaryRange: { min: 35000, max: 53000 },
+    growthOutlook: 'Slower than average (1% growth)',
+    onetCode: '49-3023.00'
+  },
+
+  // HOSPITALITY CAREERS
+  {
+    id: 'hotel-001',
+    title: 'Hotel Front Desk Clerk',
+    sector: 'hospitality',
+    description: 'Provide customer service to hotel guests.',
+    responsibilities: ['Check in guests', 'Handle reservations', 'Resolve complaints'],
+    requiredEducation: 'high-school',
+    certifications: ['Hospitality certifications (optional)'],
+    averageSalary: 28000,
+    salaryRange: { min: 24000, max: 32000 },
+    growthOutlook: 'Average (4% growth)',
+    onetCode: '43-4081.00'
+  },
+  {
+    id: 'chef-001',
+    title: 'Cook/Chef',
+    sector: 'hospitality',
+    description: 'Prepare and cook food in restaurants and food service establishments.',
+    responsibilities: ['Prepare meals', 'Follow recipes', 'Maintain kitchen cleanliness'],
+    requiredEducation: 'certificate',
+    certifications: ['Culinary certifications', 'Food safety certification'],
+    averageSalary: 35000,
+    salaryRange: { min: 28000, max: 45000 },
+    growthOutlook: 'Faster than average (6% growth)',
+    onetCode: '35-2014.00'
+  },
+
+  // MANUFACTURING CAREERS
+  {
+    id: 'mach-001',
+    title: 'Machine Operator',
+    sector: 'manufacturing',
+    description: 'Operate machinery to produce manufactured goods.',
+    responsibilities: ['Set up machines', 'Monitor production', 'Perform quality checks'],
+    requiredEducation: 'high-school',
+    certifications: ['Machine operation certifications'],
+    averageSalary: 38000,
+    salaryRange: { min: 32000, max: 44000 },
+    growthOutlook: 'Declining (-3% growth)',
+    onetCode: '51-9061.00'
+  },
+  {
+    id: 'qual-001',
+    title: 'Quality Control Inspector',
+    sector: 'manufacturing',
+    description: 'Inspect products and materials for defects and compliance.',
+    responsibilities: ['Test products', 'Document findings', 'Ensure quality standards'],
+    requiredEducation: 'certificate',
+    certifications: ['Quality control certifications'],
+    averageSalary: 42000,
+    salaryRange: { min: 35000, max: 49000 },
+    growthOutlook: 'Declining (-4% growth)',
+    onetCode: '51-9061.00'
+  },
+
+  // RETAIL CAREERS
+  {
+    id: 'retail-001',
+    title: 'Retail Sales Associate',
+    sector: 'retail',
+    description: 'Assist customers with purchases in retail stores.',
+    responsibilities: ['Help customers', 'Process transactions', 'Stock merchandise'],
+    requiredEducation: 'high-school',
+    certifications: ['Customer service certifications (optional)'],
+    averageSalary: 26000,
+    salaryRange: { min: 22000, max: 30000 },
+    growthOutlook: 'Declining (-2% growth)',
+    onetCode: '41-2031.00'
+  },
+  {
+    id: 'cashier-001',
+    title: 'Cashier',
+    sector: 'retail',
+    description: 'Process customer payments and provide customer service.',
+    responsibilities: ['Ring up sales', 'Handle money', 'Assist customers'],
+    requiredEducation: 'high-school',
+    certifications: ['None required'],
+    averageSalary: 24000,
+    salaryRange: { min: 21000, max: 27000 },
+    growthOutlook: 'Declining (-10% growth)',
+    onetCode: '41-2011.00'
   }
 ];
 
@@ -200,11 +509,41 @@ export class CareerService {
       const interestMatches = profile.interests.filter(interest => {
         const interestLower = interest.toLowerCase();
         const careerText = `${career.title} ${career.description}`.toLowerCase();
-        return careerText.includes(interestLower) || 
-               (interest === 'Healthcare' && career.sector === 'healthcare') ||
-               (interest === 'Infrastructure' && career.sector === 'infrastructure') ||
-               (interest === 'Helping Others' && career.sector === 'healthcare') ||
-               (interest === 'Hands-on Work' && career.sector === 'infrastructure');
+        
+        // Direct text matching
+        if (careerText.includes(interestLower)) return true;
+        
+        // Comprehensive sector-interest mapping for all 15 sectors
+        const sectorMatches = {
+          'Healthcare': ['healthcare'],
+          'Infrastructure': ['infrastructure'],
+          'Technology': ['technology'],
+          'Education': ['education'],
+          'Business': ['business', 'finance'],
+          'Creative': ['creative'],
+          'Public Service': ['public-service'],
+          'Agriculture': ['agriculture'],
+          'Transportation': ['transportation'],
+          'Hospitality': ['hospitality'],
+          'Manufacturing': ['manufacturing'],
+          'Retail': ['retail'],
+          'Finance': ['finance', 'business'],
+          'Legal': ['legal'],
+          'Science': ['science'],
+          'Helping Others': ['healthcare', 'education', 'public-service'],
+          'Hands-on Work': ['infrastructure', 'manufacturing', 'agriculture', 'transportation'],
+          'Working with People': ['healthcare', 'education', 'hospitality', 'retail', 'public-service'],
+          'Problem Solving': ['technology', 'legal', 'science', 'business'],
+          'Community Impact': ['public-service', 'education', 'healthcare'],
+          'Creativity': ['creative', 'business'],
+          'Leadership': ['business', 'education', 'public-service'],
+          'Outdoor Work': ['agriculture', 'infrastructure', 'public-service'],
+          'Indoor Work': ['technology', 'business', 'finance', 'legal', 'education'],
+          'Physical Work': ['infrastructure', 'manufacturing', 'agriculture', 'transportation', 'public-service']
+        };
+        
+        const matchingSectors = sectorMatches[interest as keyof typeof sectorMatches] || [];
+        return matchingSectors.includes(career.sector);
       });
       score += (interestMatches.length / Math.max(1, profile.interests.length)) * 40;
     }
@@ -226,13 +565,24 @@ export class CareerService {
       score += educationMatch * 20;
     }
 
-    // Work environment alignment (10 points)
+    // Work environment alignment (10 points) - Enhanced for all sectors
     maxScore += 10;
     if (profile.workEnvironment) {
-      if (career.sector === 'healthcare' && profile.workEnvironment === 'indoor') score += 10;
-      else if (career.sector === 'infrastructure' && profile.workEnvironment === 'outdoor') score += 10;
-      else if (profile.workEnvironment === 'mixed') score += 7;
-      else score += 5;
+      const indoorSectors = ['technology', 'business', 'finance', 'legal', 'education', 'healthcare'];
+      const outdoorSectors = ['agriculture', 'infrastructure', 'transportation'];
+      const mixedSectors = ['public-service', 'hospitality', 'retail', 'manufacturing', 'creative', 'science'];
+      
+      if (profile.workEnvironment === 'indoor' && indoorSectors.includes(career.sector)) {
+        score += 10;
+      } else if (profile.workEnvironment === 'outdoor' && outdoorSectors.includes(career.sector)) {
+        score += 10;
+      } else if (profile.workEnvironment === 'mixed' && mixedSectors.includes(career.sector)) {
+        score += 10;
+      } else if (profile.workEnvironment === 'mixed') {
+        score += 7; // Mixed preference gets partial points for any environment
+      } else {
+        score += 5; // Partial points for environment mismatch
+      }
     }
 
     return Math.round((score / maxScore) * 100);
