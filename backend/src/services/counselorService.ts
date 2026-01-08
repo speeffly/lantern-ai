@@ -555,8 +555,6 @@ export class CounselorService {
         // Method 1: Check for completed status or completed_at timestamp
         const completedSessions = assessmentSessions.filter(session => 
           session.status === 'completed' || 
-          session.status === 'complete' ||
-          session.status === 'finished' ||
           session.completed_at !== null
         );
         
@@ -593,7 +591,7 @@ export class CounselorService {
         let hasAssessmentData = false;
         try {
           const profileData = await UserService.getStudentProfile(studentId);
-          if (profileData && (profileData.interests || profileData.skills || profileData.career_preferences)) {
+          if (profileData && (profileData.interests || profileData.skills)) {
             hasAssessmentData = true;
             console.log(`📊 DEBUG - Student ${studentId} has profile assessment data (method 4) ✅`);
           }
