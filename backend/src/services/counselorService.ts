@@ -519,6 +519,9 @@ export class CounselorService {
       const students = await RelationshipService.getStudentsForCounselor(counselorId);
       const totalStudents = students.length;
 
+      console.log(`📊 DEBUG - Calculating stats for counselor ${counselorId}`);
+      console.log(`📊 DEBUG - Total students: ${totalStudents}`);
+
       // Count students with completed assessments
       let studentsWithAssessments = 0;
       let studentsWithCareerPlans = 0;
@@ -527,21 +530,45 @@ export class CounselorService {
 
       for (const student of students) {
         const studentId = parseInt(student.id);
+        console.log(`📊 DEBUG - Checking student ${studentId} (${student.email})`);
         
         const assessmentSessions = await AssessmentServiceDB.getUserSessions(studentId);
-        if (assessmentSessions.length > 0) {
+        console.log(`📊 DEBUG - Student ${studentId} assessment sessions:`, assessmentSessions.length);
+        
+        // Check for completed assessments (sessions with status 'completed')
+        const completedSessions = assessmentSessions.filter(session => 
+          session.status === 'completed' || session.completed_at !== null
+        );
+        console.log(`📊 DEBUG - Student ${studentId} completed sessions:`, completedSessions.length);
+        
+        if (completedSessions.length > 0) {
           studentsWithAssessments++;
+          console.log(`📊 DEBUG - Student ${studentId} has completed assessments ✅`);
         }
 
         const careerRecommendations = await CareerPlanService.getUserCareerRecommendations(studentId);
+        console.log(`📊 DEBUG - Student ${studentId} career recommendations:`, careerRecommendations.length);
         if (careerRecommendations.length > 0) {
           studentsWithCareerPlans++;
+          console.log(`📊 DEBUG - Student ${studentId} has career plans ✅`);
         }
 
         const assignments = await this.getStudentAssignments(counselorId, studentId);
+        console.log(`📊 DEBUG - Student ${studentId} assignments:`, assignments.length);
         totalAssignments += assignments.length;
-        completedAssignments += assignments.filter(a => a.status === 'completed').length;
+        const completedCount = assignments.filter(a => a.status === 'completed').length;
+        completedAssignments += completedCount;
+        console.log(`📊 DEBUG - Student ${studentId} completed assignments: ${completedCount}/${assignments.length}`);
       }
+
+      const assessmentCompletionRate = totalStudents > 0 ? Math.round((studentsWithAssessments / totalStudents) * 100) : 0;
+      const careerPlanCompletionRate = totalStudents > 0 ? Math.round((studentsWithCareerPlans / totalStudents) * 100) : 0;
+      const assignmentCompletionRate = totalAssignments > 0 ? Math.round((completedAssignments / totalAssignments) * 100) : 0;
+
+      console.log(`📊 DEBUG - Final calculations:`);
+      console.log(`📊 DEBUG - Assessment completion: ${studentsWithAssessments}/${totalStudents} = ${assessmentCompletionRate}%`);
+      console.log(`📊 DEBUG - Career plan completion: ${studentsWithCareerPlans}/${totalStudents} = ${careerPlanCompletionRate}%`);
+      console.log(`📊 DEBUG - Assignment completion: ${completedAssignments}/${totalAssignments} = ${assignmentCompletionRate}%`);
 
       return {
         totalStudents,
@@ -549,9 +576,9 @@ export class CounselorService {
         studentsWithCareerPlans,
         totalAssignments,
         completedAssignments,
-        assessmentCompletionRate: totalStudents > 0 ? Math.round((studentsWithAssessments / totalStudents) * 100) : 0,
-        careerPlanCompletionRate: totalStudents > 0 ? Math.round((studentsWithCareerPlans / totalStudents) * 100) : 0,
-        assignmentCompletionRate: totalAssignments > 0 ? Math.round((completedAssignments / totalAssignments) * 100) : 0
+        assessmentCompletionRate,
+        careerPlanCompletionRate,
+        assignmentCompletionRate
       };
     } catch (error) {
       console.error('❌ Error getting counselor stats:', error);
