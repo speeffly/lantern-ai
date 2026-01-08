@@ -546,14 +546,21 @@ export class CounselorService {
           })));
         }
         
-        // Multiple completion detection methods
+        // Multiple completion detection methods with enhanced debugging
         let hasCompletedAssessment = false;
+        let detectionMethod = 'none';
+        
+        console.log(`📊 DEBUG - Student ${studentId} raw session data:`, JSON.stringify(assessmentSessions, null, 2));
         
         // Method 1: Check for completed status or completed_at timestamp
         const completedSessions = assessmentSessions.filter(session => 
           session.status === 'completed' || 
+          session.status === 'complete' ||
+          session.status === 'finished' ||
           session.completed_at !== null
         );
+        
+        console.log(`📊 DEBUG - Student ${studentId} completed sessions (method 1):`, completedSessions.length);
         
         // Method 2: Check if session has answers (indicates completion)
         let sessionsWithAnswers = 0;
@@ -564,37 +571,73 @@ export class CounselorService {
               WHERE session_id = ?
             `, [session.id]);
             
-            if (answers[0]?.count > 0) {
+            const answerCount = answers[0]?.count || 0;
+            if (answerCount > 0) {
               sessionsWithAnswers++;
-              console.log(`📊 DEBUG - Student ${studentId} session ${session.id} has ${answers[0].count} answers`);
+              console.log(`📊 DEBUG - Student ${studentId} session ${session.id} has ${answerCount} answers`);
+            } else {
+              console.log(`📊 DEBUG - Student ${studentId} session ${session.id} has 0 answers`);
             }
           } catch (error) {
             console.log(`📊 DEBUG - Error checking answers for session ${session.id}:`, (error as Error).message);
           }
         }
         
+        console.log(`📊 DEBUG - Student ${studentId} sessions with answers (method 2):`, sessionsWithAnswers);
+        
         // Method 3: Check for career recommendations (indicates completed assessment)
         const studentCareerRecommendations = await CareerPlanService.getUserCareerRecommendations(studentId);
+        console.log(`📊 DEBUG - Student ${studentId} career recommendations (method 3):`, studentCareerRecommendations.length);
         
-        // Determine if student has completed assessment
+        // Method 4: Check for any assessment data in user profile or other tables
+        let hasAssessmentData = false;
+        try {
+          const profileData = await UserService.getStudentProfile(studentId);
+          if (profileData && (profileData.interests || profileData.skills || profileData.career_preferences)) {
+            hasAssessmentData = true;
+            console.log(`📊 DEBUG - Student ${studentId} has profile assessment data (method 4) ✅`);
+          }
+        } catch (error) {
+          console.log(`📊 DEBUG - Error checking profile data for student ${studentId}:`, (error as Error).message);
+        }
+        
+        // Determine completion using multiple methods
         if (completedSessions.length > 0) {
           hasCompletedAssessment = true;
+          detectionMethod = 'status/timestamp';
           console.log(`📊 DEBUG - Student ${studentId} completion method: status/timestamp ✅`);
         } else if (sessionsWithAnswers > 0) {
           hasCompletedAssessment = true;
+          detectionMethod = 'has answers';
           console.log(`📊 DEBUG - Student ${studentId} completion method: has answers ✅`);
         } else if (studentCareerRecommendations.length > 0) {
           hasCompletedAssessment = true;
+          detectionMethod = 'has career recommendations';
           console.log(`📊 DEBUG - Student ${studentId} completion method: has career recommendations ✅`);
-        } else if (assessmentSessions.length > 0) {
-          // Fallback: any session indicates some level of completion
+        } else if (hasAssessmentData) {
           hasCompletedAssessment = true;
-          console.log(`📊 DEBUG - Student ${studentId} completion method: fallback (has sessions) ✅`);
+          detectionMethod = 'has profile data';
+          console.log(`📊 DEBUG - Student ${studentId} completion method: has profile data ✅`);
+        } else if (assessmentSessions.length > 0) {
+          // More conservative fallback - only if session looks substantial
+          const substantialSessions = assessmentSessions.filter(session => 
+            session.started_at && 
+            (new Date(session.started_at).getTime() < Date.now() - 60000) // At least 1 minute old
+          );
+          if (substantialSessions.length > 0) {
+            hasCompletedAssessment = true;
+            detectionMethod = 'fallback (substantial sessions)';
+            console.log(`📊 DEBUG - Student ${studentId} completion method: fallback (substantial sessions) ✅`);
+          } else {
+            console.log(`📊 DEBUG - Student ${studentId} has sessions but they appear incomplete ❌`);
+          }
+        } else {
+          console.log(`📊 DEBUG - Student ${studentId} no assessment data found by any method ❌`);
         }
         
         if (hasCompletedAssessment) {
           studentsWithAssessments++;
-          console.log(`📊 DEBUG - Student ${studentId} counted as having completed assessment ✅`);
+          console.log(`📊 DEBUG - Student ${studentId} counted as completed (${detectionMethod}) ✅`);
         } else {
           console.log(`📊 DEBUG - Student ${studentId} no completed assessment found ❌`);
         }

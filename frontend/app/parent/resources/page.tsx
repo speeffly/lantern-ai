@@ -14,27 +14,62 @@ export default function ParentResourcesPage() {
 
   const checkAuth = async () => {
     const token = localStorage.getItem('token');
+    console.log('🔍 Parent Resources - Checking authentication...');
+    console.log('🎫 Token exists:', !!token);
+    
     if (!token) {
+      console.log('❌ No token found, redirecting to login');
       router.push('/login');
       return;
     }
 
+    console.log('🎫 Token preview:', token.substring(0, 50) + '...');
+
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const profileUrl = `${apiUrl}/api/auth-db/profile`;
+      
+      console.log('📡 Making profile request to:', profileUrl);
+      console.log('🔑 Authorization header:', `Bearer ${token.substring(0, 20)}...`);
+
+      const response = await fetch(profileUrl, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
 
+      console.log('📊 Profile response status:', response.status);
+      console.log('📊 Profile response ok:', response.ok);
+
       const data = await response.json();
-      if (!data.success || data.data.role !== 'parent') {
+      console.log('🔍 Parent Resources - Profile response data:', data);
+      
+      if (data.success && data.data.role === 'parent') {
+        console.log('✅ Parent authentication successful');
+        console.log('👤 Parent data:', {
+          id: data.data.id,
+          email: data.data.email,
+          firstName: data.data.firstName || data.data.first_name,
+          lastName: data.data.lastName || data.data.last_name,
+          role: data.data.role
+        });
+      } else {
+        console.log('❌ Authentication failed or not a parent:', {
+          success: data.success,
+          role: data.data?.role,
+          error: data.error
+        });
+        console.log('🧹 Clearing tokens and redirecting to login');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
         router.push('/login');
-        return;
       }
     } catch (error) {
-      console.error('Auth check failed:', error);
+      console.error('❌ Parent auth check failed with error:', error);
+      console.log('🧹 Clearing tokens and redirecting to login');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
       router.push('/login');
-      return;
     } finally {
       setIsLoading(false);
     }
