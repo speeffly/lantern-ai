@@ -266,6 +266,18 @@ MANDATORY PERSONALIZATION REQUIREMENTS:
 4. Provide SPECIFIC course names, not generic categories
 5. Give ACTIONABLE steps, not vague suggestions
 6. Explain WHY each recommendation fits THIS specific student
+
+CRITICAL CAREER PATHWAY REQUIREMENTS:
+- Career pathway steps must be SPECIFIC to ${topCareer?.title || 'their chosen career'}
+- Each step should reference the actual career title and sector
+- Include specific education requirements for ${topCareer?.title || 'their career'}
+- Mention specific certifications needed for ${topCareer?.title || 'their field'}
+- Timeline should be realistic for ${topCareer?.requiredEducation || 'their education level'}
+- Steps should be actionable and measurable, not generic advice
+- EXAMPLE: Instead of "Step 1: Complete high school", use "Complete high school with focus on Biology and Chemistry courses for Registered Nurse career"
+- EXAMPLE: Instead of "Step 2: Get training", use "Complete 2-year Associate Degree in Nursing (ADN) program at local community college"
+- EXAMPLE: Instead of "Step 3: Get certified", use "Pass NCLEX-RN exam to obtain Registered Nurse license"
+- MANDATORY: Replace ALL placeholder text like [SPECIFIC CAREER TITLE] with actual career information from student's profile
     `;
   }
 
@@ -410,6 +422,16 @@ As Alex Johnson, provide innovative career guidance for this high school student
 
 IMPORTANT: Respond with ONLY valid JSON. Do not include any text before or after the JSON object. Ensure all strings are properly quoted and all objects/arrays are properly closed.
 
+CRITICAL: Replace ALL placeholder text in brackets with actual specific information:
+- [SPECIFIC COURSES FOR THIS CAREER] → actual course names like "Biology, Chemistry, Health Sciences"
+- [SPECIFIC EDUCATION/TRAINING] → actual program like "2-year Associate Degree in Nursing"
+- [SPECIFIC CAREER TITLE] → actual career like "Registered Nurse" or "Electrician"
+- [SPECIFIC CERTIFICATIONS] → actual certifications like "NCLEX-RN license" or "Electrical Apprenticeship"
+- [SPECIFIC CAREER SECTOR] → actual sector like "healthcare" or "construction trades"
+- [SPECIFIC TIMEFRAME] → actual timeline like "4-5 years" or "2-3 years"
+- [SPECIFIC EDUCATION LEVEL] → actual requirement like "Associate degree" or "Certificate program"
+- [SPECIFIC SKILLS] → actual skills like "Patient care" or "Electrical wiring"
+
 Provide your analysis in the following JSON format:
 
 {
@@ -427,9 +449,15 @@ Provide your analysis in the following JSON format:
     "longTerm": []
   },
   "careerPathway": {
-    "steps": ["Step 1", "Step 2", "Step 3", "Step 4"],
-    "timeline": "Timeline description",
-    "requirements": ["Requirement 1", "Requirement 2"]
+    "steps": [
+      "Complete high school with focus on [SPECIFIC COURSES FOR THIS CAREER]",
+      "Pursue [SPECIFIC EDUCATION/TRAINING] for [SPECIFIC CAREER TITLE]",
+      "Obtain [SPECIFIC CERTIFICATIONS] required for [SPECIFIC CAREER TITLE]",
+      "Apply for entry-level [SPECIFIC CAREER TITLE] positions",
+      "Build experience and advance in [SPECIFIC CAREER SECTOR]"
+    ],
+    "timeline": "[SPECIFIC TIMEFRAME] based on education requirements",
+    "requirements": ["[SPECIFIC EDUCATION LEVEL]", "[SPECIFIC CERTIFICATIONS]", "[SPECIFIC SKILLS]"]
   },
   "skillGaps": [
     {
@@ -476,6 +504,16 @@ As Alex Johnson, provide comprehensive career guidance for this rural high schoo
 
 IMPORTANT: Respond with ONLY valid JSON. Do not include any text before or after the JSON object. Ensure all strings are properly quoted and all objects/arrays are properly closed.
 
+CRITICAL: Replace ALL placeholder text in brackets with actual specific information:
+- [SPECIFIC COURSES FOR THIS CAREER] → actual course names like "Biology, Chemistry, Health Sciences"
+- [SPECIFIC EDUCATION/TRAINING] → actual program like "2-year Associate Degree in Nursing"
+- [SPECIFIC CAREER TITLE] → actual career like "Registered Nurse" or "Electrician"
+- [SPECIFIC CERTIFICATIONS] → actual certifications like "NCLEX-RN license" or "Electrical Apprenticeship"
+- [SPECIFIC CAREER SECTOR] → actual sector like "healthcare" or "construction trades"
+- [SPECIFIC TIMEFRAME] → actual timeline like "4-5 years" or "2-3 years"
+- [SPECIFIC EDUCATION LEVEL] → actual requirement like "Associate degree" or "Certificate program"
+- [SPECIFIC SKILLS] → actual skills like "Patient care" or "Electrical wiring"
+
 Provide your analysis in the following JSON format:
 
 {
@@ -493,9 +531,15 @@ Provide your analysis in the following JSON format:
     "longTerm": []
   },
   "careerPathway": {
-    "steps": ["Step 1", "Step 2", "Step 3", "Step 4"],
-    "timeline": "Timeline description",
-    "requirements": ["Requirement 1", "Requirement 2"]
+    "steps": [
+      "Complete high school with focus on [SPECIFIC COURSES FOR THIS CAREER]",
+      "Pursue [SPECIFIC EDUCATION/TRAINING] for [SPECIFIC CAREER TITLE]",
+      "Obtain [SPECIFIC CERTIFICATIONS] required for [SPECIFIC CAREER TITLE]",
+      "Apply for entry-level [SPECIFIC CAREER TITLE] positions",
+      "Build experience and advance in [SPECIFIC CAREER SECTOR]"
+    ],
+    "timeline": "[SPECIFIC TIMEFRAME] based on education requirements",
+    "requirements": ["[SPECIFIC EDUCATION LEVEL]", "[SPECIFIC CERTIFICATIONS]", "[SPECIFIC SKILLS]"]
   },
   "skillGaps": [
     {
@@ -1382,95 +1426,226 @@ Provide your analysis in the following JSON format:
       });
     }
 
-    // Interest-specific skills
-    if (interests.includes('Healthcare')) {
-      skillGaps.push({
-        skill: 'Medical Terminology',
-        importance: 'Critical',
-        howToAcquire: `Crucial for healthcare careers - take health sciences course, use medical terminology apps, volunteer at hospitals`
-      });
-      
-      if (!currentSkills.includes('Empathy')) {
-        skillGaps.push({
-          skill: 'Patient Care & Empathy',
-          importance: 'Critical',
-          howToAcquire: `Key for healthcare - volunteer with elderly, practice active listening, take psychology courses`
-        });
+    // Primary skills based on TOP CAREER SECTOR (most important)
+    if (topCareer) {
+      switch (topCareer.sector) {
+        case 'healthcare':
+          skillGaps.push({
+            skill: 'Medical Terminology',
+            importance: 'Critical',
+            howToAcquire: `Crucial for healthcare careers - take health sciences course, use medical terminology apps, volunteer at hospitals`
+          });
+          if (!currentSkills.includes('Empathy')) {
+            skillGaps.push({
+              skill: 'Patient Care & Empathy',
+              importance: 'Critical',
+              howToAcquire: `Key for healthcare - volunteer with elderly, practice active listening, take psychology courses`
+            });
+          }
+          break;
+
+        case 'technology':
+          skillGaps.push({
+            skill: 'Programming/Digital Literacy',
+            importance: 'Critical',
+            howToAcquire: `Necessary for tech careers - learn Python or JavaScript online, take computer science courses, build projects`
+          });
+          skillGaps.push({
+            skill: 'Analytical Thinking',
+            importance: 'Important',
+            howToAcquire: `Valuable for technology roles - practice logic puzzles, take math courses, learn data analysis`
+          });
+          break;
+
+        case 'creative':
+          skillGaps.push({
+            skill: 'Creative Problem Solving',
+            importance: 'Critical',
+            howToAcquire: `Essential for creative careers - practice art projects, learn design software, develop portfolio of creative work`
+          });
+          skillGaps.push({
+            skill: 'Visual Design Skills',
+            importance: 'Critical',
+            howToAcquire: `Key for creative roles - learn Adobe Creative Suite, practice composition and color theory, study design principles`
+          });
+          break;
+
+        case 'business':
+        case 'finance':
+          skillGaps.push({
+            skill: 'Financial Literacy',
+            importance: 'Critical',
+            howToAcquire: `Essential for business careers - take economics courses, learn about budgeting and investments, practice with spreadsheets`
+          });
+          skillGaps.push({
+            skill: 'Leadership & Management',
+            importance: 'Important',
+            howToAcquire: `Valuable for business roles - join student government, lead group projects, practice delegation and team coordination`
+          });
+          break;
+
+        case 'education':
+          skillGaps.push({
+            skill: 'Patience & Mentoring',
+            importance: 'Critical',
+            howToAcquire: `Key for education roles - tutor younger students, volunteer with children, practice explaining concepts clearly`
+          });
+          skillGaps.push({
+            skill: 'Curriculum Development',
+            importance: 'Important',
+            howToAcquire: `Important for teaching - learn lesson planning, study educational psychology, practice creating learning materials`
+          });
+          break;
+
+        case 'infrastructure':
+        case 'manufacturing':
+          skillGaps.push({
+            skill: 'Technical/Mechanical Skills',
+            importance: 'Critical',
+            howToAcquire: `Essential for trades and construction - take shop class, work on DIY projects, find apprenticeships`
+          });
+          if (!currentSkills.includes('Problem Solving')) {
+            skillGaps.push({
+              skill: 'Troubleshooting & Problem Solving',
+              importance: 'Important',
+              howToAcquire: `Important for technical work - practice fixing things, take engineering courses, work on puzzles and challenges`
+            });
+          }
+          break;
+
+        case 'public-service':
+          skillGaps.push({
+            skill: 'Leadership & Teamwork',
+            importance: 'Critical',
+            howToAcquire: `Important for public service - join student government, lead volunteer projects, participate in group activities`
+          });
+          skillGaps.push({
+            skill: 'Conflict Resolution',
+            importance: 'Important',
+            howToAcquire: `Valuable for public service - practice mediation, learn de-escalation techniques, study communication strategies`
+          });
+          break;
+
+        case 'science':
+          skillGaps.push({
+            skill: 'Research & Analysis',
+            importance: 'Critical',
+            howToAcquire: `Essential for science careers - participate in science fairs, learn statistical analysis, practice lab techniques`
+          });
+          skillGaps.push({
+            skill: 'Scientific Method',
+            importance: 'Important',
+            howToAcquire: `Key for research roles - design experiments, practice hypothesis testing, learn data interpretation`
+          });
+          break;
+
+        case 'hospitality':
+          skillGaps.push({
+            skill: 'Customer Service',
+            importance: 'Critical',
+            howToAcquire: `Essential for hospitality - practice active listening, learn conflict resolution, work in customer-facing roles`
+          });
+          break;
+
+        case 'agriculture':
+          skillGaps.push({
+            skill: 'Agricultural Knowledge',
+            importance: 'Critical',
+            howToAcquire: `Important for farming - learn about crops and livestock, study sustainable practices, gain hands-on farm experience`
+          });
+          break;
+
+        case 'transportation':
+          skillGaps.push({
+            skill: 'Safety & Regulations',
+            importance: 'Critical',
+            howToAcquire: `Essential for transportation - learn DOT regulations, practice safety protocols, study vehicle maintenance`
+          });
+          break;
+
+        case 'retail':
+          skillGaps.push({
+            skill: 'Sales & Customer Relations',
+            importance: 'Critical',
+            howToAcquire: `Key for retail - practice sales techniques, learn product knowledge, develop customer service skills`
+          });
+          break;
+
+        case 'legal':
+          skillGaps.push({
+            skill: 'Legal Research',
+            importance: 'Critical',
+            howToAcquire: `Essential for legal careers - learn case law research, practice legal writing, study court procedures`
+          });
+          break;
       }
     }
 
-    if (interests.includes('Hands-on Work')) {
-      skillGaps.push({
-        skill: 'Technical/Mechanical Skills',
-        importance: 'Critical',
-        howToAcquire: `Essential for trades and construction - take shop class, work on DIY projects, find apprenticeships`
-      });
-      
-      if (!currentSkills.includes('Problem Solving')) {
-        skillGaps.push({
-          skill: 'Troubleshooting & Problem Solving',
-          importance: 'Important',
-          howToAcquire: `Important for technical work - practice fixing things, take engineering courses, work on puzzles and challenges`
-        });
-      }
-    }
-
-    if (interests.includes('Technology')) {
-      skillGaps.push({
-        skill: 'Programming/Digital Literacy',
-        importance: 'Critical',
-        howToAcquire: `Necessary for tech careers - learn Python or JavaScript online, take computer science courses, build projects`
-      });
-      
-      skillGaps.push({
-        skill: 'Analytical Thinking',
-        importance: 'Important',
-        howToAcquire: `Valuable for technology roles - practice logic puzzles, take math courses, learn data analysis`
-      });
-    }
-
-    if (interests.includes('Community Impact') || interests.includes('Public Service')) {
-      skillGaps.push({
-        skill: 'Leadership & Teamwork',
-        importance: 'Important',
-        howToAcquire: `Important for public service - join student government, lead volunteer projects, participate in group activities`
-      });
-    }
-
-    // Additional sector-specific skills
-    if (interests.includes('Business') || interests.includes('Finance')) {
-      skillGaps.push({
-        skill: 'Financial Literacy',
-        importance: 'Critical',
-        howToAcquire: `Essential for business careers - take economics courses, learn about budgeting and investments, practice with spreadsheets`
-      });
-    }
-
-    if (interests.includes('Education') || interests.includes('Teaching')) {
-      skillGaps.push({
-        skill: 'Patience & Mentoring',
-        importance: 'Critical',
-        howToAcquire: `Key for education roles - tutor younger students, volunteer with children, practice explaining concepts clearly`
-      });
-    }
-
-    if (interests.includes('Creative') || interests.includes('Art')) {
-      skillGaps.push({
-        skill: 'Creative Problem Solving',
-        importance: 'Important',
-        howToAcquire: `Valuable for creative careers - practice art projects, learn design software, develop portfolio of creative work`
-      });
-    }
-
-    if (interests.includes('Science') || interests.includes('Research')) {
-      skillGaps.push({
-        skill: 'Research & Analysis',
-        importance: 'Critical',
-        howToAcquire: `Essential for science careers - participate in science fairs, learn statistical analysis, practice lab techniques`
-      });
-    }
+    // Secondary skills from interests (only if they complement the primary career)
+    // This prevents technology skills from being recommended for creative careers
+    const relevantInterestSkills = this.getRelevantInterestSkills(interests, topCareer?.sector, currentSkills);
+    skillGaps.push(...relevantInterestSkills);
 
     return skillGaps.slice(0, 4); // Limit to top 4 most important skills
+  }
+
+  /**
+   * Get relevant interest-based skills that complement the primary career
+   */
+  private static getRelevantInterestSkills(interests: string[], primarySector?: string, currentSkills: string[] = []): any[] {
+    const skills = [];
+
+    // Only add interest-based skills if they're relevant to the primary career sector
+    // or if there's no clear primary sector
+    
+    if (!primarySector) {
+      // If no primary sector, use interest-based skills as fallback
+      if (interests.includes('Technology')) {
+        skills.push({
+          skill: 'Programming/Digital Literacy',
+          importance: 'Important',
+          howToAcquire: `Valuable for tech careers - learn Python or JavaScript online, take computer science courses, build projects`
+        });
+      }
+      
+      if (interests.includes('Creative')) {
+        skills.push({
+          skill: 'Creative Problem Solving',
+          importance: 'Important',
+          howToAcquire: `Valuable for creative careers - practice art projects, learn design software, develop portfolio of creative work`
+        });
+      }
+    } else {
+      // Only add complementary skills that make sense for the primary sector
+      if (primarySector === 'creative' && interests.includes('Technology')) {
+        // Digital skills are relevant for creative careers
+        skills.push({
+          skill: 'Digital Media Skills',
+          importance: 'Important',
+          howToAcquire: `Valuable for modern creative work - learn photo editing, video production, digital design tools`
+        });
+      }
+      
+      if (primarySector === 'business' && interests.includes('Technology')) {
+        // Tech skills are relevant for business careers
+        skills.push({
+          skill: 'Business Technology',
+          importance: 'Important',
+          howToAcquire: `Valuable for modern business - learn spreadsheet analysis, database management, business software`
+        });
+      }
+      
+      if (['healthcare', 'education', 'public-service'].includes(primarySector) && interests.includes('Community Impact')) {
+        // Community skills are relevant for service sectors
+        skills.push({
+          skill: 'Community Engagement',
+          importance: 'Important',
+          howToAcquire: `Valuable for service roles - volunteer in community, practice public speaking, learn cultural sensitivity`
+        });
+      }
+    }
+
+    return skills;
   }
 
   /**
@@ -1894,19 +2069,53 @@ Provide your analysis in the following JSON format:
    */
   private static getPersonalizedNextSteps(career: Career, profile: Partial<StudentProfile>, grade: number): string {
     const interests = profile.interests || [];
-    let steps = '';
     
-    if (interests.includes('Healthcare') && career.sector === 'healthcare') {
-      steps = `1) Take Biology and Chemistry courses, 2) Volunteer at local hospital, 3) Shadow a ${career.title}`;
-    } else if (interests.includes('Hands-on Work') && career.sector === 'infrastructure') {
-      steps = `1) Take Shop/Industrial Arts, 2) Find apprenticeship opportunities, 3) Visit construction sites`;
-    } else if (interests.includes('Technology')) {
-      steps = `1) Take Computer Science courses, 2) Learn programming online, 3) Join tech clubs`;
-    } else {
-      steps = `1) Research ${career.title} requirements, 2) Find relevant courses, 3) Connect with professionals`;
+    // Provide sector-specific next steps based on the career's sector
+    switch (career.sector) {
+      case 'healthcare':
+        return `1) Take Biology and Chemistry courses, 2) Volunteer at local hospital, 3) Shadow a ${career.title}`;
+      
+      case 'infrastructure':
+      case 'manufacturing':
+        return `1) Take Shop/Industrial Arts, 2) Find apprenticeship opportunities, 3) Visit construction sites`;
+      
+      case 'technology':
+        return `1) Take Computer Science courses, 2) Learn programming online, 3) Join tech clubs`;
+      
+      case 'creative':
+        return `1) Take Visual Arts courses, 2) Build a creative portfolio, 3) Enter art competitions`;
+      
+      case 'education':
+        return `1) Take Psychology courses, 2) Start tutoring younger students, 3) Observe different classrooms`;
+      
+      case 'business':
+      case 'finance':
+        return `1) Take Economics courses, 2) Join business club, 3) Find part-time retail job`;
+      
+      case 'public-service':
+        return `1) Take Social Studies/Civics, 2) Volunteer in community, 3) Shadow ${career.title}`;
+      
+      case 'science':
+        return `1) Take Advanced Science courses, 2) Participate in science fair, 3) Contact research facilities`;
+      
+      case 'agriculture':
+        return `1) Learn about farming practices, 2) Visit local farms, 3) Gain hands-on farm experience`;
+      
+      case 'transportation':
+        return `1) Learn about vehicle maintenance, 2) Study transportation regulations, 3) Practice safety protocols`;
+      
+      case 'hospitality':
+        return `1) Practice customer service skills, 2) Find part-time hospitality job, 3) Learn about guest relations`;
+      
+      case 'retail':
+        return `1) Develop sales skills, 2) Work in customer service, 3) Learn product knowledge`;
+      
+      case 'legal':
+        return `1) Take debate/speech courses, 2) Learn about legal system, 3) Shadow legal professionals`;
+      
+      default:
+        return `1) Research ${career.title} requirements, 2) Find relevant courses, 3) Connect with professionals in ${career.sector}`;
     }
-    
-    return steps;
   }
 
   /**
