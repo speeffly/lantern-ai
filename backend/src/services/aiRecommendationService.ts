@@ -220,6 +220,16 @@ ${answers.map((answer, index) => {
    → Specific Recommendation: ${this.getSpecificRecommendation(answer.questionId, answer.answer, topCareer)}`;
 }).join('\n\n')}
 
+STUDENT'S FREE TEXT RESPONSES - CRITICAL PERSONALIZATION DATA:
+${this.extractFreeTextResponses(answers)}
+
+MANDATORY PERSONALIZATION REQUIREMENTS BASED ON STUDENT'S WORDS:
+- Use the student's own language and interests from their free text responses
+- Reference specific experiences, hobbies, and passions they mentioned
+- Connect career recommendations to their stated values and inspirations
+- Address their specific concerns or questions about career paths
+- Build on the work/volunteer experience they described (if any)
+
 TOP CAREER MATCHES - PERSONALIZED ANALYSIS FOR THIS STUDENT:
 ${careerMatches.slice(0, 3).map((match, index) => {
   const personalizedReasoning = this.getPersonalizedCareerReasoning(match, profile, answers);
@@ -274,15 +284,72 @@ CRITICAL CAREER PATHWAY REQUIREMENTS:
 - Mention specific certifications needed for ${topCareer?.title || 'their field'}
 - Timeline should be realistic for ${topCareer?.requiredEducation || 'their education level'}
 - Steps should be actionable and measurable, not generic advice
+- INCORPORATE the student's own words and experiences from their free text responses
+- REFERENCE their specific interests, hobbies, and passions they described
+- BUILD ON any work/volunteer experience they mentioned
+- CONNECT to their stated values and desired impact
 - EXAMPLE: Instead of "Step 1: Complete high school", use "Complete high school with focus on Biology and Chemistry courses for Registered Nurse career"
 - EXAMPLE: Instead of "Step 2: Get training", use "Complete 2-year Associate Degree in Nursing (ADN) program at local community college"
 - EXAMPLE: Instead of "Step 3: Get certified", use "Pass NCLEX-RN exam to obtain Registered Nurse license"
 - MANDATORY: Replace ALL placeholder text like [SPECIFIC CAREER TITLE] with actual career information from student's profile
+- MANDATORY: Use the student's own language and interests from their detailed responses
     `;
   }
 
   /**
-   * Interpret assessment answers to provide context
+   * Extract and format free text responses for AI personalization
+   */
+  private static extractFreeTextResponses(answers: AssessmentAnswer[]): string {
+    const freeTextResponses: string[] = [];
+    
+    answers.forEach(answer => {
+      // Identify free text responses (longer than 20 characters, likely detailed responses)
+      if (typeof answer.answer === 'string' && answer.answer.length > 20) {
+        let questionContext = '';
+        
+        // Provide context for what each question was asking
+        switch (answer.questionId) {
+          case 'interests_detail':
+          case 'interests_free_text':
+            questionContext = 'INTERESTS & PASSIONS';
+            break;
+          case 'experience_detail':
+          case 'work_experience':
+            questionContext = 'WORK/VOLUNTEER EXPERIENCE';
+            break;
+          case 'values_impact':
+          case 'legacy':
+            questionContext = 'VALUES & DESIRED IMPACT';
+            break;
+          case 'inspiration':
+          case 'role_model':
+            questionContext = 'INSPIRATIONS & ROLE MODELS';
+            break;
+          case 'goals':
+          case 'future_goals':
+            questionContext = 'FUTURE GOALS & ASPIRATIONS';
+            break;
+          case 'challenges':
+          case 'concerns':
+            questionContext = 'CHALLENGES & CONCERNS';
+            break;
+          default:
+            questionContext = `STUDENT INPUT (${answer.questionId})`;
+        }
+        
+        freeTextResponses.push(`${questionContext}: "${answer.answer}"`);
+      }
+    });
+    
+    if (freeTextResponses.length === 0) {
+      return 'No detailed free text responses provided - use assessment data and career matches for personalization.';
+    }
+    
+    return freeTextResponses.join('\n\n') + '\n\nCRITICAL: Use these exact words and experiences from the student when creating recommendations. Reference their specific interests, experiences, and values throughout your response.';
+  }
+
+  /**
+   * Interpret assessment answers to provide context, with enhanced free text handling
    */
   private static interpretAssessmentAnswer(questionId: string, answer: string | number): string {
     const interpretations: { [key: string]: { [key: string]: string } } = {
@@ -290,7 +357,10 @@ CRITICAL CAREER PATHWAY REQUIREMENTS:
         'Hands-on Work': 'strong preference for practical, manual tasks and building/fixing things',
         'Healthcare': 'desire to help others and work in medical/health-related fields',
         'Technology': 'interest in computers, digital tools, and technical problem-solving',
-        'Community Impact': 'motivation to make a difference in their local community'
+        'Community Impact': 'motivation to make a difference in their local community',
+        'Creative': 'passion for artistic expression, design, and creative problem-solving',
+        'Business': 'interest in entrepreneurship, leadership, and business operations',
+        'Education': 'desire to teach, mentor, and help others learn and grow'
       },
       'work_environment': {
         'Outdoors': 'preference for outdoor work environments and physical activity',
@@ -304,9 +374,16 @@ CRITICAL CAREER PATHWAY REQUIREMENTS:
       }
     };
 
+    // Handle predefined multiple-choice answers
     const category = interpretations[questionId];
     if (category && typeof answer === 'string' && category[answer]) {
       return category[answer];
+    }
+    
+    // Enhanced handling for free text responses
+    if (typeof answer === 'string' && answer.length > 20) {
+      // This is likely a free text response - return it directly for AI to analyze
+      return `STUDENT'S DETAILED RESPONSE: "${answer}"`;
     }
     
     return `student preference or characteristic: ${answer}`;
@@ -420,7 +497,17 @@ CRITICAL CAREER PATHWAY REQUIREMENTS:
 
 As Alex Johnson, provide innovative career guidance for this high school student. Focus on emerging opportunities, technology careers, and entrepreneurial pathways.
 
-IMPORTANT: Respond with ONLY valid JSON. Do not include any text before or after the JSON object. Ensure all strings are properly quoted and all objects/arrays are properly closed.
+CRITICAL: Use the student's own words and experiences from their free text responses throughout your recommendations. Reference their specific interests, hobbies, work experience, values, and inspirations that they described in detail.
+
+JSON FORMATTING REQUIREMENTS - CRITICAL:
+1. Respond with ONLY valid JSON - no text before or after
+2. Use double quotes for all strings - never single quotes
+3. No trailing commas after the last item in arrays or objects
+4. Escape quotes inside strings with backslash: "He said \"hello\""
+5. No comments or explanations - pure JSON only
+6. Ensure all brackets and braces are properly closed
+7. Use proper JSON data types: strings in quotes, numbers without quotes, booleans as true/false
+8. No line breaks inside string values - use \\n if needed
 
 CRITICAL: Replace ALL placeholder text in brackets with actual specific information:
 - [SPECIFIC COURSES FOR THIS CAREER] → actual course names like "Biology, Chemistry, Health Sciences"
@@ -431,6 +518,8 @@ CRITICAL: Replace ALL placeholder text in brackets with actual specific informat
 - [SPECIFIC TIMEFRAME] → actual timeline like "4-5 years" or "2-3 years"
 - [SPECIFIC EDUCATION LEVEL] → actual requirement like "Associate degree" or "Certificate program"
 - [SPECIFIC SKILLS] → actual skills like "Patient care" or "Electrical wiring"
+
+MANDATORY: Test your JSON before responding - it must parse without errors.
 
 Provide your analysis in the following JSON format:
 
@@ -502,7 +591,17 @@ Provide your analysis in the following JSON format:
 
 As Alex Johnson, provide comprehensive career guidance for this rural high school student.
 
-IMPORTANT: Respond with ONLY valid JSON. Do not include any text before or after the JSON object. Ensure all strings are properly quoted and all objects/arrays are properly closed.
+CRITICAL: Use the student's own words and experiences from their free text responses throughout your recommendations. Reference their specific interests, hobbies, work experience, values, and inspirations that they described in detail.
+
+JSON FORMATTING REQUIREMENTS - CRITICAL:
+1. Respond with ONLY valid JSON - no text before or after
+2. Use double quotes for all strings - never single quotes
+3. No trailing commas after the last item in arrays or objects
+4. Escape quotes inside strings with backslash: "He said \"hello\""
+5. No comments or explanations - pure JSON only
+6. Ensure all brackets and braces are properly closed
+7. Use proper JSON data types: strings in quotes, numbers without quotes, booleans as true/false
+8. No line breaks inside string values - use \\n if needed
 
 CRITICAL: Replace ALL placeholder text in brackets with actual specific information:
 - [SPECIFIC COURSES FOR THIS CAREER] → actual course names like "Biology, Chemistry, Health Sciences"
@@ -513,6 +612,8 @@ CRITICAL: Replace ALL placeholder text in brackets with actual specific informat
 - [SPECIFIC TIMEFRAME] → actual timeline like "4-5 years" or "2-3 years"
 - [SPECIFIC EDUCATION LEVEL] → actual requirement like "Associate degree" or "Certificate program"
 - [SPECIFIC SKILLS] → actual skills like "Patient care" or "Electrical wiring"
+
+MANDATORY: Test your JSON before responding - it must parse without errors.
 
 Provide your analysis in the following JSON format:
 
@@ -565,7 +666,7 @@ Provide your analysis in the following JSON format:
       messages: [
         {
           role: "system",
-          content: systemPrompt
+          content: systemPrompt + "\n\nIMPORTANT: You must respond with valid JSON only. No explanations, no markdown, no code blocks. Just pure JSON that can be parsed directly."
         },
         {
           role: "user",
@@ -573,7 +674,8 @@ Provide your analysis in the following JSON format:
         }
       ],
       max_tokens: 4000,
-      temperature: 0.7,
+      temperature: 0.3, // Lower temperature for more consistent JSON formatting
+      response_format: { type: "json_object" }, // Force JSON response format (if supported)
     });
 
     const response = completion.choices[0]?.message?.content || '';
@@ -613,7 +715,7 @@ Provide your analysis in the following JSON format:
           longTerm: []
         },
         localJobs: localJobs,
-        careerPathway: parsed.careerPathway || this.getPersonalizedCareerPathway(careerMatches, profile.interests || [], currentGrade || 11),
+        careerPathway: parsed.careerPathway || this.extractCareerPathwayFromAI(aiResponse, careerMatches, profile.interests || [], currentGrade || 11),
         skillGaps: parsed.skillGaps || this.getPersonalizedSkillGaps(careerMatches, profile.interests || [], profile.skills || []),
         actionItems: parsed.actionItems || this.getPersonalizedActionItems(profile, careerMatches, currentGrade || 11)
       };
@@ -625,7 +727,23 @@ Provide your analysis in the following JSON format:
       // Progressive fallback strategies
       console.log('🔄 Attempting progressive fallback strategies...');
       
-      // Strategy 1: Try to extract just academic plan
+      // Strategy 1: Try to extract career pathway specifically from AI response
+      try {
+        const extractedCareerPathway = this.extractCareerPathwayFromAI(aiResponse, careerMatches, profile.interests || [], currentGrade || 11);
+        console.log('✅ Successfully extracted career pathway from AI response');
+        
+        return {
+          localJobs: localJobs,
+          academicPlan: { currentYear: [], nextYear: [], longTerm: [] },
+          careerPathway: extractedCareerPathway,
+          skillGaps: this.getPersonalizedSkillGaps(careerMatches, profile.interests || [], profile.skills || []),
+          actionItems: this.getPersonalizedActionItems(profile, careerMatches, currentGrade || 11)
+        };
+      } catch (extractError) {
+        console.log('⚠️ Career pathway extraction failed');
+      }
+      
+      // Strategy 2: Try to extract just academic plan
       try {
         const academicPlanOnly = this.extractAcademicPlanOnly(aiResponse);
         if (academicPlanOnly) {
@@ -633,7 +751,7 @@ Provide your analysis in the following JSON format:
           return {
             localJobs: localJobs,
             academicPlan: academicPlanOnly,
-            careerPathway: this.getPersonalizedCareerPathway(careerMatches, profile.interests || [], currentGrade || 11),
+            careerPathway: this.extractCareerPathwayFromAI(aiResponse, careerMatches, profile.interests || [], currentGrade || 11),
             skillGaps: this.getPersonalizedSkillGaps(careerMatches, profile.interests || [], profile.skills || []),
             actionItems: this.getPersonalizedActionItems(profile, careerMatches, currentGrade || 11)
           };
@@ -642,7 +760,7 @@ Provide your analysis in the following JSON format:
         console.log('⚠️ Academic plan extraction failed');
       }
       
-      // Strategy 2: Try simple text extraction
+      // Strategy 3: Try simple text extraction
       try {
         const simpleExtraction = await this.extractSimpleRecommendations(aiResponse, profile, careerMatches, zipCode);
         if (simpleExtraction) {
@@ -652,7 +770,7 @@ Provide your analysis in the following JSON format:
             academicPlan: simpleExtraction.academicPlan || { currentYear: [], nextYear: [], longTerm: [] },
             careerPathway: (simpleExtraction.careerPathway && 'steps' in simpleExtraction.careerPathway) 
               ? simpleExtraction.careerPathway 
-              : { steps: [], timeline: '2-4 years', requirements: [] },
+              : this.extractCareerPathwayFromAI(aiResponse, careerMatches, profile.interests || [], currentGrade || 11),
             skillGaps: simpleExtraction.skillGaps || this.getPersonalizedSkillGaps(careerMatches, profile.interests || [], profile.skills || []),
             actionItems: simpleExtraction.actionItems || this.getPersonalizedActionItems(profile, careerMatches, currentGrade || 11)
           };
@@ -665,6 +783,122 @@ Provide your analysis in the following JSON format:
     // Final fallback
     console.log('⚠️ Using enhanced fallback recommendations');
     return await this.generateFallbackRecommendations(profile, careerMatches, zipCode, currentGrade, localJobs);
+  }
+
+  /**
+   * Extract career pathway specifically from AI response using multiple strategies
+   */
+  private static extractCareerPathwayFromAI(
+    aiResponse: string,
+    careerMatches: CareerMatch[],
+    interests: string[],
+    currentGrade: number
+  ): any {
+    try {
+      console.log('🔧 Attempting to extract career pathway from AI response...');
+      
+      // Strategy 1: Try to extract complete careerPathway object
+      const careerPathwayMatch = aiResponse.match(/"careerPathway"\s*:\s*\{[^}]*(?:\{[^}]*\}[^}]*)*\}/);
+      if (careerPathwayMatch) {
+        try {
+          const careerPathwayJson = `{${careerPathwayMatch[0]}}`;
+          const parsed = JSON.parse(careerPathwayJson);
+          if (parsed.careerPathway && parsed.careerPathway.steps && parsed.careerPathway.steps.length > 0) {
+            console.log('✅ Successfully extracted complete career pathway object');
+            return parsed.careerPathway;
+          }
+        } catch (error) {
+          console.log('⚠️ Failed to parse complete career pathway object');
+        }
+      }
+      
+      // Strategy 2: Try to extract just the steps array
+      const stepsMatch = aiResponse.match(/"steps"\s*:\s*\[[^\]]*\]/);
+      if (stepsMatch) {
+        try {
+          const stepsJson = `{${stepsMatch[0]}}`;
+          const parsed = JSON.parse(stepsJson);
+          if (parsed.steps && parsed.steps.length > 0) {
+            console.log('✅ Successfully extracted career pathway steps');
+            
+            // Extract timeline and requirements if available
+            const timelineMatch = aiResponse.match(/"timeline"\s*:\s*"([^"]*)"/);
+            const requirementsMatch = aiResponse.match(/"requirements"\s*:\s*\[[^\]]*\]/);
+            
+            let timeline = '2-4 years';
+            let requirements = ['High school diploma'];
+            
+            if (timelineMatch) {
+              timeline = timelineMatch[1];
+            }
+            
+            if (requirementsMatch) {
+              try {
+                const reqJson = `{${requirementsMatch[0]}}`;
+                const reqParsed = JSON.parse(reqJson);
+                if (reqParsed.requirements) {
+                  requirements = reqParsed.requirements;
+                }
+              } catch (error) {
+                console.log('⚠️ Failed to parse requirements');
+              }
+            }
+            
+            return {
+              steps: parsed.steps,
+              timeline: timeline,
+              requirements: requirements
+            };
+          }
+        } catch (error) {
+          console.log('⚠️ Failed to parse career pathway steps');
+        }
+      }
+      
+      // Strategy 3: Look for step-by-step content in text
+      const stepPatterns = [
+        /(?:Step \d+|^\d+\.)\s*([^\n\r]+)/gm,
+        /(?:First|Second|Third|Fourth|Fifth|Next|Then|Finally)[,:]?\s*([^\n\r]+)/gm,
+        /(?:Complete|Pursue|Obtain|Apply|Build|Consider)\s+([^\n\r]+)/gm
+      ];
+      
+      for (const pattern of stepPatterns) {
+        const matches = Array.from(aiResponse.matchAll(pattern));
+        if (matches.length >= 3) {
+          const steps = matches.slice(0, 6).map(match => match[1].trim());
+          console.log('✅ Successfully extracted steps from text patterns');
+          return {
+            steps: steps,
+            timeline: '2-4 years',
+            requirements: ['High school diploma']
+          };
+        }
+      }
+      
+      // Strategy 4: Look for career-specific content
+      const topCareer = careerMatches[0]?.career;
+      if (topCareer) {
+        const careerSpecificPattern = new RegExp(`(.*${topCareer.title}.*|.*${topCareer.sector}.*)`, 'gmi');
+        const careerMatches = Array.from(aiResponse.matchAll(careerSpecificPattern));
+        
+        if (careerMatches.length >= 2) {
+          const steps = careerMatches.slice(0, 5).map(match => match[1].trim());
+          console.log('✅ Successfully extracted career-specific steps');
+          return {
+            steps: steps,
+            timeline: '2-4 years',
+            requirements: [topCareer.requiredEducation]
+          };
+        }
+      }
+      
+      console.log('⚠️ Could not extract career pathway from AI response, using personalized fallback');
+      return this.getPersonalizedCareerPathway(careerMatches, interests, currentGrade);
+      
+    } catch (error) {
+      console.log('⚠️ Career pathway extraction failed:', error);
+      return this.getPersonalizedCareerPathway(careerMatches, interests, currentGrade);
+    }
   }
 
   /**
