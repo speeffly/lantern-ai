@@ -167,7 +167,7 @@ export class AIRecommendationService {
   }
 
   /**
-   * Prepare comprehensive context for AI prompt
+   * Prepare comprehensive context for AI prompt with enhanced personalization
    */
   private static prepareAIContext(
     profile: Partial<StudentProfile>,
@@ -182,16 +182,25 @@ export class AIRecommendationService {
     const interests = profile.interests?.join(', ') || 'Exploring career options';
     const skills = profile.skills?.join(', ') || 'Developing foundational skills';
     
+    // Create personalized context based on specific user data
+    const topCareer = careerMatches[0]?.career;
+    const userSpecificContext = this.generateUserSpecificContext(profile, answers, careerMatches);
+    
     return `
-COMPREHENSIVE STUDENT PROFILE FOR CAREER COUNSELING SESSION:
+COMPREHENSIVE STUDENT PROFILE FOR PERSONALIZED CAREER COUNSELING:
 
-STUDENT DEMOGRAPHICS & CONTEXT:
-- Current Academic Level: Grade ${grade} (Age: ${14 + (grade - 9)} years old)
-- Geographic Location: ZIP Code ${zipCode} (Rural community setting)
-- Academic Timeline: ${grade === 12 ? 'Senior year - immediate post-graduation planning needed' : 
-                     grade === 11 ? 'Junior year - critical planning period for post-secondary decisions' :
-                     grade === 10 ? 'Sophomore year - foundation building and exploration phase' :
-                     'Freshman year - early career awareness and academic foundation'}
+CRITICAL PERSONALIZATION REQUIREMENTS:
+- This student is UNIQUE with specific interests: ${interests}
+- Their skills are: ${skills}
+- Their TOP career match is: ${topCareer?.title || 'To be determined'} (${careerMatches[0]?.matchScore || 0}% match)
+- Location: ZIP Code ${zipCode} (Rural community)
+- Academic Level: Grade ${grade}
+
+IMPORTANT: Provide SPECIFIC, PERSONALIZED recommendations based on THIS STUDENT'S unique profile. 
+DO NOT give generic advice. Reference their specific interests, skills, and career matches throughout your response.
+
+STUDENT'S UNIQUE PROFILE ANALYSIS:
+${userSpecificContext}
 
 DETAILED INTEREST & PREFERENCE ANALYSIS:
 - Primary Interest Areas: ${interests}
@@ -200,61 +209,63 @@ DETAILED INTEREST & PREFERENCE ANALYSIS:
 - Collaboration Style: ${profile.teamPreference || 'Comfortable with both team and individual work'}
 - Educational Commitment Level: ${profile.educationGoal || 'Open to certificate through associate degree programs'}
 
-COMPREHENSIVE ASSESSMENT RESPONSE ANALYSIS:
+PERSONALIZED ASSESSMENT INSIGHTS:
 ${answers.map((answer, index) => {
   const interpretation = this.interpretAssessmentAnswer(answer.questionId, answer.answer);
+  const personalizedInsight = this.getPersonalizedInsight(answer.questionId, answer.answer, topCareer);
   return `${index + 1}. Question: ${answer.questionId}
    → Student's Answer: "${answer.answer}"
-   → Key Insight: ${interpretation}
-   → Career Implications: ${this.getCareerDevelopmentNotes(answer.questionId, answer.answer)}`;
+   → Personal Insight: ${interpretation}
+   → Career Connection: ${personalizedInsight}
+   → Specific Recommendation: ${this.getSpecificRecommendation(answer.questionId, answer.answer, topCareer)}`;
 }).join('\n\n')}
 
-TOP CAREER MATCHES - DETAILED PROFESSIONAL ANALYSIS:
-${careerMatches.slice(0, 5).map((match, index) => {
-  return `${index + 1}. ${match.career.title} (${match.matchScore}% match)
-   - Sector: ${match.career.sector}
-   - Education Required: ${match.career.requiredEducation}
-   - Average Salary: ${match.career.averageSalary.toLocaleString()}
-   - Key Responsibilities: ${match.career.responsibilities?.slice(0, 3).join(', ') || 'Various duties'}
-   - Required Certifications: ${match.career.certifications?.join(', ') || 'None specified'}
-   - Growth Outlook: ${match.career.growthOutlook || 'Stable'}
-   - Match Reasons: ${match.reasoningFactors?.join(', ') || 'Strong alignment with interests'}
-   - Local Demand: ${match.localDemand}`;
+TOP CAREER MATCHES - PERSONALIZED ANALYSIS FOR THIS STUDENT:
+${careerMatches.slice(0, 3).map((match, index) => {
+  const personalizedReasoning = this.getPersonalizedCareerReasoning(match, profile, answers);
+  return `${index + 1}. ${match.career.title} (${match.matchScore}% match - PERFECT for this student because ${personalizedReasoning})
+   - Why this fits ${profile.interests?.[0] || 'their interests'}: ${this.explainCareerFit(match.career, profile)}
+   - Salary: ${match.career.averageSalary.toLocaleString()} (${this.getSalaryContext(match.career.averageSalary, zipCode)})
+   - Education Path: ${match.career.requiredEducation} (${this.getEducationAdvice(match.career.requiredEducation, grade)})
+   - Local Demand: ${match.localDemand} (${this.getLocalDemandAdvice(match.localDemand, zipCode)})
+   - Next Steps for THIS student: ${this.getPersonalizedNextSteps(match.career, profile, grade)}`;
 }).join('\n\n')}
 
-REAL JOB MARKET ANALYSIS - CURRENT OPPORTUNITIES:
+REAL JOB MARKET ANALYSIS - SPECIFIC TO THIS STUDENT'S INTERESTS:
 ${realJobs && realJobs.length > 0 ? 
-  `Based on live job market data from Adzuna API, here are actual job opportunities available now in the ${zipCode} area:
+  `Based on live job data, here are opportunities that match ${interests} in ${zipCode}:
 
-${realJobs.slice(0, 8).map((job, index) => {
-  return `${index + 1}. ${job.title} at ${job.company}
-   - Location: ${job.location} (${job.distance} miles away)
-   - Salary: ${job.salary}
+${realJobs.slice(0, 5).map((job, index) => {
+  const relevanceScore = this.calculateJobRelevance(job, profile, careerMatches);
+  return `${index + 1}. ${job.title} at ${job.company} (${relevanceScore}% relevant to this student)
+   - Why perfect for ${profile.interests?.[0] || 'this student'}: ${this.explainJobRelevance(job, profile)}
+   - Location: ${job.location} (${job.distance} miles - ${this.getCommuteAdvice(job.distance)})
+   - Salary: ${job.salary} (${this.compareSalaryToGoals(job.salary, topCareer?.averageSalary)})
    - Requirements: ${job.requirements.join(', ')}
-   - Posted: ${job.posted || 'Recently'}
-   - Category: ${job.category || 'General'}
-   - Application: ${job.url ? 'Direct application available' : 'Contact employer'}
-   - Job Summary: ${job.description.substring(0, 150)}...`;
+   - Specific advice for this student: ${this.getJobApplicationAdvice(job, profile, grade)}`;
 }).join('\n\n')}
 
-MARKET INSIGHTS:
-- Total relevant jobs found: ${realJobs.length}
-- Average distance from student: ${Math.round(realJobs.reduce((sum, job) => sum + job.distance, 0) / realJobs.length)} miles
-- Job categories represented: ${[...new Set(realJobs.map(job => job.category).filter(Boolean))].join(', ')}
-- Companies actively hiring: ${[...new Set(realJobs.map(job => job.company))].slice(0, 5).join(', ')}
-
-RECOMMENDATION FOCUS: Use this real job market data to provide specific, actionable advice. Reference actual employers, salary ranges, and job requirements in your recommendations.` :
-  'Real job market data not available - provide general career guidance based on career matches and location.'
+PERSONALIZED MARKET INSIGHTS:
+- Jobs matching ${interests}: ${realJobs.length} found
+- Best opportunities for someone with ${skills}: ${this.identifyBestOpportunities(realJobs, profile)}
+- Recommended application strategy: ${this.getApplicationStrategy(realJobs, profile, grade)}` :
+  `Real job data not available for ${zipCode}. Focus on preparing this student for ${topCareer?.title || 'their chosen career'} through education and skill development.`
 }
 
-FEEDBACK-BASED IMPROVEMENT INSIGHTS:
+FEEDBACK-BASED PERSONALIZATION:
 ${feedbackImprovements && feedbackImprovements.length > 0 ? 
-  `Based on feedback from previous students with similar profiles, please incorporate these improvement suggestions:
-${feedbackImprovements.map((improvement, index) => `${index + 1}. ${improvement}`).join('\n')}
-
-These insights should be integrated into your recommendations to provide more personalized and effective guidance.` :
-  'No specific feedback improvements available yet - provide comprehensive baseline recommendations.'
+  `Based on feedback from students with similar interests in ${interests}, incorporate these specific improvements:
+${feedbackImprovements.map((improvement, index) => `${index + 1}. ${improvement} (specifically relevant to ${topCareer?.title || 'their career goals'})`).join('\n')}` :
+  `No specific feedback available yet. Provide comprehensive baseline recommendations tailored to ${interests} and ${topCareer?.title || 'their career interests'}.`
 }
+
+MANDATORY PERSONALIZATION REQUIREMENTS:
+1. Reference the student's specific interests (${interests}) in EVERY recommendation
+2. Connect advice to their top career match (${topCareer?.title || 'their goals'})
+3. Consider their grade level (${grade}) and location (${zipCode})
+4. Provide SPECIFIC course names, not generic categories
+5. Give ACTIONABLE steps, not vague suggestions
+6. Explain WHY each recommendation fits THIS specific student
     `;
   }
 
@@ -1026,7 +1037,7 @@ Provide your analysis in the following JSON format:
   }
 
   /**
-   * Fallback recommendations when AI is not available
+   * Enhanced fallback recommendations with personalization when AI is not available
    */
   private static async generateFallbackRecommendations(
     profile: Partial<StudentProfile>,
@@ -1036,40 +1047,54 @@ Provide your analysis in the following JSON format:
     localJobs?: LocalJobOpportunity[]
   ): Promise<AIRecommendations> {
     const grade = currentGrade || 11;
-    const isHealthcareInterested = profile.interests?.includes('Healthcare') || 
-                                  careerMatches[0]?.career.sector === 'healthcare';
+    const interests = profile.interests || [];
+    const skills = profile.skills || [];
+    const topCareer = careerMatches[0]?.career;
+    
+    console.log('🔄 Generating personalized fallback recommendations for:', {
+      interests: interests.join(', '),
+      topCareer: topCareer?.title,
+      grade,
+      zipCode
+    });
+    
+    // Determine primary interest area for personalization
+    const isHealthcareInterested = interests.includes('Healthcare') || topCareer?.sector === 'healthcare';
+    const isHandsOnInterested = interests.includes('Hands-on Work') || topCareer?.sector === 'infrastructure';
+    const isTechInterested = interests.includes('Technology');
     
     return {
       academicPlan: {
-        currentYear: this.getRelevantCourses(grade, isHealthcareInterested, 'current'),
-        nextYear: this.getRelevantCourses(grade + 1, isHealthcareInterested, 'next'),
-        longTerm: this.getRelevantCourses(grade + 2, isHealthcareInterested, 'longterm')
+        currentYear: this.getPersonalizedCourses(grade, interests, topCareer, 'current'),
+        nextYear: this.getPersonalizedCourses(grade + 1, interests, topCareer, 'next'),
+        longTerm: this.getPersonalizedCourses(grade + 2, interests, topCareer, 'longterm')
       },
       localJobs: localJobs || await this.generateLocalJobOpportunities(careerMatches, zipCode),
-      careerPathway: this.getDefaultCareerPathway(careerMatches),
-      skillGaps: this.getDefaultSkillGaps(careerMatches),
-      actionItems: this.getDefaultActionItems(profile)
+      careerPathway: this.getPersonalizedCareerPathway(careerMatches, interests, grade),
+      skillGaps: this.getPersonalizedSkillGaps(careerMatches, interests, skills),
+      actionItems: this.getPersonalizedActionItems(profile, careerMatches, grade)
     };
   }
 
   /**
-   * Get relevant courses based on career interests
+   * Get personalized courses based on student's specific interests and career goals
    */
-  private static getRelevantCourses(
+  private static getPersonalizedCourses(
     grade: number,
-    isHealthcareInterested: boolean,
+    interests: string[],
+    topCareer?: Career,
     timeframe: 'current' | 'next' | 'longterm'
   ): CourseRecommendation[] {
     const courses: CourseRecommendation[] = [];
     
     if (grade <= 12) {
-      // High school courses
-      if (isHealthcareInterested) {
+      // Healthcare-focused courses
+      if (interests.includes('Healthcare') || topCareer?.sector === 'healthcare') {
         courses.push(
           {
             courseCode: 'BIO101',
-            courseName: 'Biology',
-            description: 'Essential foundation for healthcare careers',
+            courseName: 'Advanced Biology',
+            description: `Essential for ${topCareer?.title || 'healthcare careers'} - learn human anatomy and physiology`,
             credits: 1,
             prerequisites: [],
             provider: 'High School',
@@ -1079,7 +1104,7 @@ Provide your analysis in the following JSON format:
           {
             courseCode: 'CHEM101',
             courseName: 'Chemistry',
-            description: 'Required for nursing and medical programs',
+            description: `Required for ${topCareer?.title || 'nursing and medical programs'} - understand drug interactions and body chemistry`,
             credits: 1,
             prerequisites: ['BIO101'],
             provider: 'High School',
@@ -1087,23 +1112,25 @@ Provide your analysis in the following JSON format:
             priority: 'high'
           },
           {
-            courseCode: 'MATH102',
-            courseName: 'Algebra II',
-            description: 'Needed for dosage calculations and statistics',
+            courseCode: 'HEALTH101',
+            courseName: 'Health Sciences',
+            description: `Direct preparation for ${topCareer?.title || 'healthcare careers'} - medical terminology and patient care basics`,
             credits: 1,
             prerequisites: [],
             provider: 'High School',
             semester: 'Both',
-            priority: 'medium'
+            priority: 'high'
           }
         );
-      } else {
-        // Infrastructure/trades focus
+      }
+      
+      // Hands-on/Infrastructure courses
+      if (interests.includes('Hands-on Work') || topCareer?.sector === 'infrastructure') {
         courses.push(
           {
-            courseCode: 'MATH201',
-            courseName: 'Geometry',
-            description: 'Essential for construction and electrical work',
+            courseCode: 'SHOP101',
+            courseName: 'Industrial Arts/Shop Class',
+            description: `Perfect for ${topCareer?.title || 'construction and trades'} - hands-on experience with tools and materials`,
             credits: 1,
             prerequisites: [],
             provider: 'High School',
@@ -1111,112 +1138,290 @@ Provide your analysis in the following JSON format:
             priority: 'high'
           },
           {
-            courseCode: 'TECH101',
-            courseName: 'Shop/Industrial Arts',
-            description: 'Hands-on experience with tools and materials',
+            courseCode: 'MATH201',
+            courseName: 'Geometry & Trigonometry',
+            description: `Essential for ${topCareer?.title || 'construction and electrical work'} - calculate angles, measurements, and blueprints`,
             credits: 1,
             prerequisites: [],
             provider: 'High School',
             semester: 'Both',
             priority: 'high'
+          },
+          {
+            courseCode: 'PHYS101',
+            courseName: 'Physics',
+            description: `Important for ${topCareer?.title || 'engineering and trades'} - understand forces, electricity, and mechanics`,
+            credits: 1,
+            prerequisites: ['MATH201'],
+            provider: 'High School',
+            semester: 'Both',
+            priority: 'medium'
           }
         );
       }
+      
+      // Technology courses
+      if (interests.includes('Technology')) {
+        courses.push(
+          {
+            courseCode: 'CS101',
+            courseName: 'Computer Science Fundamentals',
+            description: `Great for ${topCareer?.title || 'tech careers'} - learn programming basics and problem-solving`,
+            credits: 1,
+            prerequisites: [],
+            provider: 'High School',
+            semester: 'Both',
+            priority: 'high'
+          },
+          {
+            courseCode: 'DIGI101',
+            courseName: 'Digital Media & Design',
+            description: `Relevant for ${topCareer?.title || 'technology roles'} - create digital content and understand user interfaces`,
+            credits: 1,
+            prerequisites: [],
+            provider: 'High School',
+            semester: 'Both',
+            priority: 'medium'
+          }
+        );
+      }
+      
+      // Community Impact courses
+      if (interests.includes('Community Impact')) {
+        courses.push(
+          {
+            courseCode: 'SOC101',
+            courseName: 'Social Studies/Civics',
+            description: `Important for ${topCareer?.title || 'community service roles'} - understand social issues and government`,
+            credits: 1,
+            prerequisites: [],
+            provider: 'High School',
+            semester: 'Both',
+            priority: 'medium'
+          }
+        );
+      }
+      
+      // Universal courses that benefit everyone
+      courses.push(
+        {
+          courseCode: 'ENG101',
+          courseName: 'English/Communication',
+          description: `Critical for ${topCareer?.title || 'any career'} - improve writing and speaking skills for professional success`,
+          credits: 1,
+          prerequisites: [],
+          provider: 'High School',
+          semester: 'Both',
+          priority: 'high'
+        }
+      );
     }
 
-    return courses;
+    return courses.slice(0, 4); // Limit to top 4 most relevant courses
   }
 
   /**
-   * Default career pathway
+   * Get personalized career pathway based on student's interests
    */
-  private static getDefaultCareerPathway(careerMatches: CareerMatch[]) {
+  private static getPersonalizedCareerPathway(careerMatches: CareerMatch[], interests: string[], grade: number) {
     const topCareer = careerMatches[0]?.career;
+    const yearsToGraduation = Math.max(0, 12 - grade);
+    
     if (!topCareer) {
       return {
-        steps: ['Complete high school', 'Explore career options', 'Pursue relevant training or education', 'Enter chosen career field'],
+        steps: [
+          'Complete high school with strong grades',
+          `Explore careers related to ${interests.join(' and ')}`,
+          'Pursue relevant training or education',
+          'Enter chosen career field'
+        ],
         timeline: '2-4 years',
         requirements: ['High school diploma']
       };
     }
 
     const steps = [
-      'Complete high school with strong grades',
-      `Research ${topCareer.title} requirements`,
-      'Gain relevant experience through volunteering',
-      `Complete ${topCareer.requiredEducation} program`,
-      `Obtain required certifications: ${topCareer.certifications?.join(', ') || 'None specified'}`,
-      'Apply for entry-level positions',
-      'Gain experience and additional certifications',
-      'Consider advancement or specialization opportunities'
+      `Complete high school focusing on ${interests.includes('Healthcare') ? 'science' : interests.includes('Hands-on Work') ? 'math and shop' : interests.includes('Technology') ? 'computer science' : 'core'} courses`,
+      `Research ${topCareer.title} requirements and local opportunities`,
+      `Gain experience through ${interests.includes('Healthcare') ? 'hospital volunteering' : interests.includes('Hands-on Work') ? 'apprenticeships or internships' : interests.includes('Technology') ? 'coding projects and tech clubs' : 'relevant volunteering'}`,
+      `Complete ${topCareer.requiredEducation} program focused on ${topCareer.title}`,
+      `Obtain required certifications: ${topCareer.certifications?.join(', ') || 'Professional certifications as needed'}`,
+      `Apply for entry-level ${topCareer.title} positions in your area`,
+      `Build experience and expertise in ${topCareer.title}`,
+      `Consider specialization or advancement in ${topCareer.sector} sector`
     ];
 
     return {
       steps,
-      timeline: '2-4 years',
-      requirements: [topCareer.requiredEducation, ...(topCareer.certifications || [])]
+      timeline: `${yearsToGraduation + 2}-${yearsToGraduation + 4} years`,
+      requirements: [
+        'High school diploma',
+        topCareer.requiredEducation,
+        ...(topCareer.certifications || [])
+      ]
     };
   }
 
   /**
-   * Default skill gaps
+   * Get personalized skill gaps based on interests and career matches
    */
-  private static getDefaultSkillGaps(careerMatches: CareerMatch[]) {
+  private static getPersonalizedSkillGaps(careerMatches: CareerMatch[], interests: string[], currentSkills: string[]) {
     const topCareer = careerMatches[0]?.career;
-    const skillGaps = [
-      {
+    const skillGaps = [];
+
+    // Always important skills
+    if (!currentSkills.includes('Communication')) {
+      skillGaps.push({
         skill: 'Communication',
         importance: 'Critical' as const,
-        howToAcquire: 'Join speech/debate club, practice presentations'
-      },
-      {
-        skill: 'Technical Skills',
-        importance: 'Important' as const,
-        howToAcquire: 'Take relevant courses, online tutorials, hands-on practice'
-      }
-    ];
-
-    if (topCareer?.sector === 'healthcare') {
-      skillGaps.push({
-        skill: 'Medical Terminology',
-        importance: 'Critical',
-        howToAcquire: 'Take health sciences course or online certification'
+        howToAcquire: `Essential for ${topCareer?.title || 'any career'} - join speech/debate club, practice presentations, work on customer service`
       });
     }
 
-    return skillGaps;
+    // Interest-specific skills
+    if (interests.includes('Healthcare')) {
+      skillGaps.push({
+        skill: 'Medical Terminology',
+        importance: 'Critical',
+        howToAcquire: `Crucial for ${topCareer?.title || 'healthcare careers'} - take health sciences course, use medical terminology apps, volunteer at hospitals`
+      });
+      
+      if (!currentSkills.includes('Empathy')) {
+        skillGaps.push({
+          skill: 'Patient Care & Empathy',
+          importance: 'Critical',
+          howToAcquire: `Key for ${topCareer?.title || 'healthcare'} - volunteer with elderly, practice active listening, take psychology courses`
+        });
+      }
+    }
+
+    if (interests.includes('Hands-on Work')) {
+      skillGaps.push({
+        skill: 'Technical/Mechanical Skills',
+        importance: 'Critical',
+        howToAcquire: `Essential for ${topCareer?.title || 'trades and construction'} - take shop class, work on DIY projects, find apprenticeships`
+      });
+      
+      if (!currentSkills.includes('Problem Solving')) {
+        skillGaps.push({
+          skill: 'Troubleshooting & Problem Solving',
+          importance: 'Important',
+          howToAcquire: `Important for ${topCareer?.title || 'technical work'} - practice fixing things, take engineering courses, work on puzzles and challenges`
+        });
+      }
+    }
+
+    if (interests.includes('Technology')) {
+      skillGaps.push({
+        skill: 'Programming/Digital Literacy',
+        importance: 'Critical',
+        howToAcquire: `Necessary for ${topCareer?.title || 'tech careers'} - learn Python or JavaScript online, take computer science courses, build projects`
+      });
+      
+      skillGaps.push({
+        skill: 'Analytical Thinking',
+        importance: 'Important',
+        howToAcquire: `Valuable for ${topCareer?.title || 'technology roles'} - practice logic puzzles, take math courses, learn data analysis`
+      });
+    }
+
+    if (interests.includes('Community Impact')) {
+      skillGaps.push({
+        skill: 'Leadership & Teamwork',
+        importance: 'Important',
+        howToAcquire: `Important for ${topCareer?.title || 'community service'} - join student government, lead volunteer projects, participate in group activities`
+      });
+    }
+
+    return skillGaps.slice(0, 4); // Limit to top 4 most important skills
   }
 
   /**
-   * Default action items
+   * Get personalized action items based on student profile
    */
-  private static getDefaultActionItems(profile: Partial<StudentProfile>) {
-    return [
+  private static getPersonalizedActionItems(profile: Partial<StudentProfile>, careerMatches: CareerMatch[], grade: number) {
+    const topCareer = careerMatches[0]?.career;
+    const interests = profile.interests || [];
+    const yearsToGraduation = Math.max(0, 12 - grade);
+    
+    const actionItems = [
       {
-        title: 'Meet with school counselor',
-        description: 'Meet with school counselor to discuss career goals',
+        title: `Meet with school counselor about ${topCareer?.title || 'career goals'}`,
+        description: `Discuss your interest in ${interests.join(' and ')} and create a plan for ${topCareer?.title || 'your chosen career'}`,
         priority: 'high',
         timeline: 'This week'
-      },
+      }
+    ];
+
+    // Interest-specific actions
+    if (interests.includes('Healthcare')) {
+      actionItems.push(
+        {
+          title: 'Volunteer at local hospital or clinic',
+          description: `Get hands-on experience in healthcare settings to prepare for ${topCareer?.title || 'medical careers'}`,
+          priority: 'high',
+          timeline: 'This month'
+        },
+        {
+          title: 'Shadow a healthcare professional',
+          description: `Spend a day with a ${topCareer?.title || 'nurse, doctor, or medical technician'} to see the job firsthand`,
+          priority: 'medium',
+          timeline: 'Next 2 months'
+        }
+      );
+    }
+
+    if (interests.includes('Hands-on Work')) {
+      actionItems.push(
+        {
+          title: 'Find apprenticeship or internship opportunities',
+          description: `Look for hands-on learning in ${topCareer?.title || 'construction, electrical, or mechanical trades'}`,
+          priority: 'high',
+          timeline: 'This month'
+        },
+        {
+          title: 'Visit local construction sites or workshops',
+          description: `See ${topCareer?.title || 'trades work'} in action and talk to professionals about their careers`,
+          priority: 'medium',
+          timeline: 'Next month'
+        }
+      );
+    }
+
+    if (interests.includes('Technology')) {
+      actionItems.push(
+        {
+          title: 'Start learning programming online',
+          description: `Begin with Python or JavaScript to prepare for ${topCareer?.title || 'tech careers'} - use free resources like Codecademy`,
+          priority: 'high',
+          timeline: 'This month'
+        },
+        {
+          title: 'Join computer science or robotics club',
+          description: `Connect with other tech-interested students and work on projects related to ${topCareer?.title || 'technology'}`,
+          priority: 'medium',
+          timeline: 'Next semester'
+        }
+      );
+    }
+
+    // Universal actions
+    actionItems.push(
       {
-        title: 'Research training programs',
-        description: 'Research local training programs and colleges',
+        title: `Research ${topCareer?.title || 'career'} training programs`,
+        description: `Find local colleges, trade schools, or certification programs for ${topCareer?.title || 'your chosen field'}`,
         priority: 'high',
-        timeline: 'This month'
+        timeline: yearsToGraduation > 1 ? 'Next 3 months' : 'This month'
       },
       {
-        title: 'Find volunteer opportunities',
-        description: 'Look for volunteer opportunities in your field of interest',
-        priority: 'medium',
-        timeline: 'Next month'
-      },
-      {
-        title: 'Network with professionals',
-        description: 'Connect with professionals in your chosen field',
+        title: `Network with ${topCareer?.title || 'professionals'} in your field`,
+        description: `Connect with people working in ${topCareer?.title || 'your area of interest'} through LinkedIn, local events, or family connections`,
         priority: 'medium',
         timeline: 'Next 3 months'
       }
-    ];
+    );
+
+    return actionItems.slice(0, 5); // Limit to top 5 most important actions
   }
 
   /**
@@ -1248,6 +1453,365 @@ Provide your analysis in the following JSON format:
     }
     
     return `specialized skills and knowledge in ${answer}`;
+  }
+
+  /**
+   * Generate user-specific context for personalization
+   */
+  private static generateUserSpecificContext(
+    profile: Partial<StudentProfile>,
+    answers: AssessmentAnswer[],
+    careerMatches: CareerMatch[]
+  ): string {
+    const topCareer = careerMatches[0]?.career;
+    const interests = profile.interests || [];
+    const skills = profile.skills || [];
+    
+    let context = `This student is uniquely interested in ${interests.join(' and ')}. `;
+    
+    if (topCareer) {
+      context += `Their top career match is ${topCareer.title}, which aligns perfectly with their interests because `;
+      
+      // Explain the connection between interests and career
+      if (interests.includes('Healthcare') && topCareer.sector === 'healthcare') {
+        context += 'they want to help people and work in medical settings. ';
+      } else if (interests.includes('Hands-on Work') && topCareer.sector === 'infrastructure') {
+        context += 'they enjoy building, fixing, and working with their hands. ';
+      } else if (interests.includes('Technology')) {
+        context += 'they are fascinated by computers and digital innovation. ';
+      } else {
+        context += 'it matches their core interests and values. ';
+      }
+    }
+    
+    // Add skill-based context
+    if (skills.length > 0) {
+      context += `They have demonstrated strengths in ${skills.join(', ')}, which will be valuable assets in their chosen field. `;
+    }
+    
+    // Add work environment preferences
+    if (profile.workEnvironment) {
+      context += `They prefer ${profile.workEnvironment} work environments, `;
+      if (profile.workEnvironment === 'outdoor') {
+        context += 'showing they value fresh air, physical activity, and nature-based work. ';
+      } else if (profile.workEnvironment === 'indoor') {
+        context += 'indicating they work well in controlled, focused environments. ';
+      } else {
+        context += 'showing flexibility and adaptability to different settings. ';
+      }
+    }
+    
+    return context;
+  }
+
+  /**
+   * Get personalized insight based on assessment answer and career match
+   */
+  private static getPersonalizedInsight(questionId: string, answer: string | number, topCareer?: Career): string {
+    if (!topCareer) return `This preference will guide their career exploration`;
+    
+    const insights: { [key: string]: { [key: string]: string } } = {
+      'interests': {
+        'Healthcare': `Perfect alignment with ${topCareer.title} - they can directly help patients and make a medical impact`,
+        'Hands-on Work': `Excellent match for ${topCareer.title} - they'll use tools and build/fix things daily`,
+        'Technology': `Strong fit for ${topCareer.title} - they'll work with cutting-edge digital tools and systems`,
+        'Community Impact': `Great connection to ${topCareer.title} - they'll serve their local community directly`
+      },
+      'work_environment': {
+        'Outdoors': `${topCareer.title} offers outdoor work opportunities, perfect for their preference`,
+        'Indoors': `${topCareer.title} provides controlled indoor environments they prefer`,
+        'Mixed': `${topCareer.title} offers the variety of settings they enjoy`
+      }
+    };
+
+    const category = insights[questionId];
+    if (category && typeof answer === 'string' && category[answer]) {
+      return category[answer];
+    }
+    
+    return `This aligns well with ${topCareer.title} career requirements`;
+  }
+
+  /**
+   * Get specific recommendation based on assessment answer and career
+   */
+  private static getSpecificRecommendation(questionId: string, answer: string | number, topCareer?: Career): string {
+    if (!topCareer) return 'Focus on exploring careers that match this preference';
+    
+    const recommendations: { [key: string]: { [key: string]: string } } = {
+      'interests': {
+        'Healthcare': `Take Biology, Chemistry, and Health Sciences courses to prepare for ${topCareer.title}`,
+        'Hands-on Work': `Enroll in Shop class, Industrial Arts, or Engineering courses for ${topCareer.title}`,
+        'Technology': `Take Computer Science, Programming, or Digital Media courses for ${topCareer.title}`,
+        'Community Impact': `Join volunteer organizations and take Social Studies courses for ${topCareer.title}`
+      },
+      'work_environment': {
+        'Outdoors': `Look for internships or job shadowing in outdoor ${topCareer.title} roles`,
+        'Indoors': `Seek office-based or lab experiences in ${topCareer.title}`,
+        'Mixed': `Explore both field and office aspects of ${topCareer.title}`
+      }
+    };
+
+    const category = recommendations[questionId];
+    if (category && typeof answer === 'string' && category[answer]) {
+      return category[answer];
+    }
+    
+    return `Pursue experiences and education that prepare you for ${topCareer.title}`;
+  }
+
+  /**
+   * Get personalized career reasoning
+   */
+  private static getPersonalizedCareerReasoning(
+    match: CareerMatch,
+    profile: Partial<StudentProfile>,
+    answers: AssessmentAnswer[]
+  ): string {
+    const interests = profile.interests || [];
+    const skills = profile.skills || [];
+    
+    let reasoning = '';
+    
+    // Connect to specific interests
+    if (interests.includes('Healthcare') && match.career.sector === 'healthcare') {
+      reasoning += 'they love helping people and are interested in medical work';
+    } else if (interests.includes('Hands-on Work') && match.career.sector === 'infrastructure') {
+      reasoning += 'they enjoy building, fixing, and working with tools';
+    } else if (interests.includes('Technology')) {
+      reasoning += 'they are passionate about computers and digital innovation';
+    } else {
+      reasoning += 'it matches their core interests perfectly';
+    }
+    
+    // Add skill connections
+    if (skills.length > 0) {
+      reasoning += ` and they already have ${skills[0]} skills that are directly applicable`;
+    }
+    
+    return reasoning;
+  }
+
+  /**
+   * Explain how career fits student's profile
+   */
+  private static explainCareerFit(career: Career, profile: Partial<StudentProfile>): string {
+    const interests = profile.interests || [];
+    
+    if (interests.includes('Healthcare') && career.sector === 'healthcare') {
+      return 'You can directly help patients, work in medical settings, and make a real difference in people\'s health';
+    } else if (interests.includes('Hands-on Work') && career.sector === 'infrastructure') {
+      return 'You\'ll build, repair, and create things with your hands while solving practical problems';
+    } else if (interests.includes('Technology')) {
+      return 'You\'ll work with cutting-edge technology and digital tools to solve complex problems';
+    } else if (interests.includes('Community Impact')) {
+      return 'You\'ll serve your local community and make a positive impact on people\'s lives';
+    }
+    
+    return 'This career aligns with your interests and will provide meaningful work';
+  }
+
+  /**
+   * Get salary context for student
+   */
+  private static getSalaryContext(salary: number, zipCode: string): string {
+    if (salary > 60000) {
+      return `excellent income for ${zipCode} area, well above average`;
+    } else if (salary > 40000) {
+      return `good middle-class income for ${zipCode} area`;
+    } else {
+      return `entry-level income with growth potential in ${zipCode} area`;
+    }
+  }
+
+  /**
+   * Get education advice based on grade and requirements
+   */
+  private static getEducationAdvice(educationLevel: string, grade: number): string {
+    const yearsLeft = Math.max(0, 12 - grade);
+    
+    if (educationLevel === 'certificate') {
+      return `Perfect! You can start this program right after high school in ${yearsLeft + 1} years`;
+    } else if (educationLevel === 'associate') {
+      return `Great choice! 2-year program you can start in ${yearsLeft + 1} years at community college`;
+    } else if (educationLevel === 'bachelor') {
+      return `Plan for 4-year university starting in ${yearsLeft + 1} years - start preparing now`;
+    }
+    
+    return `Plan your education path starting in ${yearsLeft + 1} years`;
+  }
+
+  /**
+   * Get local demand advice
+   */
+  private static getLocalDemandAdvice(demand: string, zipCode: string): string {
+    if (demand === 'high') {
+      return `excellent job prospects in ${zipCode} area - employers are actively hiring`;
+    } else if (demand === 'medium') {
+      return `good opportunities in ${zipCode} area with steady job growth`;
+    } else {
+      return `limited local opportunities - consider nearby areas or remote work`;
+    }
+  }
+
+  /**
+   * Get personalized next steps
+   */
+  private static getPersonalizedNextSteps(career: Career, profile: Partial<StudentProfile>, grade: number): string {
+    const interests = profile.interests || [];
+    let steps = '';
+    
+    if (interests.includes('Healthcare') && career.sector === 'healthcare') {
+      steps = `1) Take Biology and Chemistry courses, 2) Volunteer at local hospital, 3) Shadow a ${career.title}`;
+    } else if (interests.includes('Hands-on Work') && career.sector === 'infrastructure') {
+      steps = `1) Take Shop/Industrial Arts, 2) Find apprenticeship opportunities, 3) Visit construction sites`;
+    } else if (interests.includes('Technology')) {
+      steps = `1) Take Computer Science courses, 2) Learn programming online, 3) Join tech clubs`;
+    } else {
+      steps = `1) Research ${career.title} requirements, 2) Find relevant courses, 3) Connect with professionals`;
+    }
+    
+    return steps;
+  }
+
+  /**
+   * Calculate job relevance to student profile
+   */
+  private static calculateJobRelevance(
+    job: LocalJobOpportunity,
+    profile: Partial<StudentProfile>,
+    careerMatches: CareerMatch[]
+  ): number {
+    let relevance = 50; // Base relevance
+    
+    const interests = profile.interests || [];
+    const topCareer = careerMatches[0]?.career;
+    
+    // Check if job title matches career interests
+    if (topCareer && job.title.toLowerCase().includes(topCareer.title.toLowerCase())) {
+      relevance += 30;
+    }
+    
+    // Check sector alignment
+    if (interests.includes('Healthcare') && job.category === 'healthcare') {
+      relevance += 20;
+    } else if (interests.includes('Hands-on Work') && job.category === 'infrastructure') {
+      relevance += 20;
+    }
+    
+    // Distance factor
+    if (job.distance < 15) relevance += 10;
+    else if (job.distance > 30) relevance -= 10;
+    
+    return Math.min(95, Math.max(10, relevance));
+  }
+
+  /**
+   * Explain job relevance to student
+   */
+  private static explainJobRelevance(job: LocalJobOpportunity, profile: Partial<StudentProfile>): string {
+    const interests = profile.interests || [];
+    
+    if (interests.includes('Healthcare') && job.category === 'healthcare') {
+      return 'This matches your healthcare interests and desire to help people';
+    } else if (interests.includes('Hands-on Work')) {
+      return 'This involves the hands-on, practical work you enjoy';
+    } else if (interests.includes('Technology')) {
+      return 'This role involves technology and digital tools you\'re interested in';
+    }
+    
+    return 'This opportunity aligns with your career goals and interests';
+  }
+
+  /**
+   * Get commute advice based on distance
+   */
+  private static getCommuteAdvice(distance: number): string {
+    if (distance < 10) return 'very convenient commute';
+    else if (distance < 20) return 'reasonable daily commute';
+    else if (distance < 30) return 'manageable commute, consider carpooling';
+    else return 'longer commute, but worth it for the right opportunity';
+  }
+
+  /**
+   * Compare salary to career goals
+   */
+  private static compareSalaryToGoals(jobSalary: string, careerAvgSalary?: number): string {
+    if (!careerAvgSalary) return 'competitive salary for entry-level position';
+    
+    // Extract numeric value from job salary string
+    const salaryMatch = jobSalary.match(/\$?(\d+(?:,\d+)*)/);
+    if (!salaryMatch) return 'salary details to be discussed';
+    
+    const jobSalaryNum = parseInt(salaryMatch[1].replace(/,/g, ''));
+    
+    if (jobSalaryNum >= careerAvgSalary * 0.9) {
+      return 'excellent salary, at or above career average';
+    } else if (jobSalaryNum >= careerAvgSalary * 0.7) {
+      return 'good starting salary with growth potential';
+    } else {
+      return 'entry-level salary, expect increases with experience';
+    }
+  }
+
+  /**
+   * Get job application advice for student
+   */
+  private static getJobApplicationAdvice(
+    job: LocalJobOpportunity,
+    profile: Partial<StudentProfile>,
+    grade: number
+  ): string {
+    const yearsToGraduation = Math.max(0, 12 - grade);
+    
+    if (yearsToGraduation > 1) {
+      return `Save this for after graduation in ${yearsToGraduation} years, but research the company now`;
+    } else if (yearsToGraduation === 1) {
+      return 'Perfect timing - apply during senior year or right after graduation';
+    } else {
+      return 'You can apply now - highlight your relevant coursework and enthusiasm';
+    }
+  }
+
+  /**
+   * Identify best opportunities for student
+   */
+  private static identifyBestOpportunities(
+    jobs: LocalJobOpportunity[],
+    profile: Partial<StudentProfile>
+  ): string {
+    const interests = profile.interests || [];
+    const relevantJobs = jobs.filter(job => {
+      if (interests.includes('Healthcare')) return job.category === 'healthcare';
+      if (interests.includes('Hands-on Work')) return job.category === 'infrastructure';
+      if (interests.includes('Technology')) return job.title.toLowerCase().includes('tech');
+      return true;
+    });
+    
+    if (relevantJobs.length > 0) {
+      return `${relevantJobs[0].title} positions (${relevantJobs.length} available)`;
+    }
+    
+    return 'entry-level positions in your field of interest';
+  }
+
+  /**
+   * Get application strategy for student
+   */
+  private static getApplicationStrategy(
+    jobs: LocalJobOpportunity[],
+    profile: Partial<StudentProfile>,
+    grade: number
+  ): string {
+    const yearsToGraduation = Math.max(0, 12 - grade);
+    
+    if (yearsToGraduation > 1) {
+      return 'Focus on education and skill-building now, start networking with these employers';
+    } else if (yearsToGraduation === 1) {
+      return 'Start building relationships with these employers, apply for internships or part-time roles';
+    } else {
+      return 'Apply directly to entry-level positions, emphasize your enthusiasm and willingness to learn';
+    }
   }
 
   /**

@@ -14,6 +14,7 @@ import jobsRoutes from './routes/jobs';
 import feedbackRoutes from './routes/feedback';
 import comprehensiveGuidanceRoutes from './routes/comprehensiveGuidance';
 import debugRoutes from './routes/debug';
+import testAIRoutes from './routes/testAI';
 import dynamicSalaryRoutes from './routes/dynamicSalary';
 import counselorRoutes from './routes/counselor';
 import studentRoutes from './routes/student';
@@ -219,6 +220,7 @@ app.use('/api/dynamic-salary', dynamicSalaryRoutes); // Dynamic salary calculati
 app.use('/api/counselor', counselorRoutes); // Counselor functionality for student management
 app.use('/api/student', studentRoutes); // Student functionality for assignments and progress
 app.use('/api/debug', debugRoutes); // Environment and configuration debugging
+app.use('/api/test', testAIRoutes); // AI recommendation testing
 
 // Debug endpoints for troubleshooting
 app.get('/api/debug/env', (req, res) => {
