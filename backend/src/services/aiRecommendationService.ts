@@ -1665,124 +1665,295 @@ Provide your analysis in the following JSON format:
       }
     ];
 
-    // Interest-specific actions
-    if (interests.includes('Healthcare')) {
-      actionItems.push(
-        {
-          title: 'Volunteer at local hospital or clinic',
-          description: `Get hands-on experience in healthcare settings to prepare for medical careers`,
-          priority: 'high',
-          timeline: 'This month'
-        },
-        {
-          title: 'Shadow a healthcare professional',
-          description: `Spend a day with a nurse, doctor, or medical technician to see the job firsthand`,
-          priority: 'medium',
-          timeline: 'Next 2 months'
-        }
-      );
-    }
+    // PRIORITY 1: Actions based on TOP CAREER SECTOR (most important)
+    if (topCareer) {
+      switch (topCareer.sector) {
+        case 'healthcare':
+          actionItems.push(
+            {
+              title: 'Volunteer at local hospital or clinic',
+              description: `Get hands-on experience in healthcare settings to prepare for ${topCareer.title} career`,
+              priority: 'high',
+              timeline: 'This month'
+            },
+            {
+              title: 'Shadow a healthcare professional',
+              description: `Spend a day with a nurse, doctor, or medical technician to see ${topCareer.title} work firsthand`,
+              priority: 'medium',
+              timeline: 'Next 2 months'
+            }
+          );
+          break;
 
-    if (interests.includes('Hands-on Work')) {
-      actionItems.push(
-        {
-          title: 'Find apprenticeship or internship opportunities',
-          description: `Look for hands-on learning in construction, electrical, or mechanical trades`,
-          priority: 'high',
-          timeline: 'This month'
-        },
-        {
-          title: 'Visit local construction sites or workshops',
-          description: `See trades work in action and talk to professionals about their careers`,
-          priority: 'medium',
-          timeline: 'Next month'
-        }
-      );
-    }
+        case 'creative':
+          actionItems.push(
+            {
+              title: 'Build a creative portfolio',
+              description: `Create a collection of your best work for ${topCareer.title} career - art, design, photography, or multimedia projects`,
+              priority: 'high',
+              timeline: 'This month'
+            },
+            {
+              title: 'Enter art competitions or shows',
+              description: `Showcase your ${topCareer.title} talents and get feedback from creative professionals`,
+              priority: 'medium',
+              timeline: 'Next 3 months'
+            }
+          );
+          break;
 
-    if (interests.includes('Technology') || topCareer?.sector === 'technology') {
-      actionItems.push(
-        {
-          title: 'Start learning programming online',
-          description: `Begin with Python or JavaScript to prepare for tech careers - use free resources like Codecademy`,
-          priority: 'high',
-          timeline: 'This month'
-        },
-        {
-          title: 'Join computer science or robotics club',
-          description: `Connect with other tech-interested students and work on projects related to technology`,
-          priority: 'medium',
-          timeline: 'Next semester'
-        }
-      );
-    }
+        case 'technology':
+          actionItems.push(
+            {
+              title: 'Start learning programming online',
+              description: `Begin with Python or JavaScript to prepare for ${topCareer.title} career - use free resources like Codecademy`,
+              priority: 'high',
+              timeline: 'This month'
+            },
+            {
+              title: 'Join computer science or robotics club',
+              description: `Connect with other tech-interested students and work on projects related to ${topCareer.title}`,
+              priority: 'medium',
+              timeline: 'Next semester'
+            }
+          );
+          break;
 
-    if (interests.includes('Education') || interests.includes('Teaching') || topCareer?.sector === 'education') {
-      actionItems.push(
-        {
-          title: 'Start tutoring younger students',
-          description: `Gain teaching experience to prepare for education careers - volunteer at elementary schools or offer peer tutoring`,
-          priority: 'high',
-          timeline: 'This month'
-        },
-        {
-          title: 'Observe different classroom settings',
-          description: `Visit various grade levels and teaching environments to understand education roles`,
-          priority: 'medium',
-          timeline: 'Next 2 months'
-        }
-      );
-    }
+        case 'infrastructure':
+        case 'manufacturing':
+          actionItems.push(
+            {
+              title: 'Find apprenticeship or internship opportunities',
+              description: `Look for hands-on learning in construction, electrical, or mechanical trades for ${topCareer.title} career`,
+              priority: 'high',
+              timeline: 'This month'
+            },
+            {
+              title: 'Visit local construction sites or workshops',
+              description: `See ${topCareer.title} work in action and talk to professionals about their careers`,
+              priority: 'medium',
+              timeline: 'Next month'
+            }
+          );
+          break;
 
-    if (interests.includes('Business') || interests.includes('Finance') || topCareer?.sector === 'business' || topCareer?.sector === 'finance') {
-      actionItems.push(
-        {
-          title: 'Join business or entrepreneurship club',
-          description: `Develop business skills for business careers - learn about markets, finance, and leadership`,
-          priority: 'high',
-          timeline: 'This month'
-        },
-        {
-          title: 'Find part-time job in retail or customer service',
-          description: `Gain real-world business experience relevant to business roles`,
-          priority: 'medium',
-          timeline: 'Next 3 months'
-        }
-      );
-    }
+        case 'education':
+          actionItems.push(
+            {
+              title: 'Start tutoring younger students',
+              description: `Gain teaching experience to prepare for ${topCareer.title} career - volunteer at elementary schools or offer peer tutoring`,
+              priority: 'high',
+              timeline: 'This month'
+            },
+            {
+              title: 'Observe different classroom settings',
+              description: `Visit various grade levels and teaching environments to understand ${topCareer.title} roles`,
+              priority: 'medium',
+              timeline: 'Next 2 months'
+            }
+          );
+          break;
 
-    if (interests.includes('Creative') || interests.includes('Art') || topCareer?.sector === 'creative') {
-      actionItems.push(
-        {
-          title: 'Build a creative portfolio',
-          description: `Create a collection of your best work for creative careers - art, design, writing, or multimedia projects`,
-          priority: 'high',
-          timeline: 'This month'
-        },
-        {
-          title: 'Enter art competitions or shows',
-          description: `Showcase your talents and get feedback relevant to creative fields`,
-          priority: 'medium',
-          timeline: 'Next 3 months'
-        }
-      );
-    }
+        case 'business':
+        case 'finance':
+          actionItems.push(
+            {
+              title: 'Join business or entrepreneurship club',
+              description: `Develop business skills for ${topCareer.title} career - learn about markets, finance, and leadership`,
+              priority: 'high',
+              timeline: 'This month'
+            },
+            {
+              title: 'Find part-time job in retail or customer service',
+              description: `Gain real-world business experience relevant to ${topCareer.title} roles`,
+              priority: 'medium',
+              timeline: 'Next 3 months'
+            }
+          );
+          break;
 
-    if (interests.includes('Science') || interests.includes('Research') || topCareer?.sector === 'science') {
-      actionItems.push(
-        {
-          title: 'Participate in science fair or research project',
-          description: `Develop research skills for science careers - design experiments and analyze data`,
-          priority: 'high',
-          timeline: 'This semester'
-        },
-        {
-          title: 'Contact local research facilities',
-          description: `Explore internship opportunities in labs or research centers related to scientific work`,
-          priority: 'medium',
-          timeline: 'Next 2 months'
-        }
-      );
+        case 'science':
+          actionItems.push(
+            {
+              title: 'Participate in science fair or research project',
+              description: `Develop research skills for ${topCareer.title} career - design experiments and analyze data`,
+              priority: 'high',
+              timeline: 'This semester'
+            },
+            {
+              title: 'Contact local research facilities',
+              description: `Explore internship opportunities in labs or research centers related to ${topCareer.title} work`,
+              priority: 'medium',
+              timeline: 'Next 2 months'
+            }
+          );
+          break;
+
+        case 'public-service':
+          actionItems.push(
+            {
+              title: 'Volunteer in community service',
+              description: `Gain experience in public service to prepare for ${topCareer.title} career - volunteer with local organizations`,
+              priority: 'high',
+              timeline: 'This month'
+            },
+            {
+              title: 'Shadow public service professionals',
+              description: `Spend time with police officers, firefighters, or government workers to understand ${topCareer.title} roles`,
+              priority: 'medium',
+              timeline: 'Next 2 months'
+            }
+          );
+          break;
+
+        case 'agriculture':
+          actionItems.push(
+            {
+              title: 'Visit local farms or agricultural facilities',
+              description: `Get hands-on experience in agriculture to prepare for ${topCareer.title} career`,
+              priority: 'high',
+              timeline: 'This month'
+            },
+            {
+              title: 'Join FFA or agricultural clubs',
+              description: `Connect with others interested in ${topCareer.title} and agricultural careers`,
+              priority: 'medium',
+              timeline: 'Next semester'
+            }
+          );
+          break;
+
+        case 'transportation':
+          actionItems.push(
+            {
+              title: 'Learn about transportation regulations',
+              description: `Study DOT regulations and safety protocols for ${topCareer.title} career`,
+              priority: 'high',
+              timeline: 'This month'
+            },
+            {
+              title: 'Visit transportation facilities',
+              description: `Tour airports, shipping centers, or logistics companies to understand ${topCareer.title} work`,
+              priority: 'medium',
+              timeline: 'Next 2 months'
+            }
+          );
+          break;
+
+        case 'hospitality':
+          actionItems.push(
+            {
+              title: 'Find part-time job in hospitality',
+              description: `Gain customer service experience to prepare for ${topCareer.title} career - work in restaurants, hotels, or events`,
+              priority: 'high',
+              timeline: 'This month'
+            },
+            {
+              title: 'Practice customer service skills',
+              description: `Develop communication and problem-solving skills essential for ${topCareer.title} roles`,
+              priority: 'medium',
+              timeline: 'Next month'
+            }
+          );
+          break;
+
+        case 'retail':
+          actionItems.push(
+            {
+              title: 'Find part-time retail job',
+              description: `Gain sales and customer service experience for ${topCareer.title} career`,
+              priority: 'high',
+              timeline: 'This month'
+            },
+            {
+              title: 'Learn about product knowledge and sales',
+              description: `Develop skills in customer relations and sales techniques for ${topCareer.title} roles`,
+              priority: 'medium',
+              timeline: 'Next 2 months'
+            }
+          );
+          break;
+
+        case 'legal':
+          actionItems.push(
+            {
+              title: 'Join debate or mock trial team',
+              description: `Develop argumentation and legal reasoning skills for ${topCareer.title} career`,
+              priority: 'high',
+              timeline: 'This month'
+            },
+            {
+              title: 'Shadow legal professionals',
+              description: `Spend time with lawyers, paralegals, or court staff to understand ${topCareer.title} work`,
+              priority: 'medium',
+              timeline: 'Next 2 months'
+            }
+          );
+          break;
+
+        default:
+          // Generic career-specific actions
+          actionItems.push(
+            {
+              title: `Find ${topCareer.title} professionals to shadow`,
+              description: `Spend time with people working in ${topCareer.title} to understand the day-to-day work`,
+              priority: 'high',
+              timeline: 'This month'
+            },
+            {
+              title: `Research ${topCareer.title} requirements`,
+              description: `Learn about education, certifications, and skills needed for ${topCareer.title} career`,
+              priority: 'medium',
+              timeline: 'Next month'
+            }
+          );
+          break;
+      }
+    } else {
+      // PRIORITY 2: Fallback to interest-based actions only if no clear career match
+      if (interests.includes('Healthcare')) {
+        actionItems.push(
+          {
+            title: 'Volunteer at local hospital or clinic',
+            description: `Get hands-on experience in healthcare settings to explore medical careers`,
+            priority: 'high',
+            timeline: 'This month'
+          }
+        );
+      }
+
+      if (interests.includes('Hands-on Work')) {
+        actionItems.push(
+          {
+            title: 'Find apprenticeship or internship opportunities',
+            description: `Look for hands-on learning in construction, electrical, or mechanical trades`,
+            priority: 'high',
+            timeline: 'This month'
+          }
+        );
+      }
+
+      if (interests.includes('Technology')) {
+        actionItems.push(
+          {
+            title: 'Start learning programming online',
+            description: `Begin with Python or JavaScript to explore tech careers - use free resources like Codecademy`,
+            priority: 'high',
+            timeline: 'This month'
+          }
+        );
+      }
+
+      if (interests.includes('Creative') || interests.includes('Art')) {
+        actionItems.push(
+          {
+            title: 'Build a creative portfolio',
+            description: `Create a collection of your best work to explore creative careers - art, design, writing, or multimedia projects`,
+            priority: 'high',
+            timeline: 'This month'
+          }
+        );
+      }
     }
 
     // Universal actions
