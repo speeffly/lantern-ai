@@ -32,7 +32,7 @@ export interface CounselorNote {
   id: number;
   counselor_id: number;
   student_id: number;
-  note_type: 'assessment' | 'meeting' | 'recommendation' | 'progress' | 'other';
+  note_type: 'general' | 'career_guidance' | 'academic' | 'personal' | 'parent_communication';
   title: string;
   content: string;
   is_shared_with_parent: boolean;
@@ -295,13 +295,19 @@ export class CareerPlanService {
   static async createCounselorNote(
     counselorId: number,
     studentId: number,
-    noteType: 'assessment' | 'meeting' | 'recommendation' | 'progress' | 'other',
+    noteType: 'general' | 'career_guidance' | 'academic' | 'personal' | 'parent_communication',
     title: string,
     content: string,
     isSharedWithParent: boolean = false,
     isSharedWithStudent: boolean = true
   ): Promise<CounselorNote> {
     try {
+      // Validate note_type against allowed values
+      const validNoteTypes = ['general', 'career_guidance', 'academic', 'personal', 'parent_communication'];
+      if (!validNoteTypes.includes(noteType)) {
+        throw new Error(`Invalid note_type: "${noteType}". Must be one of: ${validNoteTypes.join(', ')}`);
+      }
+
       const result = await DatabaseAdapter.run(`
         INSERT INTO counselor_notes (
           counselor_id, student_id, note_type, title, content, 

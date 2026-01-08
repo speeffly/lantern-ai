@@ -222,13 +222,30 @@ export class DatabaseServicePG {
             id SERIAL PRIMARY KEY,
             student_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
             counselor_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-            note_type VARCHAR(30) NOT NULL CHECK (note_type IN ('general', 'career_guidance', 'academic', 'personal', 'parent_communication')),
+            note_type VARCHAR(30) NOT NULL,
             title VARCHAR(200) NOT NULL,
             content TEXT NOT NULL,
             is_shared_with_parent BOOLEAN DEFAULT false,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
+
+        -- Add constraint separately to ensure proper creation
+        DO $$ 
+        BEGIN
+            -- Drop constraint if it exists (in case of schema updates)
+            ALTER TABLE counselor_notes DROP CONSTRAINT IF EXISTS counselor_notes_note_type_check;
+            
+            -- Add the constraint with explicit definition
+            ALTER TABLE counselor_notes 
+            ADD CONSTRAINT counselor_notes_note_type_check 
+            CHECK (note_type IN ('general', 'career_guidance', 'academic', 'personal', 'parent_communication'));
+            
+        EXCEPTION 
+            WHEN OTHERS THEN 
+                -- Log the error but don't fail the entire schema creation
+                RAISE NOTICE 'Could not create counselor_notes constraint: %', SQLERRM;
+        END $$;
 
         CREATE TABLE IF NOT EXISTS student_assignments (
             id SERIAL PRIMARY KEY,

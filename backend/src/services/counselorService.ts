@@ -136,8 +136,19 @@ export class CounselorService {
       const assessmentSessions = await AssessmentServiceDB.getUserSessions(studentId);
       const careerRecommendations = await CareerPlanService.getUserCareerRecommendations(studentId);
       const actionPlans = await CareerPlanService.getUserActionPlans(studentId);
-      const notes = await this.getCounselorNotesForStudent(counselorId, studentId);
-      const assignments = await this.getStudentAssignments(counselorId, studentId);
+      const notes = await this.getCounselorNotesForStudent(counselorId, studentId).catch((error) => {
+        console.error('❌ Error getting counselor notes:', error);
+        if (error.message && error.message.includes('constraint')) {
+          console.error('🔍 Constraint error in getCounselorNotesForStudent');
+        }
+        // Return empty array instead of failing the entire page load
+        return [];
+      });
+      const assignments = await this.getStudentAssignments(counselorId, studentId).catch((error) => {
+        console.error('❌ Error getting student assignments:', error);
+        // Return empty array instead of failing the entire page load
+        return [];
+      });
 
       return {
         student,
@@ -219,6 +230,28 @@ export class CounselorService {
   }
 
   /**
+   * Validate note_type value against PostgreSQL constraint
+   */
+  private static validateNoteType(noteType: string): void {
+    const validNoteTypes = ['general', 'career_guidance', 'academic', 'personal', 'parent_communication'];
+    
+    if (!noteType || typeof noteType !== 'string') {
+      throw new Error(`Invalid note_type: must be a non-empty string. Received: ${typeof noteType}`);
+    }
+    
+    // Trim whitespace and check for exact match
+    const trimmedNoteType = noteType.trim();
+    if (!validNoteTypes.includes(trimmedNoteType)) {
+      throw new Error(`Invalid note_type: "${trimmedNoteType}". Must be exactly one of: ${validNoteTypes.join(', ')}`);
+    }
+    
+    // Check for hidden characters or encoding issues
+    if (trimmedNoteType !== noteType) {
+      console.warn(`⚠️ Note type had whitespace: "${noteType}" -> "${trimmedNoteType}"`);
+    }
+  }
+
+  /**
    * Create counselor note for student
    */
   static async createCounselorNote(
@@ -232,16 +265,13 @@ export class CounselorService {
     }
   ): Promise<CounselorNote> {
     try {
+      // Validate note_type with comprehensive checking
+      this.validateNoteType(noteData.noteType);
+      
       // Verify access
       const hasAccess = await RelationshipService.hasPermission(counselorId, studentId);
       if (!hasAccess) {
         throw new Error('Access denied');
-      }
-
-      // Validate note_type against allowed values
-      const validNoteTypes = ['general', 'career_guidance', 'academic', 'personal', 'parent_communication'];
-      if (!validNoteTypes.includes(noteData.noteType)) {
-        throw new Error(`Invalid note_type: "${noteData.noteType}". Must be one of: ${validNoteTypes.join(', ')}`);
       }
       
       // Verify both users exist and have correct roles
@@ -270,6 +300,9 @@ export class CounselorService {
         noteTypeType: typeof noteData.noteType
       });
 
+      // Use trimmed note_type to prevent whitespace issues
+      const trimmedNoteType = noteData.noteType.trim();
+      
       const result = await DatabaseAdapter.run(`
         INSERT INTO counselor_notes (
           student_id, counselor_id, note_type, title, content, is_shared_with_parent
@@ -277,11 +310,28 @@ export class CounselorService {
       `, [
         studentId,
         counselorId,
-        noteData.noteType,
-        noteData.title,
-        noteData.content,
-        noteData.isSharedWithParent ? 1 : 0
-      ]);
+        trimmedNoteType,
+        noteData.title.trim(),
+        noteData.content.trim(),
+        noteData.isSharedWithParent ? true : false
+      ]).catch((error) => {
+        // Enhanced error handling for constraint violations
+        console.error('❌ Database INSERT error:', error);
+        console.error('🔍 Failed INSERT parameters:', {
+          studentId,
+          counselorId,
+          noteType: trimmedNoteType,
+          title: noteData.title,
+          content: noteData.content,
+          isSharedWithParent: noteData.isSharedWithParent
+        });
+        
+        if (error.message && error.message.includes('counselor_notes_note_type_check')) {
+          throw new Error(`PostgreSQL constraint violation: note_type "${trimmedNoteType}" is not allowed. Must be one of: general, career_guidance, academic, personal, parent_communication`);
+        }
+        
+        throw error;
+      });
 
       const noteId = result.lastID;
       if (!noteId) {
