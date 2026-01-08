@@ -212,6 +212,147 @@ Make each skill specific to ${match.career.title} - avoid generic skills like "c
         );
         break;
         
+      case 'hospitality':
+        skillGaps.push(
+          {
+            skill: 'Culinary Skills',
+            importance: 'Critical',
+            howToAcquire: `Essential for ${career.title} - practice cooking techniques, learn knife skills, take culinary arts courses`
+          },
+          {
+            skill: 'Food Safety & Sanitation',
+            importance: 'Critical',
+            howToAcquire: `Critical for ${career.title} - get ServSafe certification, learn HACCP principles, understand health department regulations`
+          },
+          {
+            skill: 'Kitchen Management',
+            importance: 'Important',
+            howToAcquire: `Important for ${career.title} - learn inventory management, practice time management, understand cost control`
+          }
+        );
+        break;
+        
+      case 'business':
+      case 'finance':
+        skillGaps.push(
+          {
+            skill: 'Financial Analysis',
+            importance: 'Critical',
+            howToAcquire: `Essential for ${career.title} - learn Excel, take accounting courses, practice financial modeling`
+          },
+          {
+            skill: 'Business Communication',
+            importance: 'Important',
+            howToAcquire: `Important for ${career.title} - practice presentations, learn business writing, develop negotiation skills`
+          }
+        );
+        break;
+        
+      case 'education':
+        skillGaps.push(
+          {
+            skill: 'Teaching Methods',
+            importance: 'Critical',
+            howToAcquire: `Essential for ${career.title} - learn lesson planning, practice classroom management, study educational psychology`
+          },
+          {
+            skill: 'Student Assessment',
+            importance: 'Important',
+            howToAcquire: `Important for ${career.title} - learn grading techniques, understand learning objectives, practice feedback delivery`
+          }
+        );
+        break;
+        
+      case 'public-service':
+        skillGaps.push(
+          {
+            skill: 'Public Safety Protocols',
+            importance: 'Critical',
+            howToAcquire: `Essential for ${career.title} - learn emergency procedures, practice conflict resolution, understand legal requirements`
+          },
+          {
+            skill: 'Community Relations',
+            importance: 'Important',
+            howToAcquire: `Important for ${career.title} - practice public speaking, learn cultural sensitivity, develop interpersonal skills`
+          }
+        );
+        break;
+        
+      case 'science':
+        skillGaps.push(
+          {
+            skill: 'Research Methods',
+            importance: 'Critical',
+            howToAcquire: `Essential for ${career.title} - learn scientific method, practice data analysis, understand statistical concepts`
+          },
+          {
+            skill: 'Laboratory Skills',
+            importance: 'Important',
+            howToAcquire: `Important for ${career.title} - practice lab techniques, learn equipment operation, understand safety protocols`
+          }
+        );
+        break;
+        
+      case 'agriculture':
+        skillGaps.push(
+          {
+            skill: 'Agricultural Knowledge',
+            importance: 'Critical',
+            howToAcquire: `Essential for ${career.title} - learn crop management, understand soil science, practice sustainable farming`
+          },
+          {
+            skill: 'Equipment Operation',
+            importance: 'Important',
+            howToAcquire: `Important for ${career.title} - learn machinery operation, practice maintenance, understand safety procedures`
+          }
+        );
+        break;
+        
+      case 'transportation':
+        skillGaps.push(
+          {
+            skill: 'Transportation Regulations',
+            importance: 'Critical',
+            howToAcquire: `Essential for ${career.title} - learn DOT regulations, understand safety requirements, get proper licensing`
+          },
+          {
+            skill: 'Vehicle Operation',
+            importance: 'Important',
+            howToAcquire: `Important for ${career.title} - practice driving skills, learn maintenance basics, understand route planning`
+          }
+        );
+        break;
+        
+      case 'retail':
+        skillGaps.push(
+          {
+            skill: 'Customer Service',
+            importance: 'Critical',
+            howToAcquire: `Essential for ${career.title} - practice active listening, learn conflict resolution, develop sales techniques`
+          },
+          {
+            skill: 'Product Knowledge',
+            importance: 'Important',
+            howToAcquire: `Important for ${career.title} - study product features, understand customer needs, learn inventory management`
+          }
+        );
+        break;
+        
+      case 'legal':
+        skillGaps.push(
+          {
+            skill: 'Legal Research',
+            importance: 'Critical',
+            howToAcquire: `Essential for ${career.title} - learn case law research, practice legal writing, understand court procedures`
+          },
+          {
+            skill: 'Legal Analysis',
+            importance: 'Important',
+            howToAcquire: `Important for ${career.title} - practice critical thinking, learn legal reasoning, understand precedent analysis`
+          }
+        );
+        break;
+        
       default:
         skillGaps.push(
           {
