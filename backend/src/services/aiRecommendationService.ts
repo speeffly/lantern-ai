@@ -1094,7 +1094,7 @@ Provide your analysis in the following JSON format:
           {
             courseCode: 'BIO101',
             courseName: 'Advanced Biology',
-            description: `Essential for ${topCareer?.title || 'healthcare careers'} - learn human anatomy and physiology`,
+            description: `Essential for healthcare careers - learn human anatomy and physiology`,
             credits: 1,
             prerequisites: [],
             provider: 'High School',
@@ -1104,7 +1104,7 @@ Provide your analysis in the following JSON format:
           {
             courseCode: 'CHEM101',
             courseName: 'Chemistry',
-            description: `Required for ${topCareer?.title || 'nursing and medical programs'} - understand drug interactions and body chemistry`,
+            description: `Required for nursing and medical programs - understand drug interactions and body chemistry`,
             credits: 1,
             prerequisites: ['BIO101'],
             provider: 'High School',
@@ -1114,7 +1114,7 @@ Provide your analysis in the following JSON format:
           {
             courseCode: 'HEALTH101',
             courseName: 'Health Sciences',
-            description: `Direct preparation for ${topCareer?.title || 'healthcare careers'} - medical terminology and patient care basics`,
+            description: `Direct preparation for healthcare careers - medical terminology and patient care basics`,
             credits: 1,
             prerequisites: [],
             provider: 'High School',
@@ -1130,7 +1130,7 @@ Provide your analysis in the following JSON format:
           {
             courseCode: 'SHOP101',
             courseName: 'Industrial Arts/Shop Class',
-            description: `Perfect for ${topCareer?.title || 'construction and trades'} - hands-on experience with tools and materials`,
+            description: `Perfect for construction and trades - hands-on experience with tools and materials`,
             credits: 1,
             prerequisites: [],
             provider: 'High School',
@@ -1140,7 +1140,7 @@ Provide your analysis in the following JSON format:
           {
             courseCode: 'MATH201',
             courseName: 'Geometry & Trigonometry',
-            description: `Essential for ${topCareer?.title || 'construction and electrical work'} - calculate angles, measurements, and blueprints`,
+            description: `Essential for construction and electrical work - calculate angles, measurements, and blueprints`,
             credits: 1,
             prerequisites: [],
             provider: 'High School',
@@ -1150,7 +1150,7 @@ Provide your analysis in the following JSON format:
           {
             courseCode: 'PHYS101',
             courseName: 'Physics',
-            description: `Important for ${topCareer?.title || 'engineering and trades'} - understand forces, electricity, and mechanics`,
+            description: `Important for engineering and trades - understand forces, electricity, and mechanics`,
             credits: 1,
             prerequisites: ['MATH201'],
             provider: 'High School',
@@ -1166,7 +1166,7 @@ Provide your analysis in the following JSON format:
           {
             courseCode: 'CS101',
             courseName: 'Computer Science Fundamentals',
-            description: `Great for ${topCareer?.title || 'tech careers'} - learn programming basics and problem-solving`,
+            description: `Great for tech careers - learn programming basics and problem-solving`,
             credits: 1,
             prerequisites: [],
             provider: 'High School',
@@ -1176,7 +1176,7 @@ Provide your analysis in the following JSON format:
           {
             courseCode: 'DIGI101',
             courseName: 'Digital Media & Design',
-            description: `Relevant for ${topCareer?.title || 'technology roles'} - create digital content and understand user interfaces`,
+            description: `Relevant for technology roles - create digital content and understand user interfaces`,
             credits: 1,
             prerequisites: [],
             provider: 'High School',
@@ -1192,7 +1192,7 @@ Provide your analysis in the following JSON format:
           {
             courseCode: 'PSYCH101',
             courseName: 'Psychology',
-            description: `Essential for ${topCareer?.title || 'education careers'} - understand how people learn and develop`,
+            description: `Essential for education careers - understand how people learn and develop`,
             credits: 1,
             prerequisites: [],
             provider: 'High School',
@@ -1202,7 +1202,7 @@ Provide your analysis in the following JSON format:
           {
             courseCode: 'SPEECH101',
             courseName: 'Speech & Communication',
-            description: `Critical for ${topCareer?.title || 'teaching roles'} - develop presentation and communication skills`,
+            description: `Critical for teaching roles - develop presentation and communication skills`,
             credits: 1,
             prerequisites: [],
             provider: 'High School',
@@ -1218,7 +1218,7 @@ Provide your analysis in the following JSON format:
           {
             courseCode: 'ECON101',
             courseName: 'Economics',
-            description: `Important for ${topCareer?.title || 'business careers'} - understand markets, money, and economic principles`,
+            description: `Important for business careers - understand markets, money, and economic principles`,
             credits: 1,
             prerequisites: [],
             provider: 'High School',
@@ -1228,7 +1228,7 @@ Provide your analysis in the following JSON format:
           {
             courseCode: 'ACCT101',
             courseName: 'Accounting/Business Math',
-            description: `Essential for ${topCareer?.title || 'finance roles'} - learn financial record-keeping and analysis`,
+            description: `Essential for finance roles - learn financial record-keeping and analysis`,
             credits: 1,
             prerequisites: [],
             provider: 'High School',
@@ -1244,7 +1244,7 @@ Provide your analysis in the following JSON format:
           {
             courseCode: 'ART101',
             courseName: 'Visual Arts',
-            description: `Perfect for ${topCareer?.title || 'creative careers'} - develop artistic skills and creative thinking`,
+            description: `Perfect for creative careers - develop artistic skills and creative thinking`,
             credits: 1,
             prerequisites: [],
             provider: 'High School',
@@ -1254,7 +1254,7 @@ Provide your analysis in the following JSON format:
           {
             courseCode: 'MEDIA101',
             courseName: 'Media Arts',
-            description: `Great for ${topCareer?.title || 'design roles'} - learn digital design and multimedia creation`,
+            description: `Great for design roles - learn digital design and multimedia creation`,
             credits: 1,
             prerequisites: [],
             provider: 'High School',
@@ -1270,7 +1270,7 @@ Provide your analysis in the following JSON format:
           {
             courseCode: 'CHEM201',
             courseName: 'Advanced Chemistry',
-            description: `Essential for ${topCareer?.title || 'science careers'} - advanced chemical principles and lab techniques`,
+            description: `Essential for science careers - advanced chemical principles and lab techniques`,
             credits: 1,
             prerequisites: ['CHEM101'],
             provider: 'High School',
@@ -1280,7 +1280,7 @@ Provide your analysis in the following JSON format:
           {
             courseCode: 'STAT101',
             courseName: 'Statistics',
-            description: `Important for ${topCareer?.title || 'research roles'} - data analysis and scientific method`,
+            description: `Important for research roles - data analysis and scientific method`,
             credits: 1,
             prerequisites: [],
             provider: 'High School',
@@ -1296,7 +1296,7 @@ Provide your analysis in the following JSON format:
           {
             courseCode: 'SOC101',
             courseName: 'Social Studies/Civics',
-            description: `Important for ${topCareer?.title || 'public service roles'} - understand social issues and government`,
+            description: `Important for public service roles - understand social issues and government`,
             credits: 1,
             prerequisites: [],
             provider: 'High School',
@@ -1311,7 +1311,7 @@ Provide your analysis in the following JSON format:
         {
           courseCode: 'ENG101',
           courseName: 'English/Communication',
-          description: `Critical for ${topCareer?.title || 'any career'} - improve writing and speaking skills for professional success`,
+          description: `Critical for any career - improve writing and speaking skills for professional success`,
           credits: 1,
           prerequisites: [],
           provider: 'High School',
@@ -1378,7 +1378,7 @@ Provide your analysis in the following JSON format:
       skillGaps.push({
         skill: 'Communication',
         importance: 'Critical' as const,
-        howToAcquire: `Essential for ${topCareer?.title || 'any career'} - join speech/debate club, practice presentations, work on customer service`
+        howToAcquire: `Essential for any career - join speech/debate club, practice presentations, work on customer service`
       });
     }
 
@@ -1387,14 +1387,14 @@ Provide your analysis in the following JSON format:
       skillGaps.push({
         skill: 'Medical Terminology',
         importance: 'Critical',
-        howToAcquire: `Crucial for ${topCareer?.title || 'healthcare careers'} - take health sciences course, use medical terminology apps, volunteer at hospitals`
+        howToAcquire: `Crucial for healthcare careers - take health sciences course, use medical terminology apps, volunteer at hospitals`
       });
       
       if (!currentSkills.includes('Empathy')) {
         skillGaps.push({
           skill: 'Patient Care & Empathy',
           importance: 'Critical',
-          howToAcquire: `Key for ${topCareer?.title || 'healthcare'} - volunteer with elderly, practice active listening, take psychology courses`
+          howToAcquire: `Key for healthcare - volunteer with elderly, practice active listening, take psychology courses`
         });
       }
     }
@@ -1403,14 +1403,14 @@ Provide your analysis in the following JSON format:
       skillGaps.push({
         skill: 'Technical/Mechanical Skills',
         importance: 'Critical',
-        howToAcquire: `Essential for ${topCareer?.title || 'trades and construction'} - take shop class, work on DIY projects, find apprenticeships`
+        howToAcquire: `Essential for trades and construction - take shop class, work on DIY projects, find apprenticeships`
       });
       
       if (!currentSkills.includes('Problem Solving')) {
         skillGaps.push({
           skill: 'Troubleshooting & Problem Solving',
           importance: 'Important',
-          howToAcquire: `Important for ${topCareer?.title || 'technical work'} - practice fixing things, take engineering courses, work on puzzles and challenges`
+          howToAcquire: `Important for technical work - practice fixing things, take engineering courses, work on puzzles and challenges`
         });
       }
     }
@@ -1419,13 +1419,13 @@ Provide your analysis in the following JSON format:
       skillGaps.push({
         skill: 'Programming/Digital Literacy',
         importance: 'Critical',
-        howToAcquire: `Necessary for ${topCareer?.title || 'tech careers'} - learn Python or JavaScript online, take computer science courses, build projects`
+        howToAcquire: `Necessary for tech careers - learn Python or JavaScript online, take computer science courses, build projects`
       });
       
       skillGaps.push({
         skill: 'Analytical Thinking',
         importance: 'Important',
-        howToAcquire: `Valuable for ${topCareer?.title || 'technology roles'} - practice logic puzzles, take math courses, learn data analysis`
+        howToAcquire: `Valuable for technology roles - practice logic puzzles, take math courses, learn data analysis`
       });
     }
 
@@ -1433,7 +1433,7 @@ Provide your analysis in the following JSON format:
       skillGaps.push({
         skill: 'Leadership & Teamwork',
         importance: 'Important',
-        howToAcquire: `Important for ${topCareer?.title || 'public service'} - join student government, lead volunteer projects, participate in group activities`
+        howToAcquire: `Important for public service - join student government, lead volunteer projects, participate in group activities`
       });
     }
 
@@ -1442,7 +1442,7 @@ Provide your analysis in the following JSON format:
       skillGaps.push({
         skill: 'Financial Literacy',
         importance: 'Critical',
-        howToAcquire: `Essential for ${topCareer?.title || 'business careers'} - take economics courses, learn about budgeting and investments, practice with spreadsheets`
+        howToAcquire: `Essential for business careers - take economics courses, learn about budgeting and investments, practice with spreadsheets`
       });
     }
 
@@ -1450,7 +1450,7 @@ Provide your analysis in the following JSON format:
       skillGaps.push({
         skill: 'Patience & Mentoring',
         importance: 'Critical',
-        howToAcquire: `Key for ${topCareer?.title || 'education roles'} - tutor younger students, volunteer with children, practice explaining concepts clearly`
+        howToAcquire: `Key for education roles - tutor younger students, volunteer with children, practice explaining concepts clearly`
       });
     }
 
@@ -1458,7 +1458,7 @@ Provide your analysis in the following JSON format:
       skillGaps.push({
         skill: 'Creative Problem Solving',
         importance: 'Important',
-        howToAcquire: `Valuable for ${topCareer?.title || 'creative careers'} - practice art projects, learn design software, develop portfolio of creative work`
+        howToAcquire: `Valuable for creative careers - practice art projects, learn design software, develop portfolio of creative work`
       });
     }
 
@@ -1466,7 +1466,7 @@ Provide your analysis in the following JSON format:
       skillGaps.push({
         skill: 'Research & Analysis',
         importance: 'Critical',
-        howToAcquire: `Essential for ${topCareer?.title || 'science careers'} - participate in science fairs, learn statistical analysis, practice lab techniques`
+        howToAcquire: `Essential for science careers - participate in science fairs, learn statistical analysis, practice lab techniques`
       });
     }
 
@@ -1495,13 +1495,13 @@ Provide your analysis in the following JSON format:
       actionItems.push(
         {
           title: 'Volunteer at local hospital or clinic',
-          description: `Get hands-on experience in healthcare settings to prepare for ${topCareer?.title || 'medical careers'}`,
+          description: `Get hands-on experience in healthcare settings to prepare for medical careers`,
           priority: 'high',
           timeline: 'This month'
         },
         {
           title: 'Shadow a healthcare professional',
-          description: `Spend a day with a ${topCareer?.title || 'nurse, doctor, or medical technician'} to see the job firsthand`,
+          description: `Spend a day with a nurse, doctor, or medical technician to see the job firsthand`,
           priority: 'medium',
           timeline: 'Next 2 months'
         }
@@ -1512,13 +1512,13 @@ Provide your analysis in the following JSON format:
       actionItems.push(
         {
           title: 'Find apprenticeship or internship opportunities',
-          description: `Look for hands-on learning in ${topCareer?.title || 'construction, electrical, or mechanical trades'}`,
+          description: `Look for hands-on learning in construction, electrical, or mechanical trades`,
           priority: 'high',
           timeline: 'This month'
         },
         {
           title: 'Visit local construction sites or workshops',
-          description: `See ${topCareer?.title || 'trades work'} in action and talk to professionals about their careers`,
+          description: `See trades work in action and talk to professionals about their careers`,
           priority: 'medium',
           timeline: 'Next month'
         }
@@ -1529,13 +1529,13 @@ Provide your analysis in the following JSON format:
       actionItems.push(
         {
           title: 'Start learning programming online',
-          description: `Begin with Python or JavaScript to prepare for ${topCareer?.title || 'tech careers'} - use free resources like Codecademy`,
+          description: `Begin with Python or JavaScript to prepare for tech careers - use free resources like Codecademy`,
           priority: 'high',
           timeline: 'This month'
         },
         {
           title: 'Join computer science or robotics club',
-          description: `Connect with other tech-interested students and work on projects related to ${topCareer?.title || 'technology'}`,
+          description: `Connect with other tech-interested students and work on projects related to technology`,
           priority: 'medium',
           timeline: 'Next semester'
         }
@@ -1546,13 +1546,13 @@ Provide your analysis in the following JSON format:
       actionItems.push(
         {
           title: 'Start tutoring younger students',
-          description: `Gain teaching experience to prepare for ${topCareer?.title || 'education careers'} - volunteer at elementary schools or offer peer tutoring`,
+          description: `Gain teaching experience to prepare for education careers - volunteer at elementary schools or offer peer tutoring`,
           priority: 'high',
           timeline: 'This month'
         },
         {
           title: 'Observe different classroom settings',
-          description: `Visit various grade levels and teaching environments to understand ${topCareer?.title || 'education roles'}`,
+          description: `Visit various grade levels and teaching environments to understand education roles`,
           priority: 'medium',
           timeline: 'Next 2 months'
         }
@@ -1563,13 +1563,13 @@ Provide your analysis in the following JSON format:
       actionItems.push(
         {
           title: 'Join business or entrepreneurship club',
-          description: `Develop business skills for ${topCareer?.title || 'business careers'} - learn about markets, finance, and leadership`,
+          description: `Develop business skills for business careers - learn about markets, finance, and leadership`,
           priority: 'high',
           timeline: 'This month'
         },
         {
           title: 'Find part-time job in retail or customer service',
-          description: `Gain real-world business experience relevant to ${topCareer?.title || 'business roles'}`,
+          description: `Gain real-world business experience relevant to business roles`,
           priority: 'medium',
           timeline: 'Next 3 months'
         }
@@ -1580,13 +1580,13 @@ Provide your analysis in the following JSON format:
       actionItems.push(
         {
           title: 'Build a creative portfolio',
-          description: `Create a collection of your best work for ${topCareer?.title || 'creative careers'} - art, design, writing, or multimedia projects`,
+          description: `Create a collection of your best work for creative careers - art, design, writing, or multimedia projects`,
           priority: 'high',
           timeline: 'This month'
         },
         {
           title: 'Enter art competitions or shows',
-          description: `Showcase your talents and get feedback relevant to ${topCareer?.title || 'creative fields'}`,
+          description: `Showcase your talents and get feedback relevant to creative fields`,
           priority: 'medium',
           timeline: 'Next 3 months'
         }
@@ -1597,13 +1597,13 @@ Provide your analysis in the following JSON format:
       actionItems.push(
         {
           title: 'Participate in science fair or research project',
-          description: `Develop research skills for ${topCareer?.title || 'science careers'} - design experiments and analyze data`,
+          description: `Develop research skills for science careers - design experiments and analyze data`,
           priority: 'high',
           timeline: 'This semester'
         },
         {
           title: 'Contact local research facilities',
-          description: `Explore internship opportunities in labs or research centers related to ${topCareer?.title || 'scientific work'}`,
+          description: `Explore internship opportunities in labs or research centers related to scientific work`,
           priority: 'medium',
           timeline: 'Next 2 months'
         }
@@ -1745,15 +1745,15 @@ Provide your analysis in the following JSON format:
     
     const recommendations: { [key: string]: { [key: string]: string } } = {
       'interests': {
-        'Healthcare': `Take Biology, Chemistry, and Health Sciences courses to prepare for ${topCareer.title}`,
-        'Hands-on Work': `Enroll in Shop class, Industrial Arts, or Engineering courses for ${topCareer.title}`,
-        'Technology': `Take Computer Science, Programming, or Digital Media courses for ${topCareer.title}`,
-        'Community Impact': `Join volunteer organizations and take Social Studies courses for ${topCareer.title}`
+        'Healthcare': `Take Biology, Chemistry, and Health Sciences courses to prepare for healthcare careers`,
+        'Hands-on Work': `Enroll in Shop class, Industrial Arts, or Engineering courses for construction and trades`,
+        'Technology': `Take Computer Science, Programming, or Digital Media courses for technology careers`,
+        'Community Impact': `Join volunteer organizations and take Social Studies courses for public service roles`
       },
       'work_environment': {
-        'Outdoors': `Look for internships or job shadowing in outdoor ${topCareer.title} roles`,
-        'Indoors': `Seek office-based or lab experiences in ${topCareer.title}`,
-        'Mixed': `Explore both field and office aspects of ${topCareer.title}`
+        'Outdoors': `Look for internships or job shadowing in outdoor roles related to your interests`,
+        'Indoors': `Seek office-based or lab experiences in your field of interest`,
+        'Mixed': `Explore both field and office aspects of careers that interest you`
       }
     };
 
