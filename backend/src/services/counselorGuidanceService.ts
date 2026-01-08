@@ -3,6 +3,7 @@ import { CareerMatch, AssessmentAnswer } from '../types';
 import { AIRecommendationService } from './aiRecommendationService';
 import { DynamicSalaryService } from './dynamicSalaryService';
 import { EnhancedCareerService } from './enhancedCareerService';
+import { CareerMatchingService, EnhancedCareerMatch } from './careerMatchingService';
 
 export interface CounselorAssessmentResponse {
   grade?: number;
@@ -42,6 +43,11 @@ export interface JobRecommendation {
     postSecondaryOptions: string[];
     timeToCareer: string;
     estimatedCost: number;
+  };
+  careerPathway?: {
+    steps: string[];
+    timeline: string;
+    requirements: string[];
   };
 }
 
@@ -135,9 +141,9 @@ export class CounselorGuidanceService {
       const studentProfile = this.convertToStudentProfile(responses);
       console.log('👤 Student Profile:', JSON.stringify(studentProfile, null, 2));
       
-      // STEP 1: Get enhanced career matches with dynamic salary data
+      // STEP 1: Get enhanced career matches with AI insights and individual pathways
       console.log('\n' + '='.repeat(80));
-      console.log('💰 STEP 1: GETTING ENHANCED CAREER MATCHES WITH DYNAMIC SALARY DATA');
+      console.log('🤖 STEP 1: GETTING ENHANCED CAREER MATCHES WITH AI INSIGHTS');
       console.log('='.repeat(80));
       
       const enhancedResult = await EnhancedCareerService.getCareerMatchesWithDynamicSalaries(
@@ -146,8 +152,16 @@ export class CounselorGuidanceService {
         responses.zipCode || ''
       );
       
+      // Get AI-enhanced matches with individual career pathways
+      const enhancedCareerMatches = await CareerMatchingService.getEnhancedMatches(
+        studentProfile,
+        this.convertToAssessmentAnswers(responses),
+        enhancedResult.careerMatches
+      );
+      
       console.log('📊 Enhanced Career Analysis Results:');
       console.log('   - Career matches found:', enhancedResult.careerMatches.length);
+      console.log('   - AI-enhanced matches:', enhancedCareerMatches.length);
       console.log('   - Dynamic data available:', enhancedResult.insights.dynamicDataAvailable);
       console.log('   - Jobs analyzed:', enhancedResult.insights.jobsAnalyzed);
       console.log('   - Average salary difference:', enhancedResult.insights.averageSalaryDifference.toLocaleString());
@@ -189,13 +203,13 @@ export class CounselorGuidanceService {
         }
       });
 
-      // STEP 2: Generate detailed job recommendations with dynamic salary data
+      // STEP 2: Generate detailed job recommendations with enhanced career pathways
       console.log('\n' + '='.repeat(80));
-      console.log('💼 STEP 2: GENERATING JOB RECOMMENDATIONS WITH DYNAMIC SALARY DATA');
+      console.log('💼 STEP 2: GENERATING JOB RECOMMENDATIONS WITH ENHANCED CAREER PATHWAYS');
       console.log('='.repeat(80));
       
-      const jobRecommendations = await this.generateJobRecommendationsWithDynamicSalary(
-        topMatches, 
+      const jobRecommendations = await this.generateJobRecommendationsFromEnhanced(
+        enhancedCareerMatches, 
         responses.zipCode || '', 
         responses.grade || 11,
         enhancedResult.salaryData
@@ -439,6 +453,37 @@ export class CounselorGuidanceService {
     
     const title = career.title.toLowerCase();
     return !inappropriateKeywords.some(keyword => title.includes(keyword));
+  }
+
+  /**
+   * Generate detailed job recommendations from enhanced career matches (includes individual career pathways)
+   */
+  private static async generateJobRecommendationsFromEnhanced(
+    enhancedMatches: EnhancedCareerMatch[],
+    zipCode: string,
+    grade: number,
+    salaryData: any
+  ): Promise<JobRecommendation[]> {
+    const recommendations: JobRecommendation[] = [];
+
+    for (const match of enhancedMatches) {
+      // Get local job market data using dynamic salary analysis
+      const localData = await this.getLocalJobDataWithDynamicSalary(match.career, zipCode, salaryData);
+      
+      // Get education path
+      const educationPath = this.createEducationPath(match.career, grade);
+      
+      recommendations.push({
+        career: match.career,
+        matchScore: match.matchScore,
+        matchReasons: match.reasoningFactors || this.generateMatchReasons(match),
+        localOpportunities: localData,
+        educationPath,
+        careerPathway: match.careerPathway // Include the individual career pathway
+      });
+    }
+
+    return recommendations;
   }
 
   /**
