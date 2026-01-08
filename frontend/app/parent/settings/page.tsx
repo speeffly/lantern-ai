@@ -22,6 +22,11 @@ export default function ParentSettingsPage() {
   const router = useRouter();
   const [user, setUser] = useState<Parent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [childEmail, setChildEmail] = useState('');
+  const [isLinking, setIsLinking] = useState(false);
+  const [linkError, setLinkError] = useState('');
+  const [linkSuccess, setLinkSuccess] = useState('');
 
   useEffect(() => {
     checkAuth();
@@ -89,6 +94,59 @@ export default function ParentSettingsPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleLinkChild = async () => {
+    if (!childEmail.trim()) {
+      setLinkError('Please enter a valid email address');
+      return;
+    }
+
+    setIsLinking(true);
+    setLinkError('');
+    setLinkSuccess('');
+
+    try {
+      const token = localStorage.getItem('token');
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      
+      const response = await fetch(`${apiUrl}/api/auth-db/link-child`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ childEmail: childEmail.trim() })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setLinkSuccess(`Successfully linked ${data.data.child.firstName} ${data.data.child.lastName} to your account!`);
+        setChildEmail('');
+        
+        // Refresh user data to show the new child
+        setTimeout(() => {
+          setShowLinkModal(false);
+          setLinkSuccess('');
+          checkAuth(); // Reload user data
+        }, 2000);
+      } else {
+        setLinkError(data.error || 'Failed to link child account');
+      }
+    } catch (error) {
+      console.error('Error linking child:', error);
+      setLinkError('Network error. Please try again.');
+    } finally {
+      setIsLinking(false);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowLinkModal(false);
+    setChildEmail('');
+    setLinkError('');
+    setLinkSuccess('');
   };
 
   if (isLoading) {
@@ -190,7 +248,10 @@ export default function ParentSettingsPage() {
               </div>
             )}
             <div className="mt-4">
-              <button className="w-full px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm">
+              <button 
+                onClick={() => setShowLinkModal(true)}
+                className="w-full px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm"
+              >
                 Link Child Account
               </button>
             </div>
@@ -340,6 +401,82 @@ export default function ParentSettingsPage() {
           </Link>
         </div>
       </div>
+
+      {/* Link Child Account Modal */}
+      {showLinkModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Link Child Account</h3>
+              <button
+                onClick={handleCloseModal}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <p className="text-gray-600 mb-4">
+                Enter your child's email address to link their student account to your parent account.
+              </p>
+              
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Child's Email Address
+              </label>
+              <input
+                type="email"
+                value={childEmail}
+                onChange={(e) => setChildEmail(e.target.value)}
+                placeholder="student@example.com"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                disabled={isLinking}
+              />
+            </div>
+
+            {linkError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-700 text-sm">{linkError}</p>
+              </div>
+            )}
+
+            {linkSuccess && (
+              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-green-700 text-sm">{linkSuccess}</p>
+              </div>
+            )}
+
+            <div className="flex space-x-3">
+              <button
+                onClick={handleCloseModal}
+                className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                disabled={isLinking}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleLinkChild}
+                disabled={isLinking || !childEmail.trim()}
+                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLinking ? 'Linking...' : 'Link Account'}
+              </button>
+            </div>
+
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <h4 className="font-medium text-blue-900 mb-2">How it works:</h4>
+              <ul className="text-blue-700 text-sm space-y-1">
+                <li>• Your child must have a student account with this email</li>
+                <li>• Once linked, you can view their assessment progress</li>
+                <li>• Your child will still have full control of their account</li>
+                <li>• You can unlink accounts at any time</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

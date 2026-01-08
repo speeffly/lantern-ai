@@ -161,9 +161,25 @@ export class AuthServiceDB {
           break;
       }
 
+      // Get related users for the profile
+      const relatedUsers = await this.getRelatedUsers(userId, user.role);
+      
+      // For parents, add children data
+      let children: any[] = [];
+      if (user.role === 'parent') {
+        children = relatedUsers.map(child => ({
+          studentId: child.id,
+          firstName: (child as any).first_name || (child as any).firstName,
+          lastName: (child as any).last_name || (child as any).lastName,
+          email: child.email,
+          grade: (child as any).profile?.grade || null
+        }));
+      }
+
       return {
         ...user,
-        profile
+        profile,
+        children: user.role === 'parent' ? children : undefined
       };
     } catch (error) {
       console.error('❌ Error getting user profile:', error);

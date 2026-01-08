@@ -319,4 +319,99 @@ router.post('/link-session', async (req, res) => {
   }
 });
 
+// POST /api/auth/link-child - Link child account to parent
+router.post('/link-child', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        error: 'No token provided'
+      } as ApiResponse);
+    }
+
+    const user = AuthServiceDB.verifyToken(token);
+    if (!user || user.role !== 'parent') {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid token or not a parent'
+      } as ApiResponse);
+    }
+
+    const { childEmail } = req.body;
+    if (!childEmail) {
+      return res.status(400).json({
+        success: false,
+        error: 'Child email is required'
+      } as ApiResponse);
+    }
+
+    // Find the child by email
+    const { UserService } = await import('../services/userService');
+    const child = await UserService.getUserByEmail(childEmail);
+    
+    if (!child) {
+      return res.status(404).json({
+        success: false,
+        error: 'Student not found with this email address'
+      } as ApiResponse);
+    }
+
+    if (child.role !== 'student') {
+      return res.status(400).json({
+        success: false,
+        error: 'The account found is not a student account'
+      } as ApiResponse);
+    }
+
+    // Check if relationship already exists
+    const existingRelationship = await RelationshipService.getRelationship(
+      parseInt(user.id),
+      parseInt(child.id),
+      'parent_child'
+    );
+
+    if (existingRelationship) {
+      return res.status(400).json({
+        success: false,
+        error: 'This child is already linked to your account'
+      } as ApiResponse);
+    }
+
+    // Create the parent-child relationship
+    const result = await AuthServiceDB.createRelationship(
+      parseInt(user.id),
+      parseInt(child.id),
+      'parent_child',
+      parseInt(user.id)
+    );
+
+    if (result.success) {
+      res.status(201).json({
+        success: true,
+        data: {
+          child: {
+            id: child.id,
+            firstName: (child as any).first_name || (child as any).firstName,
+            lastName: (child as any).last_name || (child as any).lastName,
+            email: child.email
+          }
+        },
+        message: 'Child account linked successfully'
+      } as ApiResponse);
+    } else {
+      res.status(400).json({
+        success: false,
+        error: result.error || 'Failed to link child account'
+      } as ApiResponse);
+    }
+  } catch (error) {
+    console.error('Child linking error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to link child account'
+    } as ApiResponse);
+  }
+});
+
 export default router;

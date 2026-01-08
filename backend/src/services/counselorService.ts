@@ -554,7 +554,6 @@ export class CounselorService {
         
         // Method 1: Check for completed status or completed_at timestamp
         const completedSessions = assessmentSessions.filter(session => 
-          session.status === 'completed' || 
           session.completed_at !== null
         );
         
