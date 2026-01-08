@@ -49,6 +49,11 @@ export interface JobRecommendation {
     timeline: string;
     requirements: string[];
   };
+  skillGaps?: {
+    skill: string;
+    importance: string;
+    howToAcquire: string;
+  }[];
 }
 
 export interface FourYearActionPlan {
@@ -479,7 +484,8 @@ export class CounselorGuidanceService {
         matchReasons: match.reasoningFactors || this.generateMatchReasons(match),
         localOpportunities: localData,
         educationPath,
-        careerPathway: match.careerPathway // Include the individual career pathway
+        careerPathway: match.careerPathway, // Include the individual career pathway
+        skillGaps: match.skillGaps // Include the individual skill gaps
       });
     }
 

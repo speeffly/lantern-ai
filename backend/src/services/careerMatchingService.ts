@@ -14,6 +14,11 @@ export interface EnhancedCareerMatch extends CareerMatch {
     timeline: string;
     requirements: string[];
   };
+  skillGaps: {
+    skill: string;
+    importance: string;
+    howToAcquire: string;
+  }[];
 }
 
 export class CareerMatchingService {
@@ -34,15 +39,17 @@ export class CareerMatchingService {
 
       for (const match of topMatches) {
         try {
-          const [aiInsights, careerPathway] = await Promise.all([
+          const [aiInsights, careerPathway, skillGaps] = await Promise.all([
             this.getCareerInsights(profile, answers, match),
-            this.getCareerSpecificPathway(profile, answers, match)
+            this.getCareerSpecificPathway(profile, answers, match),
+            this.getCareerSpecificSkillGaps(profile, answers, match)
           ]);
           
           enhancedMatches.push({
             ...match,
             aiInsights,
-            careerPathway
+            careerPathway,
+            skillGaps
           });
         } catch (error) {
           console.error(`❌ Failed to get AI insights for ${match.career.title}:`, error);
@@ -50,7 +57,8 @@ export class CareerMatchingService {
           enhancedMatches.push({
             ...match,
             aiInsights: this.getBasicInsights(match),
-            careerPathway: this.getBasicCareerPathway(match)
+            careerPathway: this.getBasicCareerPathway(match),
+            skillGaps: this.getBasicSkillGaps(match)
           });
         }
       }
@@ -64,9 +72,162 @@ export class CareerMatchingService {
       return baseMatches.slice(0, 5).map(match => ({
         ...match,
         aiInsights: this.getBasicInsights(match),
-        careerPathway: this.getBasicCareerPathway(match)
+        careerPathway: this.getBasicCareerPathway(match),
+        skillGaps: this.getBasicSkillGaps(match)
       }));
     }
+  }
+
+  /**
+   * Get career-specific skill gaps for a specific career match
+   */
+  private static async getCareerSpecificSkillGaps(
+    profile: Partial<StudentProfile>,
+    answers: AssessmentAnswer[],
+    match: CareerMatch
+  ): Promise<EnhancedCareerMatch['skillGaps']> {
+    const prompt = `You are a career counselor identifying specific skill gaps for a student interested in a particular career.
+
+STUDENT PROFILE:
+- Interests: ${profile.interests?.join(', ') || 'Various'}
+- Skills: ${profile.skills?.join(', ') || 'Developing'}
+- Work Environment: ${profile.workEnvironment || 'Flexible'}
+- Education Goal: ${profile.educationGoal || 'Exploring options'}
+
+SPECIFIC CAREER:
+- Title: ${match.career.title}
+- Sector: ${match.career.sector}
+- Required Education: ${match.career.requiredEducation}
+- Average Salary: ${match.career.averageSalary.toLocaleString()}
+- Certifications: ${match.career.certifications?.join(', ') || 'None specified'}
+
+ASSESSMENT RESPONSES:
+${answers.map(answer => `- ${answer.questionId}: ${answer.answer}`).join('\n')}
+
+Identify the top 3-4 skill gaps this student needs to address specifically for ${match.career.title}. Focus on skills that are critical for this specific career, not generic skills.
+
+IMPORTANT: Return ONLY valid JSON. No additional text or explanations outside the JSON object.
+
+{
+  "skillGaps": [
+    {
+      "skill": "Specific skill name for ${match.career.title}",
+      "importance": "Critical",
+      "howToAcquire": "Specific advice for developing this skill for ${match.career.title} career"
+    },
+    {
+      "skill": "Another specific skill for ${match.career.title}",
+      "importance": "Important", 
+      "howToAcquire": "Specific advice for this skill in ${match.career.title} context"
+    }
+  ]
+}
+
+Make each skill specific to ${match.career.title} - avoid generic skills like "communication" unless they have career-specific context.`;
+
+    try {
+      // Use the same AI service as the main recommendations
+      const aiResponse = await AIRecommendationService.callAI(prompt);
+      
+      // Parse the response
+      const cleanedJson = this.cleanCareerPathwayJSON(aiResponse);
+      const parsed = JSON.parse(cleanedJson);
+      
+      return parsed.skillGaps || this.getBasicSkillGaps(match);
+      
+    } catch (error) {
+      console.error(`❌ Failed to generate AI skill gaps for ${match.career.title}:`, error);
+      return this.getBasicSkillGaps(match);
+    }
+  }
+
+  /**
+   * Get basic skill gaps as fallback
+   */
+  private static getBasicSkillGaps(match: CareerMatch): EnhancedCareerMatch['skillGaps'] {
+    const career = match.career;
+    
+    // Generate career-specific skill gaps based on sector
+    const skillGaps: EnhancedCareerMatch['skillGaps'] = [];
+    
+    switch (career.sector) {
+      case 'healthcare':
+        skillGaps.push(
+          {
+            skill: 'Medical Terminology',
+            importance: 'Critical',
+            howToAcquire: `Essential for ${career.title} - take health sciences courses, use medical terminology apps, volunteer at hospitals`
+          },
+          {
+            skill: 'Patient Care Skills',
+            importance: 'Critical',
+            howToAcquire: `Key for ${career.title} - volunteer with elderly, practice active listening, take psychology courses`
+          }
+        );
+        break;
+        
+      case 'creative':
+        skillGaps.push(
+          {
+            skill: 'Creative Problem Solving',
+            importance: 'Critical',
+            howToAcquire: `Essential for ${career.title} - practice art projects, learn design software, develop portfolio of creative work`
+          },
+          {
+            skill: 'Visual Design Skills',
+            importance: 'Critical',
+            howToAcquire: `Key for ${career.title} - learn Adobe Creative Suite, practice composition and color theory, study design principles`
+          }
+        );
+        break;
+        
+      case 'technology':
+        skillGaps.push(
+          {
+            skill: 'Programming Skills',
+            importance: 'Critical',
+            howToAcquire: `Necessary for ${career.title} - learn Python or JavaScript online, take computer science courses, build projects`
+          },
+          {
+            skill: 'Technical Problem Solving',
+            importance: 'Important',
+            howToAcquire: `Valuable for ${career.title} - practice logic puzzles, take math courses, learn data analysis`
+          }
+        );
+        break;
+        
+      case 'infrastructure':
+      case 'manufacturing':
+        skillGaps.push(
+          {
+            skill: 'Technical/Mechanical Skills',
+            importance: 'Critical',
+            howToAcquire: `Essential for ${career.title} - take shop class, work on DIY projects, find apprenticeships`
+          },
+          {
+            skill: 'Safety Protocols',
+            importance: 'Critical',
+            howToAcquire: `Important for ${career.title} - learn OSHA regulations, practice safety procedures, understand workplace hazards`
+          }
+        );
+        break;
+        
+      default:
+        skillGaps.push(
+          {
+            skill: 'Communication',
+            importance: 'Important',
+            howToAcquire: `Essential for ${career.title} - join speech/debate club, practice presentations, work on customer service`
+          },
+          {
+            skill: 'Industry Knowledge',
+            importance: 'Important',
+            howToAcquire: `Important for ${career.title} - research industry trends, follow professional publications, network with professionals`
+          }
+        );
+    }
+    
+    return skillGaps;
   }
 
   /**
