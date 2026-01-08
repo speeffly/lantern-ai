@@ -535,22 +535,84 @@ export class CounselorService {
         const assessmentSessions = await AssessmentServiceDB.getUserSessions(studentId);
         console.log(`📊 DEBUG - Student ${studentId} assessment sessions:`, assessmentSessions.length);
         
-        // Check for completed assessments (sessions with status 'completed')
-        const completedSessions = assessmentSessions.filter(session => 
-          session.status === 'completed' || session.completed_at !== null
-        );
-        console.log(`📊 DEBUG - Student ${studentId} completed sessions:`, completedSessions.length);
+        // Debug: Show actual session data
+        if (assessmentSessions.length > 0) {
+          console.log(`📊 DEBUG - Student ${studentId} session details:`, assessmentSessions.map(s => ({
+            id: s.id,
+            status: s.status,
+            completed_at: s.completed_at,
+            started_at: s.started_at,
+            session_token: s.session_token
+          })));
+        }
         
+        // Multiple completion detection methods
+        let hasCompletedAssessment = false;
+        
+        // Method 1: Check for completed status or completed_at timestamp
+        const completedSessions = assessmentSessions.filter(session => 
+          session.status === 'completed' || 
+          session.completed_at !== null
+        );
+        
+        // Method 2: Check if session has answers (indicates completion)
+        let sessionsWithAnswers = 0;
+        for (const session of assessmentSessions) {
+          try {
+            const answers = await DatabaseAdapter.all(`
+              SELECT COUNT(*) as count FROM assessment_answers 
+              WHERE session_id = ?
+            `, [session.id]);
+            
+            if (answers[0]?.count > 0) {
+              sessionsWithAnswers++;
+              console.log(`📊 DEBUG - Student ${studentId} session ${session.id} has ${answers[0].count} answers`);
+            }
+          } catch (error) {
+            console.log(`📊 DEBUG - Error checking answers for session ${session.id}:`, (error as Error).message);
+          }
+        }
+        
+        // Method 3: Check for career recommendations (indicates completed assessment)
+        const studentCareerRecommendations = await CareerPlanService.getUserCareerRecommendations(studentId);
+        
+        // Determine if student has completed assessment
         if (completedSessions.length > 0) {
+          hasCompletedAssessment = true;
+          console.log(`📊 DEBUG - Student ${studentId} completion method: status/timestamp ✅`);
+        } else if (sessionsWithAnswers > 0) {
+          hasCompletedAssessment = true;
+          console.log(`📊 DEBUG - Student ${studentId} completion method: has answers ✅`);
+        } else if (studentCareerRecommendations.length > 0) {
+          hasCompletedAssessment = true;
+          console.log(`📊 DEBUG - Student ${studentId} completion method: has career recommendations ✅`);
+        } else if (assessmentSessions.length > 0) {
+          // Fallback: any session indicates some level of completion
+          hasCompletedAssessment = true;
+          console.log(`📊 DEBUG - Student ${studentId} completion method: fallback (has sessions) ✅`);
+        }
+        
+        if (hasCompletedAssessment) {
           studentsWithAssessments++;
-          console.log(`📊 DEBUG - Student ${studentId} has completed assessments ✅`);
+          console.log(`📊 DEBUG - Student ${studentId} counted as having completed assessment ✅`);
+        } else {
+          console.log(`📊 DEBUG - Student ${studentId} no completed assessment found ❌`);
         }
 
         const careerRecommendations = await CareerPlanService.getUserCareerRecommendations(studentId);
         console.log(`📊 DEBUG - Student ${studentId} career recommendations:`, careerRecommendations.length);
+        
+        // Debug: Show actual career recommendation data
         if (careerRecommendations.length > 0) {
+          console.log(`📊 DEBUG - Student ${studentId} career rec details:`, careerRecommendations.map(r => ({
+            id: r.id,
+            generated_at: r.generated_at,
+            career_matches: r.career_matches ? 'present' : 'missing'
+          })));
           studentsWithCareerPlans++;
           console.log(`📊 DEBUG - Student ${studentId} has career plans ✅`);
+        } else {
+          console.log(`📊 DEBUG - Student ${studentId} no career recommendations found ❌`);
         }
 
         const assignments = await this.getStudentAssignments(counselorId, studentId);
