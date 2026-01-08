@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { StudentProfile, AssessmentAnswer, CareerMatch, AIRecommendations, LocalJobOpportunity, CourseRecommendation } from '../types';
+import { StudentProfile, AssessmentAnswer, CareerMatch, AIRecommendations, LocalJobOpportunity, CourseRecommendation, Career } from '../types';
 import { FeedbackService } from './feedbackService';
 import { RealJobProvider } from './realJobProvider';
 import { CareerMatchingService, EnhancedCareerMatch } from './careerMatchingService';
@@ -569,9 +569,9 @@ Provide your analysis in the following JSON format:
           longTerm: []
         },
         localJobs: localJobs,
-        careerPathway: parsed.careerPathway || this.getDefaultCareerPathway(careerMatches),
-        skillGaps: parsed.skillGaps || this.getDefaultSkillGaps(careerMatches),
-        actionItems: parsed.actionItems || this.getDefaultActionItems(profile)
+        careerPathway: parsed.careerPathway || this.getPersonalizedCareerPathway(careerMatches, profile.interests || [], currentGrade || 11),
+        skillGaps: parsed.skillGaps || this.getPersonalizedSkillGaps(careerMatches, profile.interests || [], profile.skills || []),
+        actionItems: parsed.actionItems || this.getPersonalizedActionItems(profile, careerMatches, currentGrade || 11)
       };
       
     } catch (error) {
@@ -589,9 +589,9 @@ Provide your analysis in the following JSON format:
           return {
             localJobs: localJobs,
             academicPlan: academicPlanOnly,
-            careerPathway: this.getDefaultCareerPathway(careerMatches),
-            skillGaps: this.getDefaultSkillGaps(careerMatches),
-            actionItems: this.getDefaultActionItems(profile)
+            careerPathway: this.getPersonalizedCareerPathway(careerMatches, profile.interests || [], currentGrade || 11),
+            skillGaps: this.getPersonalizedSkillGaps(careerMatches, profile.interests || [], profile.skills || []),
+            actionItems: this.getPersonalizedActionItems(profile, careerMatches, currentGrade || 11)
           };
         }
       } catch (extractError) {
@@ -609,8 +609,8 @@ Provide your analysis in the following JSON format:
             careerPathway: (simpleExtraction.careerPathway && 'steps' in simpleExtraction.careerPathway) 
               ? simpleExtraction.careerPathway 
               : { steps: [], timeline: '2-4 years', requirements: [] },
-            skillGaps: simpleExtraction.skillGaps || this.getDefaultSkillGaps(careerMatches),
-            actionItems: simpleExtraction.actionItems || this.getDefaultActionItems(profile)
+            skillGaps: simpleExtraction.skillGaps || this.getPersonalizedSkillGaps(careerMatches, profile.interests || [], profile.skills || []),
+            actionItems: simpleExtraction.actionItems || this.getPersonalizedActionItems(profile, careerMatches, currentGrade || 11)
           };
         }
       } catch (extractError) {
@@ -728,8 +728,8 @@ Provide your analysis in the following JSON format:
           timeline: '2-4 years',
           requirements: []
         },
-        skillGaps: this.getDefaultSkillGaps(careerMatches),
-        actionItems: this.getDefaultActionItems(profile)
+        skillGaps: this.getPersonalizedSkillGaps(careerMatches, profile.interests || [], profile.skills || []),
+        actionItems: this.getPersonalizedActionItems(profile, careerMatches, 11)
       };
     } catch (error) {
       return null;
@@ -1082,7 +1082,7 @@ Provide your analysis in the following JSON format:
   private static getPersonalizedCourses(
     grade: number,
     interests: string[],
-    topCareer?: Career,
+    topCareer: Career | undefined,
     timeframe: 'current' | 'next' | 'longterm'
   ): CourseRecommendation[] {
     const courses: CourseRecommendation[] = [];
