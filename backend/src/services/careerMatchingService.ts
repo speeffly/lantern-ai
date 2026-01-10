@@ -56,7 +56,7 @@ export class CareerMatchingService {
           // Fallback to basic insights
           enhancedMatches.push({
             ...match,
-            aiInsights: this.getBasicInsights(match),
+            aiInsights: this.getBasicInsights(match, profile, answers),
             careerPathway: this.getBasicCareerPathway(match),
             skillGaps: this.getBasicSkillGaps(match)
           });
@@ -71,7 +71,7 @@ export class CareerMatchingService {
       // Return basic matches without AI enhancement
       return baseMatches.slice(0, 5).map(match => ({
         ...match,
-        aiInsights: this.getBasicInsights(match),
+        aiInsights: this.getBasicInsights(match, profile, answers),
         careerPathway: this.getBasicCareerPathway(match),
         skillGaps: this.getBasicSkillGaps(match)
       }));
@@ -483,7 +483,7 @@ Make each step specific to ${match.career.title} - avoid generic language. Refer
   }
 
   /**
-   * Get AI insights for a specific career match
+   * Get AI insights for a specific career match with enhanced explainability
    */
   private static async getCareerInsights(
     profile: Partial<StudentProfile>,
@@ -503,25 +503,25 @@ CAREER MATCH:
 - Sector: ${match.career.sector}
 - Match Score: ${match.matchScore}%
 - Required Education: ${match.career.requiredEducation}
-- Average Salary: $${match.career.averageSalary.toLocaleString()}
+- Average Salary: ${match.career.averageSalary.toLocaleString()}
 - Growth Outlook: ${match.career.growthOutlook}
 
 ASSESSMENT RESPONSES:
 ${answers.map(answer => `- ${answer.questionId}: ${answer.answer}`).join('\n')}
 
-Provide a personalized analysis in JSON format:
+Provide a personalized analysis that explains SPECIFICALLY why this career matches this student. Reference their actual interests, skills, and assessment responses. Be concrete and specific, not generic.
 
 IMPORTANT: Return ONLY valid JSON. No additional text or explanations outside the JSON object.
 
 {
-  "whyItMatches": "2-3 sentences explaining why this career aligns with the student's interests, skills, and goals",
-  "personalizedDescription": "Rewrite the career description in a way that connects to this specific student's interests and strengths",
-  "keyStrengths": ["strength 1 that applies to this career", "strength 2", "strength 3"],
-  "developmentAreas": ["skill 1 to develop", "skill 2 to develop", "skill 3 to develop"],
-  "nextSteps": ["immediate action 1", "immediate action 2", "immediate action 3"]
+  "whyItMatches": "Explain SPECIFICALLY why ${match.career.title} matches this student's interests in [specific interest], their skills in [specific skill], and their preference for [specific preference]. Reference their actual assessment responses and be concrete about the connections.",
+  "personalizedDescription": "Rewrite the ${match.career.title} description to connect directly to this student's interests in [specific interests] and their goal of [specific goal]. Make it personal and relevant to them.",
+  "keyStrengths": ["specific strength 1 that this student has for ${match.career.title}", "specific strength 2 from their profile", "specific strength 3 based on their responses"],
+  "developmentAreas": ["specific skill 1 this student should develop for ${match.career.title}", "specific skill 2 based on their gaps", "specific skill 3 for career success"],
+  "nextSteps": ["immediate action 1 specific to this student and ${match.career.title}", "immediate action 2 based on their situation", "immediate action 3 for career preparation"]
 }
 
-Focus on being specific and actionable for this individual student.`;
+CRITICAL: Reference the student's actual interests (${profile.interests?.join(', ')}) and assessment responses. Don't use generic language - be specific about why THIS student matches THIS career.`;
 
     const aiResponse = await AIRecommendationService.callAI(prompt);
     
@@ -543,24 +543,549 @@ Focus on being specific and actionable for this individual student.`;
       };
     } catch (parseError) {
       console.error('Failed to parse career insights:', parseError);
-      return this.getBasicInsights(match);
+      return this.getBasicInsights(match, profile, answers);
     }
   }
 
   /**
-   * Fallback basic insights when AI fails
+   * Enhanced fallback basic insights with sector-specific explainability
    */
-  private static getBasicInsights(match: CareerMatch): EnhancedCareerMatch['aiInsights'] {
+  private static getBasicInsights(
+    match: CareerMatch, 
+    profile: Partial<StudentProfile>, 
+    answers: AssessmentAnswer[]
+  ): EnhancedCareerMatch['aiInsights'] {
+    const career = match.career;
+    const interests = profile.interests || [];
+    const skills = profile.skills || [];
+    
+    // Generate sector-specific explanations
+    const sectorSpecificExplanation = this.generateSectorSpecificExplanation(career, interests, skills, match.matchScore);
+    const sectorSpecificStrengths = this.generateSectorSpecificStrengths(career, interests, skills);
+    const sectorSpecificDevelopmentAreas = this.generateSectorSpecificDevelopmentAreas(career, interests, skills);
+    const sectorSpecificNextSteps = this.generateSectorSpecificNextSteps(career, profile);
+    
     return {
-      whyItMatches: `This career scored ${match.matchScore}% based on your assessment responses and shows strong alignment with your interests.`,
-      personalizedDescription: match.career.description || `${match.career.title} professionals work in ${match.career.sector} and typically earn around $${match.career.averageSalary.toLocaleString()} annually.`,
-      keyStrengths: ['Communication skills', 'Problem-solving abilities', 'Adaptability'],
-      developmentAreas: ['Industry-specific knowledge', 'Technical skills', 'Professional experience'],
-      nextSteps: [
-        `Research ${match.career.title} job requirements`,
-        'Connect with professionals in the field',
-        `Explore ${match.career.requiredEducation} programs`
-      ]
+      whyItMatches: sectorSpecificExplanation,
+      personalizedDescription: this.generatePersonalizedDescription(career, interests, skills),
+      keyStrengths: sectorSpecificStrengths,
+      developmentAreas: sectorSpecificDevelopmentAreas,
+      nextSteps: sectorSpecificNextSteps
     };
+  }
+
+  /**
+   * Generate sector-specific explanation for why a career matches
+   */
+  private static generateSectorSpecificExplanation(
+    career: any, 
+    interests: string[], 
+    skills: string[], 
+    matchScore: number
+  ): string {
+    const sector = career.sector;
+    const title = career.title;
+    
+    // Find relevant interests for this sector
+    const relevantInterests = interests.filter(interest => {
+      switch (sector) {
+        case 'healthcare':
+          return ['Healthcare', 'Helping Others', 'Community Impact'].includes(interest);
+        case 'technology':
+          return ['Technology', 'Problem Solving', 'Innovation'].includes(interest);
+        case 'infrastructure':
+        case 'manufacturing':
+          return ['Hands-on Work', 'Building', 'Problem Solving'].includes(interest);
+        case 'creative':
+          return ['Creative', 'Art', 'Design', 'Innovation'].includes(interest);
+        case 'education':
+          return ['Teaching', 'Helping Others', 'Community Impact'].includes(interest);
+        case 'business':
+        case 'finance':
+          return ['Business', 'Leadership', 'Problem Solving'].includes(interest);
+        case 'hospitality':
+          return ['Customer Service', 'Creative', 'Helping Others'].includes(interest);
+        case 'public-service':
+          return ['Community Impact', 'Helping Others', 'Public Service'].includes(interest);
+        case 'science':
+          return ['Research', 'Problem Solving', 'Innovation', 'Science'].includes(interest);
+        case 'agriculture':
+          return ['Hands-on Work', 'Outdoors', 'Sustainability'].includes(interest);
+        case 'transportation':
+          return ['Hands-on Work', 'Travel', 'Problem Solving'].includes(interest);
+        case 'retail':
+          return ['Customer Service', 'Business', 'Communication'].includes(interest);
+        case 'legal':
+          return ['Problem Solving', 'Research', 'Helping Others'].includes(interest);
+        default:
+          return true;
+      }
+    });
+
+    // Find relevant skills for this sector
+    const relevantSkills = skills.filter(skill => {
+      switch (sector) {
+        case 'healthcare':
+          return ['Communication', 'Empathy', 'Problem Solving', 'Science'].includes(skill);
+        case 'technology':
+          return ['Problem Solving', 'Analytical Thinking', 'Math', 'Innovation'].includes(skill);
+        case 'infrastructure':
+        case 'manufacturing':
+          return ['Problem Solving', 'Math', 'Hands-on Skills', 'Safety'].includes(skill);
+        case 'creative':
+          return ['Creativity', 'Art', 'Design', 'Innovation', 'Communication'].includes(skill);
+        case 'education':
+          return ['Communication', 'Patience', 'Leadership', 'Subject Knowledge'].includes(skill);
+        case 'business':
+        case 'finance':
+          return ['Leadership', 'Communication', 'Math', 'Problem Solving'].includes(skill);
+        case 'hospitality':
+          return ['Customer Service', 'Communication', 'Creativity', 'Teamwork'].includes(skill);
+        case 'public-service':
+          return ['Communication', 'Leadership', 'Problem Solving', 'Community Service'].includes(skill);
+        case 'science':
+          return ['Research', 'Analytical Thinking', 'Math', 'Science', 'Problem Solving'].includes(skill);
+        case 'agriculture':
+          return ['Hands-on Skills', 'Problem Solving', 'Science', 'Sustainability'].includes(skill);
+        case 'transportation':
+          return ['Problem Solving', 'Safety', 'Communication', 'Hands-on Skills'].includes(skill);
+        case 'retail':
+          return ['Customer Service', 'Communication', 'Sales', 'Teamwork'].includes(skill);
+        case 'legal':
+          return ['Research', 'Communication', 'Analytical Thinking', 'Problem Solving'].includes(skill);
+        default:
+          return true;
+      }
+    });
+
+    // Generate explanation based on matches
+    let explanation = `This ${title} career scored ${matchScore}% match because `;
+    
+    if (relevantInterests.length > 0) {
+      explanation += `it aligns perfectly with your interests in ${relevantInterests.join(' and ')}. `;
+    }
+    
+    if (relevantSkills.length > 0) {
+      explanation += `Your strengths in ${relevantSkills.join(' and ')} are directly applicable to ${title} work. `;
+    }
+    
+    // Add sector-specific context
+    switch (sector) {
+      case 'healthcare':
+        explanation += `Healthcare careers like ${title} offer the opportunity to make a direct impact on people's lives while using scientific knowledge and interpersonal skills.`;
+        break;
+      case 'technology':
+        explanation += `Technology careers like ${title} combine problem-solving with innovation, offering high growth potential and the chance to shape the future.`;
+        break;
+      case 'infrastructure':
+      case 'manufacturing':
+        explanation += `Infrastructure careers like ${title} involve hands-on problem-solving and building essential systems that communities depend on.`;
+        break;
+      case 'creative':
+        explanation += `Creative careers like ${title} allow you to express artistic vision while solving design challenges and communicating ideas visually.`;
+        break;
+      case 'education':
+        explanation += `Education careers like ${title} combine subject expertise with the rewarding experience of helping others learn and grow.`;
+        break;
+      case 'business':
+      case 'finance':
+        explanation += `Business careers like ${title} offer leadership opportunities and the chance to drive organizational success through strategic thinking.`;
+        break;
+      case 'hospitality':
+        explanation += `Hospitality careers like ${title} blend creativity with customer service, creating memorable experiences for people.`;
+        break;
+      case 'public-service':
+        explanation += `Public service careers like ${title} provide the opportunity to serve your community and make a positive impact on society.`;
+        break;
+      case 'science':
+        explanation += `Science careers like ${title} involve research and discovery, contributing to our understanding of the world and solving complex problems.`;
+        break;
+      case 'agriculture':
+        explanation += `Agriculture careers like ${title} combine hands-on work with science and sustainability, feeding communities and protecting the environment.`;
+        break;
+      case 'transportation':
+        explanation += `Transportation careers like ${title} keep people and goods moving safely and efficiently, supporting economic activity.`;
+        break;
+      case 'retail':
+        explanation += `Retail careers like ${title} focus on customer relationships and business operations, directly impacting customer satisfaction.`;
+        break;
+      case 'legal':
+        explanation += `Legal careers like ${title} involve research, analysis, and advocacy, helping people navigate complex legal systems.`;
+        break;
+      default:
+        explanation += `This career offers opportunities that align with your profile and interests.`;
+    }
+    
+    return explanation;
+  }
+
+  /**
+   * Generate sector-specific strengths
+   */
+  private static generateSectorSpecificStrengths(career: any, interests: string[], skills: string[]): string[] {
+    const sector = career.sector;
+    const strengths: string[] = [];
+    
+    // Add interest-based strengths
+    if (interests.includes('Healthcare') || interests.includes('Helping Others')) {
+      strengths.push('Natural desire to help and care for others');
+    }
+    if (interests.includes('Technology') || interests.includes('Problem Solving')) {
+      strengths.push('Strong analytical and technical problem-solving abilities');
+    }
+    if (interests.includes('Hands-on Work') || interests.includes('Building')) {
+      strengths.push('Preference for practical, hands-on work and building things');
+    }
+    if (interests.includes('Creative') || interests.includes('Art')) {
+      strengths.push('Creative thinking and artistic expression abilities');
+    }
+    
+    // Add skill-based strengths
+    if (skills.includes('Communication')) {
+      strengths.push('Strong communication and interpersonal skills');
+    }
+    if (skills.includes('Problem Solving')) {
+      strengths.push('Excellent analytical and problem-solving capabilities');
+    }
+    if (skills.includes('Leadership')) {
+      strengths.push('Natural leadership and team management abilities');
+    }
+    
+    // Add sector-specific strengths
+    switch (sector) {
+      case 'healthcare':
+        strengths.push('Empathy and compassion for patient care', 'Attention to detail for medical accuracy');
+        break;
+      case 'technology':
+        strengths.push('Logical thinking for programming', 'Adaptability to new technologies');
+        break;
+      case 'infrastructure':
+      case 'manufacturing':
+        strengths.push('Spatial reasoning for construction', 'Safety consciousness for workplace protection');
+        break;
+      case 'creative':
+        strengths.push('Visual design sense', 'Innovation in creative solutions');
+        break;
+      case 'education':
+        strengths.push('Patience for teaching', 'Knowledge sharing enthusiasm');
+        break;
+      case 'business':
+      case 'finance':
+        strengths.push('Strategic thinking for business planning', 'Numerical analysis for financial decisions');
+        break;
+      case 'hospitality':
+        strengths.push('Customer service orientation', 'Multitasking in fast-paced environments');
+        break;
+      case 'public-service':
+        strengths.push('Community service commitment', 'Ethical decision-making');
+        break;
+      case 'science':
+        strengths.push('Research methodology understanding', 'Data analysis capabilities');
+        break;
+      case 'agriculture':
+        strengths.push('Environmental awareness', 'Practical problem-solving in outdoor settings');
+        break;
+      case 'transportation':
+        strengths.push('Safety-first mindset', 'Coordination and logistics thinking');
+        break;
+      case 'retail':
+        strengths.push('Customer relationship building', 'Sales and persuasion abilities');
+        break;
+      case 'legal':
+        strengths.push('Research and analysis skills', 'Attention to legal details');
+        break;
+    }
+    
+    // Ensure we have at least 3 strengths
+    if (strengths.length < 3) {
+      strengths.push('Adaptability and willingness to learn', 'Strong work ethic and dedication');
+    }
+    
+    return strengths.slice(0, 4); // Return top 4 strengths
+  }
+
+  /**
+   * Generate sector-specific development areas
+   */
+  private static generateSectorSpecificDevelopmentAreas(career: any, interests: string[], skills: string[]): string[] {
+    const sector = career.sector;
+    const title = career.title;
+    const developmentAreas: string[] = [];
+    
+    switch (sector) {
+      case 'healthcare':
+        developmentAreas.push(
+          `Medical terminology and healthcare knowledge for ${title}`,
+          `Patient communication and bedside manner skills`,
+          `Understanding of healthcare regulations and ethics`
+        );
+        break;
+      case 'technology':
+        developmentAreas.push(
+          `Programming languages and technical skills for ${title}`,
+          `Understanding of current technology trends`,
+          `Project management and agile methodologies`
+        );
+        break;
+      case 'infrastructure':
+      case 'manufacturing':
+        developmentAreas.push(
+          `Technical and mechanical skills for ${title}`,
+          `Safety protocols and OSHA regulations`,
+          `Blueprint reading and technical documentation`
+        );
+        break;
+      case 'creative':
+        developmentAreas.push(
+          `Design software proficiency for ${title}`,
+          `Portfolio development and presentation skills`,
+          `Understanding of design principles and color theory`
+        );
+        break;
+      case 'education':
+        developmentAreas.push(
+          `Teaching methodologies and classroom management`,
+          `Subject matter expertise for ${title}`,
+          `Educational technology and digital tools`
+        );
+        break;
+      case 'business':
+      case 'finance':
+        developmentAreas.push(
+          `Financial analysis and business planning skills`,
+          `Leadership and team management experience`,
+          `Industry-specific knowledge for ${title}`
+        );
+        break;
+      case 'hospitality':
+        developmentAreas.push(
+          `Culinary skills and food safety certification`,
+          `Customer service excellence training`,
+          `Restaurant operations and management`
+        );
+        break;
+      case 'public-service':
+        developmentAreas.push(
+          `Public policy and government operations knowledge`,
+          `Community engagement and public speaking`,
+          `Legal and regulatory framework understanding`
+        );
+        break;
+      case 'science':
+        developmentAreas.push(
+          `Research methodology and data analysis`,
+          `Laboratory techniques and equipment operation`,
+          `Scientific writing and publication skills`
+        );
+        break;
+      case 'agriculture':
+        developmentAreas.push(
+          `Agricultural science and crop management`,
+          `Sustainable farming practices`,
+          `Equipment operation and maintenance`
+        );
+        break;
+      case 'transportation':
+        developmentAreas.push(
+          `Transportation regulations and compliance`,
+          `Vehicle operation and maintenance skills`,
+          `Logistics and route optimization`
+        );
+        break;
+      case 'retail':
+        developmentAreas.push(
+          `Sales techniques and customer psychology`,
+          `Inventory management and retail operations`,
+          `Product knowledge and market trends`
+        );
+        break;
+      case 'legal':
+        developmentAreas.push(
+          `Legal research and case law analysis`,
+          `Legal writing and documentation`,
+          `Court procedures and legal ethics`
+        );
+        break;
+      default:
+        developmentAreas.push(
+          `Industry-specific knowledge for ${title}`,
+          `Professional communication skills`,
+          `Technical competencies for the field`
+        );
+    }
+    
+    return developmentAreas;
+  }
+
+  /**
+   * Generate sector-specific next steps
+   */
+  private static generateSectorSpecificNextSteps(career: any, profile: Partial<StudentProfile>): string[] {
+    const sector = career.sector;
+    const title = career.title;
+    const nextSteps: string[] = [];
+    
+    switch (sector) {
+      case 'healthcare':
+        nextSteps.push(
+          `Shadow healthcare professionals in ${title} roles`,
+          `Volunteer at local hospitals or healthcare facilities`,
+          `Take health sciences and biology courses in high school`,
+          `Research nursing or healthcare programs at local colleges`
+        );
+        break;
+      case 'technology':
+        nextSteps.push(
+          `Learn programming languages relevant to ${title}`,
+          `Build a portfolio of technology projects`,
+          `Join computer science clubs or coding bootcamps`,
+          `Research computer science programs at universities`
+        );
+        break;
+      case 'infrastructure':
+      case 'manufacturing':
+        nextSteps.push(
+          `Visit construction sites or manufacturing facilities`,
+          `Take shop class and technical education courses`,
+          `Look into apprenticeship programs for ${title}`,
+          `Research trade schools and technical colleges`
+        );
+        break;
+      case 'creative':
+        nextSteps.push(
+          `Build a portfolio of creative work for ${title}`,
+          `Learn design software like Adobe Creative Suite`,
+          `Take art and design courses`,
+          `Research art schools and design programs`
+        );
+        break;
+      case 'education':
+        nextSteps.push(
+          `Volunteer as a tutor or teaching assistant`,
+          `Take education and psychology courses`,
+          `Observe classrooms in your area of interest`,
+          `Research education programs at universities`
+        );
+        break;
+      case 'business':
+      case 'finance':
+        nextSteps.push(
+          `Take business and economics courses`,
+          `Join business clubs like DECA or FBLA`,
+          `Seek internships at local businesses`,
+          `Research business programs at colleges`
+        );
+        break;
+      case 'hospitality':
+        nextSteps.push(
+          `Get part-time work in restaurants or food service`,
+          `Take culinary arts courses if available`,
+          `Get food safety certification (ServSafe)`,
+          `Research culinary schools and hospitality programs`
+        );
+        break;
+      case 'public-service':
+        nextSteps.push(
+          `Volunteer with community organizations`,
+          `Attend city council or school board meetings`,
+          `Take government and civics courses`,
+          `Research public administration programs`
+        );
+        break;
+      case 'science':
+        nextSteps.push(
+          `Take advanced science and math courses`,
+          `Participate in science fairs and research projects`,
+          `Look for research opportunities at local universities`,
+          `Research science programs and specializations`
+        );
+        break;
+      case 'agriculture':
+        nextSteps.push(
+          `Join FFA (Future Farmers of America) if available`,
+          `Visit local farms and agricultural operations`,
+          `Take agriculture and environmental science courses`,
+          `Research agricultural programs at universities`
+        );
+        break;
+      case 'transportation':
+        nextSteps.push(
+          `Get your driver's license and practice safe driving`,
+          `Learn about transportation regulations`,
+          `Visit transportation companies or logistics centers`,
+          `Research transportation and logistics programs`
+        );
+        break;
+      case 'retail':
+        nextSteps.push(
+          `Get part-time retail experience`,
+          `Learn about customer service best practices`,
+          `Take business and marketing courses`,
+          `Research retail management and business programs`
+        );
+        break;
+      case 'legal':
+        nextSteps.push(
+          `Join debate team or mock trial club`,
+          `Take government and civics courses`,
+          `Visit local courts and law offices`,
+          `Research pre-law programs and law schools`
+        );
+        break;
+      default:
+        nextSteps.push(
+          `Research the ${title} field and career requirements`,
+          `Connect with professionals working in ${title}`,
+          `Take relevant courses to build foundational knowledge`,
+          `Explore education and training options for ${title}`
+        );
+    }
+    
+    return nextSteps.slice(0, 4); // Return top 4 next steps
+  }
+
+  /**
+   * Generate personalized career description
+   */
+  private static generatePersonalizedDescription(career: any, interests: string[], skills: string[]): string {
+    const title = career.title;
+    const sector = career.sector;
+    const baseDescription = career.description || `${title} professionals work in the ${sector} sector.`;
+    
+    // Find connections to student interests
+    const connections: string[] = [];
+    
+    if (interests.includes('Healthcare') || interests.includes('Helping Others')) {
+      connections.push('helping people and making a positive impact on their lives');
+    }
+    if (interests.includes('Technology') || interests.includes('Innovation')) {
+      connections.push('working with cutting-edge technology and innovative solutions');
+    }
+    if (interests.includes('Hands-on Work') || interests.includes('Building')) {
+      connections.push('hands-on problem-solving and building tangible results');
+    }
+    if (interests.includes('Creative') || interests.includes('Art')) {
+      connections.push('creative expression and artistic problem-solving');
+    }
+    if (interests.includes('Community Impact')) {
+      connections.push('making a meaningful difference in your community');
+    }
+    
+    let personalizedDescription = baseDescription;
+    
+    if (connections.length > 0) {
+      personalizedDescription += ` This career is particularly well-suited for someone like you who enjoys ${connections.join(' and ')}. `;
+    }
+    
+    // Add salary and growth context
+    personalizedDescription += `With an average salary of ${career.averageSalary.toLocaleString()}, ${title} offers strong earning potential`;
+    
+    if (career.growthOutlook) {
+      personalizedDescription += ` and ${career.growthOutlook.toLowerCase()} job growth prospects`;
+    }
+    
+    personalizedDescription += '.';
+    
+    return personalizedDescription;
   }
 }
