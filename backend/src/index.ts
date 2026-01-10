@@ -12,6 +12,8 @@ import actionPlansRoutes from './routes/actionPlans';
 import counselorAssessmentRoutes from './routes/counselorAssessment';
 import jobsRoutes from './routes/jobs';
 import feedbackRoutes from './routes/feedback';
+import recommendationRoutes from './routes/recommendations';
+import questionnaireRoutes from './routes/questionnaire';
 import comprehensiveGuidanceRoutes from './routes/comprehensiveGuidance';
 import debugRoutes from './routes/debug';
 import testAIRoutes from './routes/testAI';
@@ -130,6 +132,8 @@ app.get('/', (req, res) => {
         <div class="endpoint">GET /api/counselor-assessment/* - Enhanced career assessment</div>
         <div class="endpoint">GET /api/careers/* - Career recommendations</div>
         <div class="endpoint">GET /api/jobs/* - Job listings</div>
+        <div class="endpoint">POST /api/recommendations - Deterministic career matching</div>
+        <div class="endpoint">GET /api/questionnaire - Structured career questionnaire</div>
         
         <h3>🤖 AI Features</h3>
         <ul>
@@ -161,7 +165,8 @@ app.get('/', (req, res) => {
         counselorAssessment: '/api/counselor-assessment',
         careers: '/api/careers',
         jobs: '/api/jobs',
-        actionPlans: '/api/action-plans'
+        actionPlans: '/api/action-plans',
+        recommendations: '/api/recommendations'
       },
       documentation: {
         frontend: 'https://main.d2ymtj6aumrj0m.amplifyapp.com',
@@ -215,6 +220,8 @@ app.use('/api/careers', careersRoutes);
 app.use('/api/jobs', jobsRoutes); // Job listings
 app.use('/api/action-plans', actionPlansRoutes);
 app.use('/api/feedback', feedbackRoutes); // Feedback system for AI improvement
+app.use('/api/recommendations', recommendationRoutes); // New deterministic recommendation engine
+app.use('/api/questionnaire', questionnaireRoutes); // Structured questionnaire system
 app.use('/api/comprehensive-guidance', comprehensiveGuidanceRoutes); // Complete career guidance package
 app.use('/api/dynamic-salary', dynamicSalaryRoutes); // Dynamic salary calculation from real job data
 app.use('/api/counselor', counselorRoutes); // Counselor functionality for student management
@@ -500,7 +507,9 @@ app.get('/api', (req, res) => {
       counselorAssessment: '/api/counselor-assessment',
       careers: '/api/careers',
       jobs: '/api/jobs',
-      actionPlans: '/api/action-plans'
+      actionPlans: '/api/action-plans',
+      recommendations: '/api/recommendations',
+      questionnaire: '/api/questionnaire'
     }
   });
 });
