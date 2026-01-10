@@ -323,14 +323,14 @@ router.post('/submit', async (req, res) => {
         workPreference: responses.work_preference_main,
         specificChoice: responses.hard_hat_specific || responses.non_hard_hat_specific,
         educationCommitment: responses.education_commitment,
-        readinessLevel: this.getReadinessLevel(path),
+        readinessLevel: getReadinessLevel(path),
         keyStrengths: Object.entries(responses.subject_strengths || {})
           .filter(([_, rating]) => rating === 'excellent')
           .map(([subject, _]) => subject),
         primaryInterests: [responses.work_preference_main || 'exploring']
       },
       improvedFeatures: {
-        branchingLogic: `Used ${path} (${this.getPathDescription(path)}) path`,
+        branchingLogic: `Used ${path} (${getPathDescription(path)}) path`,
         weightedMatching: 'Applied question weighting system for better AI guidance',
         focusedQuestions: `Completed ${ImprovedAssessmentService.getQuestionsForPath(path).length} focused questions`,
         enhancedExplainability: 'Career matches based on hierarchical work preference selection and subject strengths'

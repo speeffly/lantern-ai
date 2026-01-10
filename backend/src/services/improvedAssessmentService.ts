@@ -549,3 +549,6 @@ export class FinalAssessmentService {
     return 'Subject strengths to be determined';
   }
 }
+
+// Export alias for backward compatibility
+export const ImprovedAssessmentService = FinalAssessmentService;

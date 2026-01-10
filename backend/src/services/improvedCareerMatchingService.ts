@@ -1,24 +1,34 @@
 import { StudentProfile, AssessmentAnswer, CareerMatch } from '../types';
 
 export interface ImprovedAssessmentResponse {
-  assessmentVersion: 'v2';
-  pathTaken: 'pathA' | 'pathB';
+  assessmentVersion: 'v2' | 'v3';
+  pathTaken: 'pathA' | 'pathB' | 'hard_hat' | 'non_hard_hat' | 'unable_to_decide';
   responses: {
     basic_info: {
       grade: string;
       zipCode: string;
     };
     education_commitment: 'certificate' | 'associate' | 'bachelor' | 'advanced';
-    career_clarity: 'clear' | 'exploring' | 'unsure';
-    career_category: string;
-    subject_strengths: {
-      [subject: string]: 'excellent' | 'good' | 'average' | 'struggling' | 'not_taken';
-    };
+    // V2 fields
+    career_clarity?: 'clear' | 'exploring' | 'unsure';
+    career_category?: string;
     specific_career_interest?: string; // Path A only
     personal_traits?: string[]; // Path B only
     impact_legacy?: string; // Path B only
     inspiration?: string; // Path B only
     constraints_considerations?: string;
+    // V3 fields
+    work_preference_main?: 'hard_hat' | 'non_hard_hat' | 'unable_to_decide';
+    hard_hat_specific?: string;
+    non_hard_hat_specific?: string;
+    interests_hobbies?: string;
+    work_experience?: string;
+    impact_and_inspiration?: string;
+    career_constraints?: string;
+    // Common fields
+    subject_strengths: {
+      [subject: string]: 'excellent' | 'good' | 'average' | 'struggling' | 'not_taken';
+    };
   };
 }
 
@@ -45,7 +55,11 @@ export class ImprovedCareerMatchingService {
     console.log('🎯 Generating improved career matches for path:', responses.pathTaken);
     
     // Step 1: Filter careers by category selection
-    const categoryMatches = this.filterCareersByCategory(responses.responses.career_category);
+    const category = responses.responses.career_category || 
+                    responses.responses.hard_hat_specific || 
+                    responses.responses.non_hard_hat_specific || 
+                    'unable_to_decide';
+    const categoryMatches = this.filterCareersByCategory(category);
     
     // Step 2: Filter by education commitment
     const educationMatches = this.filterCareersByEducation(
