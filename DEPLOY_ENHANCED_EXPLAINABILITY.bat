@@ -30,6 +30,7 @@ if errorlevel 1 (
     pause
     exit /b 1
 )
+echo ✅ Frontend build completed successfully!
 
 echo [3/4] Restarting backend service...
 cd ../backend

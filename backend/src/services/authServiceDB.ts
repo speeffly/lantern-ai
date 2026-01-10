@@ -97,7 +97,7 @@ export class AuthServiceDB {
         const verificationToken = await EmailVerificationService.createVerificationToken(parseInt(user.id));
         const emailSent = await EmailVerificationService.sendVerificationEmail(
           user.email,
-          user.firstName || user.first_name,
+          data.firstName,
           verificationToken
         );
 

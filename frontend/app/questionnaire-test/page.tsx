@@ -50,7 +50,7 @@ export default function QuestionnaireTest() {
       if (data.success) {
         console.log('✅ Questionnaire loaded successfully');
         console.log('📋 Questions:', data.data.questions.length);
-        console.log('📊 All question IDs:', data.data.questions.map(q => q.id));
+        console.log('📊 All question IDs:', data.data.questions.map((q: any) => q.id));
         setQuestionnaire(data.data);
       } else {
         console.error('❌ Failed to fetch questionnaire:', data.error);

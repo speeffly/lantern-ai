@@ -3,7 +3,16 @@
 import React, { useState } from 'react';
 
 // Static questionnaire data for testing
-const staticQuestionnaire = {
+const staticQuestionnaire: {
+  version: string;
+  title: string;
+  description: string;
+  sections: {
+    id: string;
+    title: string;
+    questions: Question[];
+  }[];
+} = {
   "version": "v1",
   "title": "Lantern AI Career Questionnaire",
   "description": "Comprehensive career exploration questionnaire for high school students",
@@ -15,7 +24,7 @@ const staticQuestionnaire = {
         {
           "id": "grade",
           "text": "Grade (single choice)",
-          "type": "single_choice",
+          "type": "single_select",
           "required": true,
           "options": ["9th", "10th", "11th", "12th"]
         },
@@ -72,7 +81,7 @@ const staticQuestionnaire = {
 interface Question {
   id: string;
   text: string;
-  type: 'single_choice' | 'multi_select' | 'text' | 'text_area' | 'matrix';
+  type: 'single_select' | 'multi_select' | 'text' | 'text_area' | 'matrix';
   required: boolean;
   options?: string[];
   subjects?: string[];
@@ -128,7 +137,7 @@ export default function QuestionnaireDebug() {
     const value = responses[question.id];
 
     switch (question.type) {
-      case 'single_choice':
+      case 'single_select':
         return (
           <div className="space-y-2">
             {question.options?.map((option) => (
