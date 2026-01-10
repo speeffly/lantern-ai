@@ -4,31 +4,25 @@ import React, { useState, useEffect } from 'react';
 
 interface Question {
   id: string;
-  text: string;
-  type: 'single_choice' | 'multi_select' | 'text' | 'text_area' | 'matrix';
+  type: 'single_select' | 'multi_select' | 'text' | 'text_long' | 'matrix';
+  label: string;
+  options?: string[] | Array<{ key: string; label: string }>;
+  rows?: string[];
+  columns?: string[];
   required: boolean;
-  options?: string[];
-  subjects?: string[];
-  placeholder?: string;
-}
-
-interface QuestionnaireSection {
-  id: string;
-  title: string;
-  questions: Question[];
 }
 
 interface Questionnaire {
   version: string;
   title: string;
   description: string;
-  sections: QuestionnaireSection[];
+  questions: Question[];
 }
 
 export default function QuestionnaireTest() {
   const [questionnaire, setQuestionnaire] = useState<Questionnaire | null>(null);
   const [responses, setResponses] = useState<{ [key: string]: any }>({});
-  const [currentSection, setCurrentSection] = useState(0);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [results, setResults] = useState<any>(null);
@@ -46,16 +40,25 @@ export default function QuestionnaireTest() {
 
   const fetchQuestionnaire = async () => {
     try {
+      console.log('🔍 Fetching questionnaire from /api/questionnaire...');
       const response = await fetch('/api/questionnaire');
+      console.log('📡 Response status:', response.status);
+      
       const data = await response.json();
+      console.log('📊 Response data:', data);
       
       if (data.success) {
+        console.log('✅ Questionnaire loaded successfully');
+        console.log('📋 Questions:', data.data.questions.length);
+        console.log('📊 All question IDs:', data.data.questions.map(q => q.id));
         setQuestionnaire(data.data);
       } else {
-        console.error('Failed to fetch questionnaire:', data.error);
+        console.error('❌ Failed to fetch questionnaire:', data.error);
+        alert('Failed to load questionnaire: ' + data.error);
       }
     } catch (error) {
-      console.error('Error fetching questionnaire:', error);
+      console.error('💥 Error fetching questionnaire:', error);
+      alert('Error loading questionnaire. Please make sure the server is running.');
     } finally {
       setLoading(false);
     }
@@ -85,29 +88,29 @@ export default function QuestionnaireTest() {
     }));
   };
 
-  const handleMultiSelectChange = (questionId: string, option: string, checked: boolean) => {
+  const handleMultiSelectChange = (questionId: string, optionKey: string, checked: boolean) => {
     setResponses(prev => {
       const currentValues = prev[questionId] || [];
       if (checked) {
         return {
           ...prev,
-          [questionId]: [...currentValues, option]
+          [questionId]: [...currentValues, optionKey]
         };
       } else {
         return {
           ...prev,
-          [questionId]: currentValues.filter((v: string) => v !== option)
+          [questionId]: currentValues.filter((v: string) => v !== optionKey)
         };
       }
     });
   };
 
-  const handleMatrixChange = (questionId: string, subject: string, rating: string) => {
+  const handleMatrixChange = (questionId: string, row: string, column: string) => {
     setResponses(prev => ({
       ...prev,
       [questionId]: {
         ...prev[questionId],
-        [subject]: rating
+        [row]: column
       }
     }));
   };
@@ -139,39 +142,49 @@ export default function QuestionnaireTest() {
     const value = responses[question.id];
 
     switch (question.type) {
-      case 'single_choice':
+      case 'single_select':
         return (
           <div className="space-y-2">
-            {question.options?.map((option) => (
-              <label key={option} className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  name={question.id}
-                  value={option}
-                  checked={value === option}
-                  onChange={(e) => handleInputChange(question.id, e.target.value)}
-                  className="text-blue-600"
-                />
-                <span className="text-sm">{option}</span>
-              </label>
-            ))}
+            {question.options?.map((option) => {
+              const optionValue = typeof option === 'string' ? option : option.key;
+              const optionLabel = typeof option === 'string' ? option : option.label;
+              
+              return (
+                <label key={optionValue} className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    name={question.id}
+                    value={optionValue}
+                    checked={value === optionValue}
+                    onChange={(e) => handleInputChange(question.id, e.target.value)}
+                    className="text-blue-600"
+                  />
+                  <span className="text-sm">{optionLabel}</span>
+                </label>
+              );
+            })}
           </div>
         );
 
       case 'multi_select':
         return (
           <div className="space-y-2">
-            {question.options?.map((option) => (
-              <label key={option} className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={(value || []).includes(option)}
-                  onChange={(e) => handleMultiSelectChange(question.id, option, e.target.checked)}
-                  className="text-blue-600"
-                />
-                <span className="text-sm">{option}</span>
-              </label>
-            ))}
+            {question.options?.map((option) => {
+              const optionValue = typeof option === 'string' ? option : option.key;
+              const optionLabel = typeof option === 'string' ? option : option.label;
+              
+              return (
+                <label key={optionValue} className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={(value || []).includes(optionValue)}
+                    onChange={(e) => handleMultiSelectChange(question.id, optionValue, e.target.checked)}
+                    className="text-blue-600"
+                  />
+                  <span className="text-sm">{optionLabel}</span>
+                </label>
+              );
+            })}
           </div>
         );
 
@@ -181,17 +194,15 @@ export default function QuestionnaireTest() {
             type="text"
             value={value || ''}
             onChange={(e) => handleInputChange(question.id, e.target.value)}
-            placeholder={question.placeholder}
             className="w-full p-2 border border-gray-300 rounded-md"
           />
         );
 
-      case 'text_area':
+      case 'text_long':
         return (
           <textarea
             value={value || ''}
             onChange={(e) => handleInputChange(question.id, e.target.value)}
-            placeholder={question.placeholder}
             rows={4}
             className="w-full p-2 border border-gray-300 rounded-md"
           />
@@ -200,31 +211,34 @@ export default function QuestionnaireTest() {
       case 'matrix':
         return (
           <div className="space-y-3">
-            {question.subjects?.map((subject) => (
-              <div key={subject} className="flex items-center justify-between">
-                <span className="text-sm font-medium w-1/3">{subject}</span>
-                <div className="flex space-x-2">
-                  {question.options?.map((option) => (
-                    <label key={option} className="flex items-center space-x-1">
-                      <input
-                        type="radio"
-                        name={`${question.id}_${subject}`}
-                        value={option}
-                        checked={(value && value[subject]) === option}
-                        onChange={(e) => handleMatrixChange(question.id, subject, e.target.value)}
-                        className="text-blue-600"
-                      />
-                      <span className="text-xs">{option}</span>
-                    </label>
-                  ))}
-                </div>
+            <div className="grid grid-cols-6 gap-2 text-xs font-medium text-gray-600 mb-2">
+              <div></div>
+              {question.columns?.map((column) => (
+                <div key={column} className="text-center">{column}</div>
+              ))}
+            </div>
+            {question.rows?.map((row) => (
+              <div key={row} className="grid grid-cols-6 gap-2 items-center">
+                <span className="text-sm font-medium">{row}</span>
+                {question.columns?.map((column) => (
+                  <div key={column} className="text-center">
+                    <input
+                      type="radio"
+                      name={`${question.id}_${row}`}
+                      value={column}
+                      checked={(value && value[row]) === column}
+                      onChange={(e) => handleMatrixChange(question.id, row, e.target.value)}
+                      className="text-blue-600"
+                    />
+                  </div>
+                ))}
               </div>
             ))}
           </div>
         );
 
       default:
-        return <div>Unsupported question type</div>;
+        return <div>Unsupported question type: {question.type}</div>;
     }
   };
 
@@ -257,10 +271,10 @@ export default function QuestionnaireTest() {
                   <strong>ZIP Code:</strong> {results.studentProfile.zipCode}
                 </div>
                 <div>
-                  <strong>Readiness Level:</strong> {results.studentProfile.readinessLevel}
+                  <strong>Education Willingness:</strong> {results.studentProfile.educationWillingness}
                 </div>
                 <div>
-                  <strong>Key Strengths:</strong> {results.studentProfile.keyStrengths.join(', ')}
+                  <strong>Career Confidence:</strong> {results.studentProfile.careerConfidence}
                 </div>
               </div>
             </div>
@@ -366,7 +380,7 @@ export default function QuestionnaireTest() {
                 onClick={() => {
                   setResults(null);
                   setResponses({});
-                  setCurrentSection(0);
+                  setCurrentQuestionIndex(0);
                 }}
                 className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
               >
@@ -384,12 +398,30 @@ export default function QuestionnaireTest() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-600">Failed to load questionnaire</p>
+          <p className="text-sm text-gray-500 mt-2">Check the browser console for details</p>
+          <button 
+            onClick={fetchQuestionnaire}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Retry
+          </button>
         </div>
       </div>
     );
   }
 
-  const currentSectionData = questionnaire.sections[currentSection];
+  const currentQuestion = questionnaire.questions[currentQuestionIndex];
+
+  if (!currentQuestion) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">No question data available</p>
+          <p className="text-sm text-gray-500 mt-2">Current question: {currentQuestionIndex + 1}, Total questions: {questionnaire.questions.length}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -403,71 +435,70 @@ export default function QuestionnaireTest() {
             {/* Progress Bar */}
             <div className="mt-4">
               <div className="flex justify-between text-sm text-gray-600 mb-2">
-                <span>Progress: {progress.completedQuestions} of {progress.totalQuestions} questions</span>
+                <span>Question {currentQuestionIndex + 1} of {questionnaire.questions.length}</span>
                 <span>{progress.percentComplete}% complete</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
                   className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${progress.percentComplete}%` }}
+                  style={{ width: `${((currentQuestionIndex + 1) / questionnaire.questions.length) * 100}%` }}
                 ></div>
               </div>
             </div>
           </div>
 
-          {/* Section Navigation */}
+          {/* Question Navigation */}
           <div className="mb-6">
-            <div className="flex space-x-2 overflow-x-auto">
-              {questionnaire.sections.map((section, index) => (
+            <div className="text-sm text-gray-600 mb-2">
+              Debug: Showing {questionnaire.questions.length} questions total
+            </div>
+            <div className="flex space-x-1 overflow-x-auto">
+              {questionnaire.questions.map((_, index) => (
                 <button
-                  key={section.id}
-                  onClick={() => setCurrentSection(index)}
-                  className={`px-3 py-1 text-sm rounded-md whitespace-nowrap ${
-                    index === currentSection
+                  key={index}
+                  onClick={() => setCurrentQuestionIndex(index)}
+                  className={`px-2 py-1 text-xs rounded-md whitespace-nowrap ${
+                    index === currentQuestionIndex
                       ? 'bg-blue-600 text-white'
+                      : responses[questionnaire.questions[index].id]
+                      ? 'bg-green-200 text-green-800'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
                 >
-                  {index + 1}. {section.title}
+                  {index + 1}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Current Section */}
+          {/* Current Question */}
           <div className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">{currentSectionData.title}</h2>
-            
-            <div className="space-y-6">
-              {currentSectionData.questions.map((question) => (
-                <div key={question.id} className="border-b border-gray-200 pb-6">
-                  <label className="block text-sm font-medium text-gray-900 mb-3">
-                    {question.text}
-                    {question.required && <span className="text-red-500 ml-1">*</span>}
-                  </label>
-                  {renderQuestion(question)}
-                </div>
-              ))}
+            <div className="border-b border-gray-200 pb-6">
+              <label className="block text-lg font-medium text-gray-900 mb-4">
+                {currentQuestion.label}
+                {currentQuestion.required && <span className="text-red-500 ml-1">*</span>}
+              </label>
+              {renderQuestion(currentQuestion)}
             </div>
           </div>
 
           {/* Navigation */}
           <div className="flex justify-between">
             <button
-              onClick={() => setCurrentSection(Math.max(0, currentSection - 1))}
-              disabled={currentSection === 0}
+              onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
+              disabled={currentQuestionIndex === 0}
               className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Previous
             </button>
 
             <div className="flex space-x-2">
-              {currentSection < questionnaire.sections.length - 1 ? (
+              {currentQuestionIndex < questionnaire.questions.length - 1 ? (
                 <button
-                  onClick={() => setCurrentSection(currentSection + 1)}
+                  onClick={() => setCurrentQuestionIndex(currentQuestionIndex + 1)}
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                 >
-                  Next Section
+                  Next Question
                 </button>
               ) : (
                 <button
@@ -479,6 +510,12 @@ export default function QuestionnaireTest() {
                 </button>
               )}
             </div>
+          </div>
+
+          {/* Debug Info */}
+          <div className="mt-4 p-2 bg-gray-100 rounded text-xs text-gray-600">
+            Debug: Question {currentQuestionIndex + 1} ({currentQuestion.id}) - Type: {currentQuestion.type} - 
+            Response: {JSON.stringify(responses[currentQuestion.id])}
           </div>
         </div>
       </div>

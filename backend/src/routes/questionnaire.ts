@@ -24,29 +24,29 @@ router.get('/', (req, res) => {
   }
 });
 
-// GET /api/questionnaire/section/:sectionId - Get a specific section
-router.get('/section/:sectionId', (req, res) => {
+// GET /api/questionnaire/question/:questionId - Get a specific question
+router.get('/question/:questionId', (req, res) => {
   try {
-    const { sectionId } = req.params;
-    const section = QuestionnaireService.getSection(sectionId);
+    const { questionId } = req.params;
+    const question = QuestionnaireService.getQuestion(questionId);
     
-    if (!section) {
+    if (!question) {
       return res.status(404).json({
         success: false,
-        error: 'Section not found'
+        error: 'Question not found'
       } as ApiResponse);
     }
     
     res.json({
       success: true,
-      data: section,
-      message: 'Section retrieved successfully'
+      data: question,
+      message: 'Question retrieved successfully'
     } as ApiResponse);
   } catch (error) {
-    console.error('❌ Error getting section:', error);
+    console.error('❌ Error getting question:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to retrieve section'
+      error: 'Failed to retrieve question'
     } as ApiResponse);
   }
 });
@@ -91,22 +91,22 @@ router.post('/progress', (req, res) => {
   }
 });
 
-// POST /api/questionnaire/next-section - Get next incomplete section
-router.post('/next-section', (req, res) => {
+// POST /api/questionnaire/next-question - Get next incomplete question
+router.post('/next-question', (req, res) => {
   try {
     const responses = req.body;
-    const nextSection = QuestionnaireService.getNextSection(responses);
+    const nextQuestion = QuestionnaireService.getNextIncompleteQuestion(responses);
     
     res.json({
       success: true,
-      data: nextSection,
-      message: nextSection ? 'Next section found' : 'All required sections complete'
+      data: nextQuestion,
+      message: nextQuestion ? 'Next question found' : 'All required questions complete'
     } as ApiResponse);
   } catch (error) {
-    console.error('❌ Error finding next section:', error);
+    console.error('❌ Error finding next question:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to find next section'
+      error: 'Failed to find next question'
     } as ApiResponse);
   }
 });

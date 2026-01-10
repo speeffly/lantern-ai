@@ -62,9 +62,9 @@ const sampleResponses = {
   otherTraits: 'I enjoy explaining complex things in simple terms',
   
   // Values
-  incomeImportance: 'Somewhat important',
-  stabilityImportance: 'Very important',
-  helpingImportance: 'Very important',
+  incomeImportance: 'Somewhat',
+  stabilityImportance: 'Very',
+  helpingImportance: 'Very',
   
   // Lifestyle & Constraints
   constraints: [

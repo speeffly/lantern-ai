@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import { User, UserRole } from '../types';
 import { UserService, CreateUserData, CreateStudentProfileData, CreateCounselorProfileData, CreateParentProfileData } from './userService';
 import { RelationshipService } from './relationshipService';
+import { EmailVerificationService } from './emailVerificationService';
 
 export interface RegisterUserData {
   email: string;
@@ -89,6 +90,25 @@ export class AuthServiceDB {
           };
           await UserService.createParentProfile(parseInt(user.id), parentProfileData);
           break;
+      }
+
+      // Send email verification
+      try {
+        const verificationToken = await EmailVerificationService.createVerificationToken(parseInt(user.id));
+        const emailSent = await EmailVerificationService.sendVerificationEmail(
+          user.email,
+          user.firstName || user.first_name,
+          verificationToken
+        );
+
+        if (!emailSent) {
+          console.warn('⚠️ Failed to send verification email, but registration succeeded');
+        } else {
+          console.log('✅ Verification email sent successfully');
+        }
+      } catch (emailError) {
+        console.error('❌ Email verification setup failed:', emailError);
+        // Don't fail registration if email fails
       }
 
       // Generate JWT token

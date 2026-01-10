@@ -2,44 +2,31 @@ const fetch = require('node-fetch');
 
 const BASE_URL = 'http://localhost:3002';
 
-// Sample questionnaire responses for testing
+// Sample questionnaire responses for testing (using new question IDs)
 const sampleResponses = {
   // Basic Information
-  grade: '11th',
-  zipCode: '12345',
+  q1_grade: '11',
+  q2_zip: '12345',
   
   // Work Environment Preferences
-  workEnvironment: [
-    'Indoors (offices, hospitals, schools)',
-    'A mix of indoor and outdoor work'
-  ],
+  q3_work_environment: ['indoors', 'mixed'],
   
   // Work Style
-  workStyle: [
-    'Helping people directly',
-    'Working with computers or technology'
-  ],
+  q4_work_style: ['helping', 'technology'],
   
   // Thinking Style
-  thinkingStyle: [
-    'Helping people overcome challenges',
-    'Understanding how systems or machines work'
-  ],
+  q5_thinking_style: ['helping_challenges', 'systems'],
   
   // Education & Training
-  educationWillingness: '2–4 years (college or technical school)',
+  q6_education_willingness: '2–4 years (college or technical school)',
   
   // Academic Interests
-  academicInterests: [
-    'Science (Biology, Chemistry, Physics)',
-    'Technology / Computer Science',
-    'Math'
-  ],
+  q7_academic_interests: ['Science', 'Technology / Computer Science', 'Math'],
   
   // Academic Performance (matrix)
-  academicPerformance: {
+  q8_academic_performance: {
     'Math': 'Good',
-    'Science (Biology, Chemistry, Physics)': 'Excellent',
+    'Science': 'Excellent',
     'English / Language Arts': 'Average',
     'Social Studies / History': 'Good',
     'Art / Creative Subjects': 'Average',
@@ -50,40 +37,31 @@ const sampleResponses = {
   },
   
   // Interests & Experience
-  interests: 'I love working with computers and helping people solve technical problems. I volunteer at the local library helping seniors learn to use computers.',
-  experience: 'I work part-time at a computer repair shop and volunteer teaching computer skills to elderly people at the community center.',
+  q9_interests_text: 'I love working with computers and helping people solve technical problems. I volunteer at the local library helping seniors learn to use computers.',
+  q10_experience_text: 'I work part-time at a computer repair shop and volunteer teaching computer skills to elderly people at the community center.',
   
   // Personality & Traits
-  traits: [
-    'Analytical and logical',
-    'Compassionate and caring',
-    'Patient and persistent',
-    'Collaborative and team-focused'
-  ],
-  otherTraits: 'I enjoy explaining complex things in simple terms',
+  q11_traits: ['analytical', 'compassionate', 'patient', 'collaborative'],
   
   // Values
-  incomeImportance: 'Somewhat important',
-  stabilityImportance: 'Very important',
-  helpingImportance: 'Very important',
+  q12_income_importance: 'Somewhat important',
+  q13_stability_importance: 'Very important',
+  q14_helping_importance: 'Very important',
   
   // Lifestyle & Constraints
-  constraints: [
-    'Predictable hours',
-    'Stay close to home'
-  ],
+  q15_constraints: ['Predictable hours', 'Stay close to home'],
   
   // Decision Readiness & Risk
-  decisionPressure: 'Want to narrow this year',
-  riskTolerance: 'Somewhat comfortable',
+  q16_decision_urgency: 'I want to narrow things down this year',
+  q17_risk_tolerance: 'Somewhat comfortable',
   
   // Support & Confidence
-  supportLevel: 'Some support available',
-  careerConfidence: 'Somewhat confident',
+  q18_support_confidence: 'Some support',
+  q19_career_confidence: 'Somewhat confident',
   
   // Reflection
-  impactStatement: 'I want to help people by making technology more accessible and solving problems that improve their daily lives.',
-  inspiration: 'My computer science teacher who always takes time to help struggling students and shows how technology can make a positive difference.'
+  q20_impact_text: 'I want to help people by making technology more accessible and solving problems that improve their daily lives.',
+  q21_inspiration_text: 'My computer science teacher who always takes time to help struggling students and shows how technology can make a positive difference.'
 };
 
 async function testQuestionnaireAPI() {
@@ -98,8 +76,7 @@ async function testQuestionnaireAPI() {
     if (questionnaireData.success) {
       console.log('✅ Questionnaire structure retrieved successfully');
       console.log(`   - Version: ${questionnaireData.data.version}`);
-      console.log(`   - Sections: ${questionnaireData.data.sections.length}`);
-      console.log(`   - Total questions: ${questionnaireData.data.sections.reduce((total, section) => total + section.questions.length, 0)}`);
+      console.log(`   - Questions: ${questionnaireData.data.questions.length}`);
     } else {
       console.log('❌ Failed to get questionnaire structure:', questionnaireData.error);
       return;
@@ -141,7 +118,6 @@ async function testQuestionnaireAPI() {
     
     if (progressData.success) {
       console.log('✅ Progress calculated successfully');
-      console.log(`   - Completed sections: ${progressData.data.completedSections}/${progressData.data.totalSections}`);
       console.log(`   - Completed questions: ${progressData.data.completedQuestions}/${progressData.data.totalQuestions}`);
       console.log(`   - Percent complete: ${progressData.data.percentComplete}%`);
     } else {
@@ -266,9 +242,9 @@ async function testValidation() {
   console.log('\n🔍 Testing Validation with Incomplete Responses...\n');
   
   const incompleteResponses = {
-    grade: '10th',
-    // Missing zipCode (required)
-    workEnvironment: ['Indoors (offices, hospitals, schools)'],
+    q1_grade: '10',
+    // Missing q2_zip (required)
+    q3_work_environment: ['indoors'],
     // Missing other required fields
   };
   

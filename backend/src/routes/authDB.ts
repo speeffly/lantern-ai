@@ -1,6 +1,7 @@
 import express from 'express';
 import { AuthServiceDB, RegisterUserData } from '../services/authServiceDB';
 import { RelationshipService } from '../services/relationshipService';
+import { EmailVerificationService } from '../services/emailVerificationService';
 import { ApiResponse } from '../types';
 
 const router = express.Router();
@@ -410,6 +411,118 @@ router.post('/link-child', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to link child account'
+    } as ApiResponse);
+  }
+});
+
+// POST /api/auth/verify-email - Verify email with token
+router.post('/verify-email', async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        error: 'Verification token is required'
+      } as ApiResponse);
+    }
+
+    const result = await EmailVerificationService.verifyEmailToken(token);
+
+    if (result.success) {
+      res.json({
+        success: true,
+        message: 'Email verified successfully'
+      } as ApiResponse);
+    } else {
+      res.status(400).json({
+        success: false,
+        error: result.error
+      } as ApiResponse);
+    }
+  } catch (error) {
+    console.error('Email verification error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Email verification failed'
+    } as ApiResponse);
+  }
+});
+
+// POST /api/auth/resend-verification - Resend verification email
+router.post('/resend-verification', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        error: 'No token provided'
+      } as ApiResponse);
+    }
+
+    const user = AuthServiceDB.verifyToken(token);
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid token'
+      } as ApiResponse);
+    }
+
+    const result = await EmailVerificationService.resendVerificationEmail(parseInt(user.id));
+
+    if (result.success) {
+      res.json({
+        success: true,
+        message: 'Verification email sent successfully'
+      } as ApiResponse);
+    } else {
+      res.status(400).json({
+        success: false,
+        error: result.error
+      } as ApiResponse);
+    }
+  } catch (error) {
+    console.error('Resend verification error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to resend verification email'
+    } as ApiResponse);
+  }
+});
+
+// GET /api/auth/verification-status - Check email verification status
+router.get('/verification-status', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        error: 'No token provided'
+      } as ApiResponse);
+    }
+
+    const user = AuthServiceDB.verifyToken(token);
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid token'
+      } as ApiResponse);
+    }
+
+    const isVerified = await EmailVerificationService.isEmailVerified(parseInt(user.id));
+
+    res.json({
+      success: true,
+      data: {
+        emailVerified: isVerified
+      },
+      message: 'Verification status retrieved successfully'
+    } as ApiResponse);
+  } catch (error) {
+    console.error('Verification status error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to check verification status'
     } as ApiResponse);
   }
 });

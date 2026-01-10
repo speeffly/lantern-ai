@@ -323,6 +323,22 @@ CREATE TABLE IF NOT EXISTS communications (
     FOREIGN KEY (parent_message_id) REFERENCES communications(id)
 );
 
+-- Student assignments (tasks assigned by counselors)
+CREATE TABLE IF NOT EXISTS student_assignments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    counselor_id INTEGER NOT NULL,
+    student_id INTEGER NOT NULL,
+    assignment_type VARCHAR(30) NOT NULL CHECK (assignment_type IN ('assessment', 'career_research', 'skill_development', 'course_planning')),
+    title VARCHAR(200) NOT NULL,
+    description TEXT NOT NULL,
+    due_date DATETIME,
+    status VARCHAR(20) DEFAULT 'assigned' CHECK (status IN ('assigned', 'in_progress', 'completed', 'overdue')),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (counselor_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 -- Indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
@@ -341,6 +357,8 @@ CREATE INDEX IF NOT EXISTS idx_counselor_notes_student_id ON counselor_notes(stu
 CREATE INDEX IF NOT EXISTS idx_student_progress_student_id ON student_progress(student_id);
 CREATE INDEX IF NOT EXISTS idx_communications_from_user ON communications(from_user_id);
 CREATE INDEX IF NOT EXISTS idx_communications_to_user ON communications(to_user_id);
+CREATE INDEX IF NOT EXISTS idx_student_assignments_counselor_id ON student_assignments(counselor_id);
+CREATE INDEX IF NOT EXISTS idx_student_assignments_student_id ON student_assignments(student_id);
       `;
       
       // Split schema into individual statements

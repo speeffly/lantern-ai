@@ -65,32 +65,32 @@ export const CLUSTERS: ClusterDefinition[] = [
 
 export const clusterMapping = {
   workEnvironment: {
-    'Outdoors (construction sites, farms, parks)': { C1: 1.0, C8: 0.5 },
-    'Indoors (offices, hospitals, schools)': { C2: 1.0, C3: 0.5, C4: 0.5, C6: 0.5, C7: 0.5 },
-    'A mix of indoor and outdoor work': { C1: 0.75, C8: 0.75, C9: 0.5 },
-    'From home / remote': { C3: 1.0, C5: 0.5, C10: 0.5 },
-    'Traveling to different locations': { C9: 1.0, C10: 0.5, C7: 0.5 }
+    'outdoors': { C1: 1.0, C8: 0.5 },
+    'indoors': { C2: 1.0, C3: 0.5, C4: 0.5, C6: 0.5, C7: 0.5 },
+    'mixed': { C1: 0.75, C8: 0.75, C9: 0.5 },
+    'remote': { C3: 1.0, C5: 0.5, C10: 0.5 },
+    'traveling': { C9: 1.0, C10: 0.5, C7: 0.5 }
   },
   
   workStyle: {
-    'Building, fixing, or working with tools': { C1: 1.0, C3: 0.5 },
-    'Helping people directly': { C2: 1.0, C6: 1.0, C7: 0.5 },
-    'Working with computers or technology': { C3: 1.0, C10: 0.5, C5: 0.5 },
-    'Working with numbers, data, or analysis': { C4: 1.0, C3: 0.5, C8: 0.5 },
-    'Creating designs, art, music, or media': { C5: 1.0, C9: 0.5, C10: 0.5 }
+    'tools': { C1: 1.0, C3: 0.5 },
+    'helping': { C2: 1.0, C6: 1.0, C7: 0.5 },
+    'technology': { C3: 1.0, C10: 0.5, C5: 0.5 },
+    'data': { C4: 1.0, C3: 0.5, C8: 0.5 },
+    'creative': { C5: 1.0, C9: 0.5, C10: 0.5 }
   },
   
   thinkingStyle: {
-    'Troubleshooting and fixing things': { C1: 1.0, C3: 0.5 },
-    'Helping people overcome challenges': { C6: 1.0, C2: 0.5, C7: 0.5 },
-    'Understanding how systems or machines work': { C3: 1.0, C8: 0.5, C1: 0.5 },
-    'Inventing or designing new solutions': { C10: 1.0, C5: 0.5, C3: 0.5 },
-    'Planning, organizing, or managing projects': { C4: 1.0, C7: 0.5, C6: 0.5 }
+    'fixing': { C1: 1.0, C3: 0.5 },
+    'helping_challenges': { C6: 1.0, C2: 0.5, C7: 0.5 },
+    'systems': { C3: 1.0, C8: 0.5, C1: 0.5 },
+    'creating': { C10: 1.0, C5: 0.5, C3: 0.5 },
+    'organizing': { C4: 1.0, C7: 0.5, C6: 0.5 }
   },
   
   academicInterests: {
     'Math': { C3: 1.0, C4: 0.5, C8: 0.5 },
-    'Science (Biology, Chemistry, Physics)': { C2: 1.0, C8: 1.0, C3: 0.5 },
+    'Science': { C2: 1.0, C8: 1.0, C3: 0.5 },
     'English / Language Arts': { C6: 1.0, C9: 0.5, C7: 0.5 },
     'Social Studies / History': { C7: 1.0, C6: 0.5, C9: 0.5 },
     'Art / Creative Subjects': { C5: 1.0, C9: 0.5 },
@@ -101,18 +101,18 @@ export const clusterMapping = {
   },
   
   traits: {
-    'Creative and artistic': { C5: 1.0, C10: 0.5 },
-    'Analytical and logical': { C3: 1.0, C4: 0.5, C8: 0.5 },
-    'Compassionate and caring': { C2: 1.0, C6: 1.0 },
-    'Leadership-oriented': { C4: 1.0, C10: 0.5, C7: 0.5 },
-    'Detail-oriented and organized': { C7: 1.0, C4: 0.5, C3: 0.5 },
-    'Adventurous and willing to take risks': { C10: 1.0, C9: 0.5, C5: 0.5 },
-    'Patient and persistent': { C2: 1.0, C8: 0.5, C6: 0.5 },
-    'Outgoing and social': { C9: 1.0, C6: 0.5, C10: 0.5 },
-    'Independent and self-reliant': { C10: 1.0, C1: 0.5, C5: 0.5 },
-    'Collaborative and team-focused': { C6: 1.0, C4: 0.5, C2: 0.5 },
-    'Curious and inquisitive': { C8: 1.0, C3: 0.5, C10: 0.5 },
-    'Practical and hands-on': { C1: 1.0, C2: 0.5 }
+    'creative': { C5: 1.0, C10: 0.5 },
+    'analytical': { C3: 1.0, C4: 0.5, C8: 0.5 },
+    'compassionate': { C2: 1.0, C6: 1.0 },
+    'leadership': { C4: 1.0, C10: 0.5, C7: 0.5 },
+    'detail_oriented': { C7: 1.0, C4: 0.5, C3: 0.5 },
+    'adventurous': { C10: 1.0, C9: 0.5, C5: 0.5 },
+    'patient': { C2: 1.0, C8: 0.5, C6: 0.5 },
+    'outgoing': { C9: 1.0, C6: 0.5, C10: 0.5 },
+    'independent': { C10: 1.0, C1: 0.5, C5: 0.5 },
+    'collaborative': { C6: 1.0, C4: 0.5, C2: 0.5 },
+    'curious': { C8: 1.0, C3: 0.5, C10: 0.5 },
+    'hands_on': { C1: 1.0, C2: 0.5 }
   }
 };
 
@@ -135,33 +135,30 @@ export const VALUE_ENCODINGS = {
   
   values: {
     'Very important': 1.00,
-    'Very': 1.00,
     'Somewhat important': 0.67,
-    'Somewhat': 0.67,
     'Not very important': 0.33,
-    'Not very': 0.33,
-    'Not sure': 0.50
+    'I\'m not sure yet': 0.50
   },
   
   risk: {
-    'Very comfortable with risk': 1.00,
+    'Very comfortable': 1.00,
     'Somewhat comfortable': 0.67,
     'Prefer stability': 0.33,
-    'Not sure': 0.50
+    'I\'m not sure yet': 0.50
   },
   
   urgency: {
-    'Just exploring options': 0.00,
-    'Want to narrow this year': 0.33,
-    'Need a plan soon': 0.67,
-    'Ready to confirm path': 1.00
+    'I\'m just exploring right now': 0.00,
+    'I want to narrow things down this year': 0.33,
+    'I need a clear plan soon': 0.67,
+    'I already have a path in mind but want to confirm it': 1.00
   },
   
   support: {
-    'Strong family/financial support': 1.00,
-    'Some support available': 0.67,
+    'Strong support': 1.00,
+    'Some support': 0.67,
     'Limited support': 0.33,
-    'Not sure about support': 0.50
+    'I\'m not sure': 0.50
   },
   
   confidence: {
@@ -172,10 +169,10 @@ export const VALUE_ENCODINGS = {
   },
   
   education: {
-    'Start working right after high school': 0,
+    'Work immediately after high school': 0,
     'A few months to 2 years (certifications or training)': 1,
     '2–4 years (college or technical school)': 2,
     '4+ years (college and possibly graduate school)': 3,
-    "I'm not sure yet": 2
+    'I\'m not sure yet': 2
   }
 };

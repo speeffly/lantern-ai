@@ -50,6 +50,15 @@ export default function StudentAssignments({ limit, showTitle = true }: StudentA
         }
       });
 
+      if (!response.ok) {
+        // Handle HTTP errors
+        if (response.status === 401) {
+          router.push('/login');
+          return;
+        }
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
       const data = await response.json();
       console.log('📚 Student assignments response:', data);
 
@@ -62,12 +71,15 @@ export default function StudentAssignments({ limit, showTitle = true }: StudentA
         }
         
         setAssignments(assignmentList);
+        // Clear any previous errors
+        setError(null);
       } else {
+        // API returned success: false, this is a real error
         setError(data.error || 'Failed to load assignments');
       }
     } catch (error) {
       console.error('❌ Error loading assignments:', error);
-      setError('Failed to load assignments');
+      setError(error instanceof Error ? error.message : 'Failed to load assignments');
     } finally {
       setIsLoading(false);
     }

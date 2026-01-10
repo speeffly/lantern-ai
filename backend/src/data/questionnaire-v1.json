@@ -1,341 +1,255 @@
 {
   "version": "v1",
-  "title": "Lantern AI Career Questionnaire",
-  "description": "Comprehensive career exploration questionnaire for high school students",
-  "sections": [
+  "title": "Lantern AI Career Assessment",
+  "description": "Career exploration questionnaire for high school students",
+  "questions": [
     {
-      "id": "basic_info",
-      "title": "Basic Information",
-      "questions": [
-        {
-          "id": "grade",
-          "text": "What grade are you currently in?",
-          "type": "single_choice",
-          "required": true,
-          "options": ["9th", "10th", "11th", "12th"]
-        },
-        {
-          "id": "zipCode",
-          "text": "What is your ZIP code?",
-          "type": "text",
-          "required": true,
-          "validation": {
-            "pattern": "^\\d{5}$",
-            "message": "Please enter a valid 5-digit ZIP code"
-          },
-          "placeholder": "12345"
-        }
-      ]
+      "id": "q1_grade",
+      "type": "single_select",
+      "label": "What grade are you currently in?",
+      "options": ["9", "10", "11", "12"],
+      "required": true
     },
     {
-      "id": "work_environment",
-      "title": "Work Environment Preferences",
-      "questions": [
-        {
-          "id": "workEnvironment",
-          "text": "Where do you see yourself working most comfortably? (Select all that apply)",
-          "type": "multi_select",
-          "required": true,
-          "options": [
-            "Outdoors (construction sites, farms, parks)",
-            "Indoors (offices, hospitals, schools)",
-            "A mix of indoor and outdoor work",
-            "From home / remote",
-            "Traveling to different locations"
-          ]
-        }
-      ]
+      "id": "q2_zip",
+      "type": "text",
+      "label": "What is your ZIP code?",
+      "required": true
     },
     {
-      "id": "work_style",
-      "title": "Work Style",
-      "questions": [
-        {
-          "id": "workStyle",
-          "text": "How do you prefer to work? (Select all that apply)",
-          "type": "multi_select",
-          "required": true,
-          "options": [
-            "Building, fixing, or working with tools",
-            "Helping people directly",
-            "Working with computers or technology",
-            "Working with numbers, data, or analysis",
-            "Creating designs, art, music, or media"
-          ]
-        }
-      ]
+      "id": "q3_work_environment",
+      "type": "multi_select",
+      "label": "Where do you see yourself working most comfortably?",
+      "options": [
+        { "key": "outdoors", "label": "Outdoors (construction sites, farms, parks)" },
+        { "key": "indoors", "label": "Indoors (offices, hospitals, schools)" },
+        { "key": "mixed", "label": "A mix of indoor and outdoor work" },
+        { "key": "remote", "label": "From home / remote" },
+        { "key": "traveling", "label": "Traveling to different locations" }
+      ],
+      "required": true
     },
     {
-      "id": "thinking_style",
-      "title": "Thinking Style",
-      "questions": [
-        {
-          "id": "thinkingStyle",
-          "text": "What kinds of problems do you enjoy solving? (Select all that apply)",
-          "type": "multi_select",
-          "required": true,
-          "options": [
-            "Troubleshooting and fixing things",
-            "Helping people overcome challenges",
-            "Understanding how systems or machines work",
-            "Inventing or designing new solutions",
-            "Planning, organizing, or managing projects"
-          ]
-        }
-      ]
+      "id": "q4_work_style",
+      "type": "multi_select",
+      "label": "How do you prefer to work?",
+      "options": [
+        { "key": "tools", "label": "Building, fixing, or working with tools" },
+        { "key": "helping", "label": "Helping people directly" },
+        { "key": "technology", "label": "Working with computers or technology" },
+        { "key": "data", "label": "Working with numbers, data, or analysis" },
+        { "key": "creative", "label": "Creating designs, art, music, or media" }
+      ],
+      "required": true
     },
     {
-      "id": "education_training",
-      "title": "Education & Training",
-      "questions": [
-        {
-          "id": "educationWillingness",
-          "text": "How much education or training are you willing to pursue after high school?",
-          "type": "single_choice",
-          "required": true,
-          "options": [
-            "Start working right after high school",
-            "A few months to 2 years (certifications or training)",
-            "2–4 years (college or technical school)",
-            "4+ years (college and possibly graduate school)",
-            "I'm not sure yet"
-          ]
-        }
-      ]
+      "id": "q5_thinking_style",
+      "type": "multi_select",
+      "label": "What kinds of problems do you enjoy solving?",
+      "options": [
+        { "key": "fixing", "label": "Troubleshooting and fixing things" },
+        { "key": "helping_challenges", "label": "Helping people overcome challenges" },
+        { "key": "systems", "label": "Understanding how systems or machines work" },
+        { "key": "creating", "label": "Inventing or designing new solutions" },
+        { "key": "organizing", "label": "Planning, organizing, or managing projects" }
+      ],
+      "required": true
     },
     {
-      "id": "academic_interests",
-      "title": "Academic Interests",
-      "questions": [
-        {
-          "id": "academicInterests",
-          "text": "Which subjects do you enjoy learning? (Select all that apply)",
-          "type": "multi_select",
-          "required": true,
-          "options": [
-            "Math",
-            "Science (Biology, Chemistry, Physics)",
-            "English / Language Arts",
-            "Social Studies / History",
-            "Art / Creative Subjects",
-            "Physical Education / Health",
-            "Technology / Computer Science",
-            "Foreign Languages",
-            "Business / Economics"
-          ]
-        }
-      ]
+      "id": "q6_education_willingness",
+      "type": "single_select",
+      "label": "How much education or training are you willing to pursue after high school?",
+      "options": [
+        "Work immediately after high school",
+        "A few months to 2 years (certifications or training)",
+        "2–4 years (college or technical school)",
+        "4+ years (college and possibly graduate school)",
+        "I'm not sure yet"
+      ],
+      "required": true
     },
     {
-      "id": "academic_performance",
-      "title": "Academic Performance",
-      "questions": [
-        {
-          "id": "academicPerformance",
-          "text": "Rate your performance in each subject:",
-          "type": "matrix",
-          "required": true,
-          "subjects": [
-            "Math",
-            "Science (Biology, Chemistry, Physics)",
-            "English / Language Arts",
-            "Social Studies / History",
-            "Art / Creative Subjects",
-            "Physical Education / Health",
-            "Technology / Computer Science",
-            "Foreign Languages",
-            "Business / Economics"
-          ],
-          "options": [
-            "Excellent",
-            "Good",
-            "Average",
-            "Needs Improvement",
-            "Haven't taken yet"
-          ]
-        }
-      ]
+      "id": "q7_academic_interests",
+      "type": "multi_select",
+      "label": "Which subjects do you enjoy learning?",
+      "options": [
+        "Math",
+        "Science",
+        "English / Language Arts",
+        "Social Studies / History",
+        "Art / Creative Subjects",
+        "Physical Education / Health",
+        "Technology / Computer Science",
+        "Foreign Languages",
+        "Business / Economics"
+      ],
+      "required": true
     },
     {
-      "id": "interests_experience",
-      "title": "Interests & Experience",
-      "questions": [
-        {
-          "id": "interests",
-          "text": "What are your main interests and hobbies?",
-          "type": "text_area",
-          "required": false,
-          "placeholder": "Tell us about what you enjoy doing in your free time, what topics fascinate you, or what activities you're passionate about..."
-        },
-        {
-          "id": "experience",
-          "text": "Describe any work, volunteer, or club experience you have:",
-          "type": "text_area",
-          "required": false,
-          "placeholder": "Include part-time jobs, internships, volunteer work, clubs, or other activities. If none yet, write 'None yet' and tell us what you'd like to try..."
-        }
-      ]
+      "id": "q8_academic_performance",
+      "type": "matrix",
+      "label": "How would you rate your performance in the following subjects?",
+      "rows": [
+        "Math",
+        "Science",
+        "English / Language Arts",
+        "Social Studies / History",
+        "Art / Creative Subjects",
+        "Physical Education / Health",
+        "Technology / Computer Science",
+        "Foreign Languages",
+        "Business / Economics"
+      ],
+      "columns": [
+        "Excellent",
+        "Good",
+        "Average",
+        "Needs Improvement",
+        "Haven't taken yet"
+      ],
+      "required": true
     },
     {
-      "id": "personality_traits",
-      "title": "Personality & Traits",
-      "questions": [
-        {
-          "id": "traits",
-          "text": "Which traits best describe you? (Select all that apply)",
-          "type": "multi_select",
-          "required": true,
-          "options": [
-            "Creative and artistic",
-            "Analytical and logical",
-            "Compassionate and caring",
-            "Leadership-oriented",
-            "Detail-oriented and organized",
-            "Adventurous and willing to take risks",
-            "Patient and persistent",
-            "Outgoing and social",
-            "Independent and self-reliant",
-            "Collaborative and team-focused",
-            "Curious and inquisitive",
-            "Practical and hands-on"
-          ]
-        },
-        {
-          "id": "otherTraits",
-          "text": "Other traits that describe you (optional):",
-          "type": "text_area",
-          "required": false,
-          "placeholder": "Describe any other personality traits or characteristics that define you..."
-        }
-      ]
+      "id": "q9_interests_text",
+      "type": "text_long",
+      "label": "What are your interests or hobbies?",
+      "required": false
     },
     {
-      "id": "values",
-      "title": "Values",
-      "questions": [
-        {
-          "id": "incomeImportance",
-          "text": "How important is earning a high income to you?",
-          "type": "single_choice",
-          "required": true,
-          "options": ["Very important", "Somewhat important", "Not very important", "Not sure"]
-        },
-        {
-          "id": "stabilityImportance",
-          "text": "How important is job stability and security to you?",
-          "type": "single_choice",
-          "required": true,
-          "options": ["Very important", "Somewhat important", "Not very important", "Not sure"]
-        },
-        {
-          "id": "helpingImportance",
-          "text": "How important is helping others in your career?",
-          "type": "single_choice",
-          "required": true,
-          "options": ["Very important", "Somewhat important", "Not very important", "Not sure"]
-        }
-      ]
+      "id": "q10_experience_text",
+      "type": "text_long",
+      "label": "What work, volunteer, or hands-on experience do you have?",
+      "required": false
     },
     {
-      "id": "lifestyle_constraints",
-      "title": "Lifestyle & Constraints",
-      "questions": [
-        {
-          "id": "constraints",
-          "text": "Which of these factors are important to you? (Select all that apply)",
-          "type": "multi_select",
-          "required": false,
-          "options": [
-            "Start earning money as soon as possible",
-            "Flexible hours",
-            "Predictable hours",
-            "Stay close to home",
-            "Open to relocating",
-            "Physical work may be difficult for me",
-            "No major constraints"
-          ]
-        }
-      ]
+      "id": "q11_traits",
+      "type": "multi_select",
+      "label": "Which traits best describe you?",
+      "options": [
+        { "key": "creative", "label": "Creative and artistic" },
+        { "key": "analytical", "label": "Analytical and logical" },
+        { "key": "compassionate", "label": "Compassionate and caring" },
+        { "key": "leadership", "label": "Leadership-oriented" },
+        { "key": "detail_oriented", "label": "Detail-oriented and organized" },
+        { "key": "adventurous", "label": "Adventurous and willing to take risks" },
+        { "key": "patient", "label": "Patient and persistent" },
+        { "key": "outgoing", "label": "Outgoing and social" },
+        { "key": "independent", "label": "Independent and self-reliant" },
+        { "key": "collaborative", "label": "Collaborative and team-focused" },
+        { "key": "curious", "label": "Curious and inquisitive" },
+        { "key": "hands_on", "label": "Practical and hands-on" }
+      ],
+      "required": true
     },
     {
-      "id": "decision_readiness",
-      "title": "Decision Readiness & Risk",
-      "questions": [
-        {
-          "id": "decisionPressure",
-          "text": "How much pressure do you feel to decide on a career path?",
-          "type": "single_choice",
-          "required": true,
-          "options": [
-            "Just exploring options",
-            "Want to narrow this year",
-            "Need a plan soon",
-            "Ready to confirm path"
-          ]
-        },
-        {
-          "id": "riskTolerance",
-          "text": "How comfortable are you with taking risks in your career?",
-          "type": "single_choice",
-          "required": true,
-          "options": [
-            "Very comfortable with risk",
-            "Somewhat comfortable",
-            "Prefer stability",
-            "Not sure"
-          ]
-        }
-      ]
+      "id": "q12_income_importance",
+      "type": "single_select",
+      "label": "How important is earning a high income to you?",
+      "options": [
+        "Very important",
+        "Somewhat important",
+        "Not very important",
+        "I'm not sure yet"
+      ],
+      "required": true
     },
     {
-      "id": "support_confidence",
-      "title": "Support & Confidence",
-      "questions": [
-        {
-          "id": "supportLevel",
-          "text": "What level of family/financial support do you have for education or training?",
-          "type": "single_choice",
-          "required": true,
-          "options": [
-            "Strong family/financial support",
-            "Some support available",
-            "Limited support",
-            "Not sure about support"
-          ]
-        },
-        {
-          "id": "careerConfidence",
-          "text": "How confident do you feel about making career decisions?",
-          "type": "single_choice",
-          "required": true,
-          "options": [
-            "Very confident",
-            "Somewhat confident",
-            "Unsure",
-            "Very unsure"
-          ]
-        }
-      ]
+      "id": "q13_stability_importance",
+      "type": "single_select",
+      "label": "How important is job stability and security to you?",
+      "options": [
+        "Very important",
+        "Somewhat important",
+        "Not very important"
+      ],
+      "required": true
     },
     {
-      "id": "reflection",
-      "title": "Reflection",
-      "questions": [
-        {
-          "id": "impactStatement",
-          "text": "How do you want to make an impact in the world? (Optional)",
-          "type": "text_area",
-          "required": false,
-          "placeholder": "Think about the legacy you want to leave or how you want to be remembered..."
-        },
-        {
-          "id": "inspiration",
-          "text": "Who or what inspires you and why? (Optional)",
-          "type": "text_area",
-          "required": false,
-          "placeholder": "Tell us about someone who inspires you or what motivates you to succeed..."
-        }
-      ]
+      "id": "q14_helping_importance",
+      "type": "single_select",
+      "label": "How important is helping others in your future career?",
+      "options": [
+        "Very important",
+        "Somewhat important",
+        "Not very important",
+        "I'm not sure yet"
+      ],
+      "required": true
+    },
+    {
+      "id": "q15_constraints",
+      "type": "multi_select",
+      "label": "Are there any factors we should consider when suggesting careers?",
+      "options": [
+        "Start earning money as soon as possible",
+        "Flexible hours",
+        "Predictable hours",
+        "Stay close to home",
+        "Open to relocating",
+        "Physical work may be difficult for me",
+        "No major constraints"
+      ],
+      "required": false
+    },
+    {
+      "id": "q16_decision_urgency",
+      "type": "single_select",
+      "label": "How soon do you feel pressure to decide on a career path?",
+      "options": [
+        "I'm just exploring right now",
+        "I want to narrow things down this year",
+        "I need a clear plan soon",
+        "I already have a path in mind but want to confirm it"
+      ],
+      "required": true
+    },
+    {
+      "id": "q17_risk_tolerance",
+      "type": "single_select",
+      "label": "How comfortable are you with career uncertainty or risk?",
+      "options": [
+        "Very comfortable",
+        "Somewhat comfortable",
+        "Prefer stability",
+        "I'm not sure yet"
+      ],
+      "required": true
+    },
+    {
+      "id": "q18_support_confidence",
+      "type": "single_select",
+      "label": "Do you feel you have support for education or training after high school?",
+      "options": [
+        "Strong support",
+        "Some support",
+        "Limited support",
+        "I'm not sure"
+      ],
+      "required": true
+    },
+    {
+      "id": "q19_career_confidence",
+      "type": "single_select",
+      "label": "How confident do you feel about your future career direction?",
+      "options": [
+        "Very confident",
+        "Somewhat confident",
+        "Unsure",
+        "Very unsure"
+      ],
+      "required": true
+    },
+    {
+      "id": "q20_impact_text",
+      "type": "text_long",
+      "label": "How do you want to be remembered or make an impact?",
+      "required": false
+    },
+    {
+      "id": "q21_inspiration_text",
+      "type": "text_long",
+      "label": "Who inspires you and why?",
+      "required": false
     }
   ]
 }

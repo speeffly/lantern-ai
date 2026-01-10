@@ -334,6 +334,9 @@ export class RecommendationEngine {
     const good_fit: CareerRecommendation[] = [];
     const stretch_options: CareerRecommendation[] = [];
     
+    // Get the top score to use for relative thresholds
+    const topScore = sortedCareers.length > 0 ? sortedCareers[0].score : 0;
+    
     sortedCareers.forEach(({ career, score, reasoning, feasibility_notes }) => {
       const recommendation: CareerRecommendation = {
         career,
@@ -343,13 +346,16 @@ export class RecommendationEngine {
         feasibility_notes: feasibility_notes.length > 0 ? feasibility_notes : undefined
       };
       
-      if (score >= 70 && feasibility_notes.length === 0) {
+      // Use both absolute and relative thresholds
+      const relativeScore = topScore > 0 ? (score / topScore) : 0;
+      
+      if ((score >= 45 || relativeScore >= 0.85) && feasibility_notes.length === 0) {
         recommendation.fit_category = 'best_fit';
         best_fit.push(recommendation);
-      } else if (score >= 50) {
+      } else if (score >= 35 || relativeScore >= 0.70) {
         recommendation.fit_category = 'good_fit';
         good_fit.push(recommendation);
-      } else if (score >= 30 || career.challenge_level >= 2) {
+      } else if (score >= 25 || career.challenge_level >= 2) {
         recommendation.fit_category = 'stretch_option';
         stretch_options.push(recommendation);
       }

@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Header from '../components/Header';
+import { validateZipCode, ZipCodeValidationResult } from '../services/zipCodeValidator';
 
 interface CounselorQuestion {
   id: string;
@@ -11,6 +12,7 @@ interface CounselorQuestion {
   type: string;
   category: string;
   options?: string[];
+  subjects?: string[];
   fields?: {
     [key: string]: {
       type: string;
@@ -433,10 +435,10 @@ function CounselorAssessmentContent() {
             grade: initialResponses.grade || data.data.prefilledData.grade,
             zipCode: initialResponses.zipCode || data.data.prefilledData.zipCode
           };
-          if (!initialSelectedAnswers.location_grade && (data.data.prefilledData.grade || data.data.prefilledData.zipCode)) {
+          if (!initialSelectedAnswers.q1_grade_zip && (data.data.prefilledData.grade || data.data.prefilledData.zipCode)) {
             initialSelectedAnswers = {
               ...initialSelectedAnswers,
-              location_grade: {
+              q1_grade_zip: {
                 ...(data.data.prefilledData.grade ? { grade: data.data.prefilledData.grade } : {}),
                 ...(data.data.prefilledData.zipCode ? { zipCode: data.data.prefilledData.zipCode } : {})
               }
@@ -547,10 +549,20 @@ function CounselorAssessmentContent() {
         return;
       }
       
-      // Validate ZIP code format
-      const zipCodeRegex = /^\d{5}$/;
-      if (!zipCodeRegex.test(currentAnswer.zipCode)) {
-        alert('ZIP code must be exactly 5 digits (e.g., 12345)');
+      // Validate ZIP code format and authenticity
+      try {
+        if (!currentAnswer.zipCode || typeof currentAnswer.zipCode !== 'string') {
+          alert('Please enter a valid ZIP code');
+          return;
+        }
+        const zipValidation = validateZipCode(currentAnswer.zipCode);
+        if (!zipValidation.isValid) {
+          alert(zipValidation.error || 'Please enter a valid US ZIP code');
+          return;
+        }
+      } catch (error) {
+        console.error('ZIP code validation error in handleNext:', error);
+        alert('Error validating ZIP code. Please check your input and try again.');
         return;
       }
     } else if (currentQuestion.type === 'combined_input') {
@@ -598,16 +610,21 @@ function CounselorAssessmentContent() {
         alert('Please select at least one trait or describe your own');
         return;
       }
-    } else if (currentQuestion.type === 'free_text') {
-      const minLength = currentQuestion.minLength || 10;
-      // For optional questions, allow empty answers or answers that meet minimum length
-      if (!isOptional && (!currentAnswer || currentAnswer.length < minLength)) {
-        alert(`Please provide a more detailed response. You need at least ${minLength} characters (currently ${(currentAnswer || '').length}). Be specific!`);
-        return;
+    } else if (currentQuestion.type === 'matrix_radio') {
+      if (!isOptional) {
+        const subjects = currentQuestion.subjects || [];
+        const answeredSubjects = Object.keys(currentAnswer || {});
+        
+        if (answeredSubjects.length < subjects.length) {
+          const missingSubjects = subjects.filter(subject => !currentAnswer?.[subject]);
+          alert(`Please rate your performance in all subjects. Missing: ${missingSubjects.join(', ')}`);
+          return;
+        }
       }
-      // For optional questions, if they start typing, they should meet minimum length (unless minLength is 0)
-      if (isOptional && currentAnswer && minLength > 0 && currentAnswer.length < minLength) {
-        alert(`If you choose to answer this optional question, please provide at least ${minLength} characters (currently ${currentAnswer.length}). You can also skip this question.`);
+    } else if (currentQuestion.type === 'free_text') {
+      // For free text questions, just check if they're required and have any content
+      if (!isOptional && (!currentAnswer || currentAnswer.trim().length === 0)) {
+        alert('Please provide an answer to this question.');
         return;
       }
     } else {
@@ -620,36 +637,36 @@ function CounselorAssessmentContent() {
     // Update responses based on question type
     const newResponses = { ...responses };
     
-    if (currentQuestion.id === 'location_grade') {
+    if (currentQuestion.id === 'q1_grade_zip') {
       newResponses.grade = parseInt(currentAnswer.grade);
       newResponses.zipCode = currentAnswer.zipCode;
-    } else if (currentQuestion.id === 'work_environment') {
+    } else if (currentQuestion.id === 'q2_work_environment') {
       newResponses.workEnvironment = currentAnswer;
-    } else if (currentQuestion.id === 'hands_on_preference') {
+    } else if (currentQuestion.id === 'q3_work_style') {
       newResponses.handsOnPreference = currentAnswer;
-    } else if (currentQuestion.id === 'problem_solving') {
+    } else if (currentQuestion.id === 'q4_thinking_style') {
       newResponses.problemSolving = currentAnswer;
-    } else if (currentQuestion.id === 'helping_others') {
+    } else if (currentQuestion.id === 'q13_helping_importance') {
       newResponses.helpingOthers = currentAnswer;
-    } else if (currentQuestion.id === 'education_commitment') {
+    } else if (currentQuestion.id === 'q5_education_willingness') {
       newResponses.educationCommitment = currentAnswer;
-    } else if (currentQuestion.id === 'income_importance') {
+    } else if (currentQuestion.id === 'q11_income_importance') {
       newResponses.incomeImportance = currentAnswer;
-    } else if (currentQuestion.id === 'job_security') {
+    } else if (currentQuestion.id === 'q12_stability_importance') {
       newResponses.jobSecurity = currentAnswer;
-    } else if (currentQuestion.id === 'subjects_strengths') {
+    } else if (currentQuestion.id === 'q6_academic_interests') {
       newResponses.subjectsStrengths = Array.isArray(currentAnswer) ? currentAnswer : [currentAnswer];
-    } else if (currentQuestion.id === 'interests_passions') {
+    } else if (currentQuestion.id === 'q8_interests_text') {
       newResponses.interestsPassions = currentAnswer;
-    } else if (currentQuestion.id === 'work_experience') {
+    } else if (currentQuestion.id === 'q9_experience_text') {
       newResponses.workExperience = currentAnswer;
-    } else if (currentQuestion.id === 'academic_performance') {
+    } else if (currentQuestion.id === 'q7_academic_performance') {
       newResponses.academicPerformance = currentAnswer;
-    } else if (currentQuestion.id === 'legacy_impact') {
+    } else if (currentQuestion.id === 'q19_impact_text') {
       newResponses.legacyImpact = currentAnswer;
-    } else if (currentQuestion.id === 'personal_traits') {
+    } else if (currentQuestion.id === 'q10_traits') {
       newResponses.personalTraits = currentAnswer;
-    } else if (currentQuestion.id === 'inspiration_role_models') {
+    } else if (currentQuestion.id === 'q20_inspiration_text') {
       newResponses.inspirationRoleModels = currentAnswer;
     }
 
@@ -664,6 +681,11 @@ function CounselorAssessmentContent() {
 
   const handleSubmit = async (finalResponses: CounselorAssessmentResponse) => {
     setIsSubmitting(true);
+
+    // Debug: Log the final responses being submitted
+    console.log('🚀 Submitting assessment responses:', finalResponses);
+    console.log('📊 Grade:', finalResponses.grade);
+    console.log('📍 ZIP Code:', finalResponses.zipCode);
 
     try {
       const sessionId = localStorage.getItem('sessionId');
@@ -760,52 +782,117 @@ function CounselorAssessmentContent() {
     if (question.type === 'combined' && question.fields) {
       return (
         <div className="space-y-4">
-          {Object.entries(question.fields).map(([fieldName, fieldConfig]) => (
-            <div key={fieldName}>
-              <label className="block text-sm font-medium text-gray-700 mb-2 capitalize">
-                {fieldName.replace(/([A-Z])/g, ' $1').trim()}
-              </label>
-              {fieldConfig.type === 'select' ? (
-                <select
-                  value={currentAnswer?.[fieldName] || ''}
-                  onChange={(e) => handleAnswerChange(question.id, {
-                    ...currentAnswer,
-                    [fieldName]: e.target.value
-                  })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg"
-                  required={fieldConfig.required}
-                >
-                  <option value="">Select {fieldName}</option>
-                  {fieldConfig.options?.map((option) => (
-                    <option key={option} value={option}>{option}</option>
-                  ))}
-                </select>
-              ) : (
-                <input
-                  type="text"
-                  value={currentAnswer?.[fieldName] || ''}
-                  onChange={(e) => {
-                    let value = e.target.value;
-                    
-                    // Special handling for ZIP code field
-                    if (fieldName === 'zipCode') {
-                      // Only allow digits and limit to 5 characters
-                      value = value.replace(/\D/g, '').slice(0, 5);
-                    }
-                    
-                    handleAnswerChange(question.id, {
+          {Object.entries(question.fields).map(([fieldName, fieldConfig]) => {
+            const fieldValue = currentAnswer?.[fieldName] || '';
+            const isZipCode = fieldName === 'zipCode';
+            
+            let zipValidation: ZipCodeValidationResult | null = null;
+            let validationError: string | null = null;
+            
+            if (isZipCode && fieldValue && fieldValue.length === 5) {
+              try {
+                zipValidation = validateZipCode(fieldValue);
+              } catch (error) {
+                console.error('ZIP code validation error:', error);
+                validationError = 'Error validating ZIP code';
+                zipValidation = { isValid: false, error: 'Validation error occurred' };
+              }
+            }
+            
+            const isValidZip = !isZipCode || !fieldValue || fieldValue.length !== 5 || (zipValidation?.isValid ?? false);
+            const showZipError = isZipCode && fieldValue && fieldValue.length > 0 && fieldValue.length === 5 && !isValidZip && !validationError;
+            const showZipSuccess = isZipCode && fieldValue && zipValidation?.isValid;
+            
+            return (
+              <div key={fieldName}>
+                <label className="block text-sm font-medium text-gray-700 mb-2 capitalize">
+                  {fieldName.replace(/([A-Z])/g, ' $1').trim()}
+                  {isZipCode && (
+                    <span className="text-xs text-gray-500 ml-2">(5 digits)</span>
+                  )}
+                </label>
+                {fieldConfig.type === 'select' ? (
+                  <select
+                    value={fieldValue}
+                    onChange={(e) => handleAnswerChange(question.id, {
                       ...currentAnswer,
-                      [fieldName]: value
-                    });
-                  }}
-                  placeholder={fieldConfig.placeholder}
-                  maxLength={fieldConfig.maxLength}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg"
-                  required={fieldConfig.required}
-                />
-              )}
-            </div>
-          ))}
+                      [fieldName]: e.target.value
+                    })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required={fieldConfig.required}
+                  >
+                    <option value="">Select {fieldName}</option>
+                    {fieldConfig.options?.map((option) => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <div>
+                    <input
+                      type="text"
+                      value={fieldValue}
+                      onChange={(e) => {
+                        let value = e.target.value;
+                        
+                        // Special handling for ZIP code field
+                        if (fieldName === 'zipCode') {
+                          // Only allow digits and limit to 5 characters
+                          value = value.replace(/\D/g, '').slice(0, 5);
+                        }
+                        
+                        handleAnswerChange(question.id, {
+                          ...currentAnswer,
+                          [fieldName]: value
+                        });
+                      }}
+                      placeholder={fieldConfig.placeholder}
+                      maxLength={fieldConfig.maxLength}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 transition-colors ${
+                        showZipError 
+                          ? 'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50' 
+                          : showZipSuccess
+                          ? 'border-green-500 focus:border-green-500 focus:ring-green-500 bg-green-50'
+                          : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
+                      }`}
+                      required={fieldConfig.required}
+                    />
+                    {isZipCode && (
+                      <div className="mt-1">
+                        {showZipError && zipValidation && (
+                          <p className="text-sm text-red-600 flex items-center">
+                            <span className="mr-1">❌</span>
+                            {zipValidation.error || 'Invalid ZIP code'}
+                          </p>
+                        )}
+                        {showZipSuccess && zipValidation && (
+                          <p className="text-sm text-green-600 flex items-center">
+                            <span className="mr-1">✅</span>
+                            Valid ZIP code{zipValidation.region && zipValidation.state ? ` - ${zipValidation.region}, ${zipValidation.state}` : ''}
+                          </p>
+                        )}
+                        {fieldValue.length > 0 && fieldValue.length < 5 && (
+                          <p className="text-sm text-gray-500">
+                            Enter {5 - fieldValue.length} more digit{5 - fieldValue.length !== 1 ? 's' : ''}
+                          </p>
+                        )}
+                        {fieldValue.length === 0 && (
+                          <p className="text-sm text-gray-500">
+                            Enter your 5-digit ZIP code (e.g., 12345)
+                          </p>
+                        )}
+                        {validationError && (
+                          <p className="text-sm text-orange-600 flex items-center">
+                            <span className="mr-1">⚠️</span>
+                            {validationError}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       );
     }
@@ -1078,9 +1165,8 @@ function CounselorAssessmentContent() {
 
     if (question.type === 'free_text') {
       const currentLength = (currentAnswer || '').length;
-      const minLength = question.minLength || 10;
       const maxLength = question.maxLength || 500;
-      const isValid = currentLength >= minLength;
+      const hasContent = currentLength > 0;
       
       return (
         <div>
@@ -1091,10 +1177,8 @@ function CounselorAssessmentContent() {
             rows={6}
             maxLength={maxLength}
             className={`w-full px-4 py-3 border-2 rounded-lg resize-none transition-colors ${
-              currentLength > 0 
-                ? isValid 
-                  ? 'border-green-300 focus:border-green-500' 
-                  : 'border-yellow-300 focus:border-yellow-500'
+              hasContent 
+                ? 'border-green-300 focus:border-green-500' 
                 : 'border-gray-300 focus:border-blue-500'
             }`}
           />
@@ -1102,23 +1186,15 @@ function CounselorAssessmentContent() {
             <div className={`text-sm font-medium ${
               currentLength === 0 
                 ? 'text-gray-500'
-                : isValid 
-                  ? 'text-green-600' 
-                  : 'text-yellow-600'
+                : 'text-green-600'
             }`}>
               {currentLength === 0 && (
                 <span>
-                  {question.required === false 
-                    ? `💡 Optional: Share your ${question.category === 'academics' ? 'grades/academic performance' : 'interests and hobbies'} (minimum ${minLength} characters if you choose to answer)`
-                    : `💡 Please share your interests and hobbies (minimum ${minLength} characters)`
-                  }
+                  💡 Please share your thoughts about this question
                 </span>
               )}
-              {currentLength > 0 && !isValid && minLength > 0 && (
-                <span>📝 Keep writing... {minLength - currentLength} more characters needed</span>
-              )}
-              {(isValid || (question.required === false && minLength === 0)) && (
-                <span>✅ {question.required === false ? 'You can skip this or continue to the next question' : 'Great! You can proceed to the next question'}</span>
+              {hasContent && (
+                <span>✅ Great! You can proceed to the next question</span>
               )}
             </div>
             <div className={`text-sm ${
@@ -1127,13 +1203,56 @@ function CounselorAssessmentContent() {
               {currentLength} / {maxLength}
             </div>
           </div>
-          {!isValid && currentLength > 0 && (
-            <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <p className="text-sm text-yellow-800">
-                <strong>Tip:</strong> Be specific about what you enjoy! For example: "I love working on cars with my dad, I'm fascinated by how the human body works, I enjoy helping younger kids with their homework..."
-              </p>
-            </div>
-          )}
+        </div>
+      );
+    }
+
+    if (question.type === 'matrix_radio') {
+      const currentAnswer = selectedAnswers[question.id] || {};
+      
+      return (
+        <div className="space-y-4">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr>
+                  <th className="text-left p-2 border-b font-medium text-gray-700">Subject</th>
+                  {question.options?.map((option) => (
+                    <th key={option} className="text-center p-2 border-b font-medium text-gray-700 min-w-[80px]">
+                      <div className="text-xs">{option}</div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {question.subjects?.map((subject) => (
+                  <tr key={subject} className="border-b">
+                    <td className="p-2 font-medium text-gray-800 text-sm">{subject}</td>
+                    {question.options?.map((option) => (
+                      <td key={option} className="text-center p-2">
+                        <input
+                          type="radio"
+                          name={`${question.id}_${subject}`}
+                          value={option}
+                          checked={currentAnswer[subject] === option}
+                          onChange={(e) => {
+                            handleAnswerChange(question.id, {
+                              ...currentAnswer,
+                              [subject]: e.target.value
+                            });
+                          }}
+                          className="text-blue-600"
+                        />
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="text-sm text-gray-600 mt-2">
+            💡 Rate your performance in each subject. Select one option per row.
+          </div>
         </div>
       );
     }
@@ -1381,7 +1500,44 @@ function CounselorAssessmentContent() {
   }
 
   const currentQuestion = questions[currentIndex];
-  const progress = ((currentIndex + 1) / questions.length) * 100;
+
+  // Function to handle direct navigation to a question
+  const navigateToQuestion = (questionIndex: number) => {
+    if (questionIndex >= 0 && questionIndex < questions.length) {
+      setCurrentIndex(questionIndex);
+    }
+  };
+
+  // Function to get the status of a question (completed, current, or upcoming)
+  const getQuestionStatus = (questionIndex: number) => {
+    if (questionIndex < currentIndex) {
+      // Check if this question has been answered
+      const question = questions[questionIndex];
+      const answer = selectedAnswers[question.id];
+      
+      if (question.type === 'combined') {
+        return answer?.grade && answer?.zipCode ? 'completed' : 'incomplete';
+      } else if (question.type === 'free_text') {
+        return answer && answer.trim().length > 0 ? 'completed' : 'incomplete';
+      } else if (question.type === 'multiple_choice') {
+        return answer && Array.isArray(answer) && answer.length > 0 ? 'completed' : 'incomplete';
+      } else if (question.type === 'multiple_choice_with_other') {
+        const selected = answer?.selected || [];
+        const other = answer?.other || '';
+        return (selected.length > 0 || other.trim().length > 0) ? 'completed' : 'incomplete';
+      } else if (question.type === 'matrix_radio') {
+        const subjects = question.subjects || [];
+        const answeredSubjects = Object.keys(answer || {});
+        return answeredSubjects.length >= subjects.length ? 'completed' : 'incomplete';
+      } else {
+        return answer ? 'completed' : 'incomplete';
+      }
+    } else if (questionIndex === currentIndex) {
+      return 'current';
+    } else {
+      return 'upcoming';
+    }
+  };
 
   // Safeguard: if currentIndex is out of bounds, reset it
   if (questions.length > 0 && (currentIndex < 0 || currentIndex >= questions.length)) {
@@ -1669,16 +1825,84 @@ function CounselorAssessmentContent() {
       <Header title="Enhanced Career Assessment" />
       <div className="py-12 px-4">
         <div className="max-w-4xl mx-auto">
+          {/* Test Profile Button */}
+          <div className="mb-6 text-center">
+            <button
+              onClick={() => router.push('/test-profiles')}
+              className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+              Test Profile
+            </button>
+            <p className="text-sm text-gray-500 mt-1">
+              Try the assessment with pre-filled sample profiles
+            </p>
+          </div>
+          
           <div className="mb-8">
-            <div className="flex justify-between text-sm text-gray-600 mb-2">
-              <span>Question {currentIndex + 1} of {questions.length}</span>
-              <span>{Math.round(progress)}% Complete</span>
+            {/* Circle Navigation */}
+            <div className="flex flex-wrap justify-center gap-2 mb-4">
+              {questions.map((question, index) => {
+                const status = getQuestionStatus(index);
+                const isClickable = index <= currentIndex || status === 'completed';
+                
+                return (
+                  <button
+                    key={question.id}
+                    onClick={() => isClickable ? navigateToQuestion(index) : null}
+                    disabled={!isClickable}
+                    className={`
+                      w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-200
+                      ${status === 'completed' 
+                        ? 'bg-green-500 text-white hover:bg-green-600 cursor-pointer' 
+                        : status === 'current'
+                        ? 'bg-blue-600 text-white ring-2 ring-blue-300 cursor-pointer'
+                        : status === 'incomplete'
+                        ? 'bg-yellow-500 text-white hover:bg-yellow-600 cursor-pointer'
+                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      }
+                      ${isClickable ? 'hover:scale-110' : ''}
+                    `}
+                    title={`Question ${index + 1}: ${question.text.substring(0, 50)}${question.text.length > 50 ? '...' : ''}`}
+                  >
+                    {index + 1}
+                  </button>
+                );
+              })}
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-blue-600 h-2 rounded-full transition-all"
-                style={{ width: `${progress}%` }}
-              />
+            
+            {/* Progress Text */}
+            <div className="text-center text-sm text-gray-600">
+              <span>Question {currentIndex + 1} of {questions.length}</span>
+              <span className="mx-2">•</span>
+              <span>{Math.round(((currentIndex + 1) / questions.length) * 100)}% Complete</span>
+            </div>
+            
+            {/* Navigation Hint */}
+            <div className="text-center text-xs text-gray-500 mt-1">
+              Click any circle to jump to that question
+            </div>
+            
+            {/* Legend */}
+            <div className="flex justify-center gap-6 mt-3 text-xs text-gray-500">
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                <span>Completed</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded-full bg-blue-600"></div>
+                <span>Current</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                <span>Incomplete</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded-full bg-gray-200"></div>
+                <span>Upcoming</span>
+              </div>
             </div>
           </div>
 
@@ -1718,17 +1942,17 @@ function CounselorAssessmentContent() {
 
             <div className="mt-8 flex justify-between">
               <button
-                onClick={() => setCurrentIndex(Math.max(0, currentIndex - 1))}
+                onClick={() => navigateToQuestion(Math.max(0, currentIndex - 1))}
                 disabled={currentIndex === 0}
-                className="px-6 py-2 text-gray-600 disabled:opacity-50"
+                className="px-6 py-2 text-gray-600 disabled:opacity-50 hover:text-gray-800 transition-colors"
               >
-                Back
+                ← Back
               </button>
               <button
                 onClick={handleNext}
-                className="px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
+                className="px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
               >
-                {currentIndex === questions.length - 1 ? 'Generate My Career Plan' : 'Next'}
+                {currentIndex === questions.length - 1 ? 'Generate My Career Plan' : 'Next →'}
               </button>
             </div>
           </div>

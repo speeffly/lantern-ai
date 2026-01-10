@@ -1,24 +1,21 @@
 import questionnaireData from '../data/questionnaire-v1.json';
 import { StudentProfile } from '../types/recommendation';
 
-export interface QuestionnaireSection {
-  id: string;
-  title: string;
-  questions: Question[];
-}
-
 export interface Question {
   id: string;
-  text: string;
-  type: 'single_choice' | 'multi_select' | 'text' | 'text_area' | 'matrix';
+  type: 'single_select' | 'multi_select' | 'text' | 'text_long' | 'matrix';
+  label: string;
+  options?: string[] | Array<{ key: string; label: string }>;
+  rows?: string[];
+  columns?: string[];
   required: boolean;
-  options?: string[];
-  subjects?: string[];
-  validation?: {
-    pattern: string;
-    message: string;
-  };
-  placeholder?: string;
+}
+
+export interface Questionnaire {
+  version: string;
+  title: string;
+  description: string;
+  questions: Question[];
 }
 
 export interface QuestionnaireResponse {
@@ -29,21 +26,17 @@ export class QuestionnaireService {
   /**
    * Get the complete questionnaire structure
    */
-  static getQuestionnaire(): {
-    version: string;
-    title: string;
-    description: string;
-    sections: QuestionnaireSection[];
-  } {
+  static getQuestionnaire(): Questionnaire {
     return questionnaireData as any;
   }
 
   /**
-   * Get a specific section of the questionnaire
+   * Get a specific question by ID
    */
-  static getSection(sectionId: string): QuestionnaireSection | null {
-    const section = (questionnaireData as any).sections.find((s: any) => s.id === sectionId);
-    return section || null;
+  static getQuestion(questionId: string): Question | null {
+    const questionnaire = this.getQuestionnaire();
+    const question = questionnaire.questions.find(q => q.id === questionId);
+    return question || null;
   }
 
   /**
@@ -60,43 +53,41 @@ export class QuestionnaireService {
     // Validate required fields
     const questionnaire = this.getQuestionnaire();
     
-    for (const section of questionnaire.sections) {
-      for (const question of section.questions) {
-        if (question.required && !responses[question.id]) {
-          errors.push(`${question.text} is required`);
-        }
+    for (const question of questionnaire.questions) {
+      if (question.required && !responses[question.id]) {
+        errors.push(`${question.label} is required`);
+      }
 
-        // Validate specific field formats
-        if (question.id === 'zipCode' && responses[question.id]) {
-          const zipCode = responses[question.id];
-          if (!/^\d{5}$/.test(zipCode)) {
-            errors.push('ZIP code must be exactly 5 digits');
-          }
+      // Validate specific field formats
+      if (question.id === 'q2_zip' && responses[question.id]) {
+        const zipCode = responses[question.id];
+        if (!/^\d{5}$/.test(zipCode)) {
+          errors.push('ZIP code must be exactly 5 digits');
         }
+      }
 
-        // Validate multi-select arrays
-        if (question.type === 'multi_select' && responses[question.id]) {
-          if (!Array.isArray(responses[question.id])) {
-            errors.push(`${question.text} must be an array of selections`);
-          }
+      // Validate multi-select arrays
+      if (question.type === 'multi_select' && responses[question.id]) {
+        if (!Array.isArray(responses[question.id])) {
+          errors.push(`${question.label} must be an array of selections`);
         }
+      }
 
-        // Validate matrix responses
-        if (question.type === 'matrix' && responses[question.id]) {
-          const matrixResponse = responses[question.id];
-          if (typeof matrixResponse !== 'object') {
-            errors.push(`${question.text} must be an object with subject ratings`);
-          }
+      // Validate matrix responses
+      if (question.type === 'matrix' && responses[question.id]) {
+        const matrixResponse = responses[question.id];
+        if (typeof matrixResponse !== 'object') {
+          errors.push(`${question.label} must be an object with subject ratings`);
         }
       }
     }
 
     // Add warnings for incomplete optional sections
-    if (!responses.interests || responses.interests.trim().length < 10) {
+    if (!responses.q9_interests_text || responses.q9_interests_text.trim().length < 10) {
       warnings.push('Consider adding more detail about your interests and hobbies');
     }
 
-    if (!responses.experience || responses.experience.trim().length < 10) {
+    if (!responses.q10_experience_text || responses.q10_experience_text.trim().length < 10) {
       warnings.push('Consider describing any work, volunteer, or activity experience you have');
     }
 
@@ -111,32 +102,32 @@ export class QuestionnaireService {
    * Convert questionnaire responses to StudentProfile format
    */
   static convertToStudentProfile(responses: QuestionnaireResponse): StudentProfile {
-    // Ensure arrays exist for multi-select fields
-    const workEnvironment = Array.isArray(responses.workEnvironment) ? responses.workEnvironment : [];
-    const workStyle = Array.isArray(responses.workStyle) ? responses.workStyle : [];
-    const thinkingStyle = Array.isArray(responses.thinkingStyle) ? responses.thinkingStyle : [];
-    const academicInterests = Array.isArray(responses.academicInterests) ? responses.academicInterests : [];
-    const traits = Array.isArray(responses.traits) ? responses.traits : [];
-    const constraints = Array.isArray(responses.constraints) ? responses.constraints : [];
+    // Map new question IDs to profile fields
+    const workEnvironment = Array.isArray(responses.q3_work_environment) ? responses.q3_work_environment : [];
+    const workStyle = Array.isArray(responses.q4_work_style) ? responses.q4_work_style : [];
+    const thinkingStyle = Array.isArray(responses.q5_thinking_style) ? responses.q5_thinking_style : [];
+    const academicInterests = Array.isArray(responses.q7_academic_interests) ? responses.q7_academic_interests : [];
+    const traits = Array.isArray(responses.q11_traits) ? responses.q11_traits : [];
+    const constraints = Array.isArray(responses.q15_constraints) ? responses.q15_constraints : [];
 
     // Convert grade to number
     const gradeMap: { [key: string]: number } = {
-      '9th': 9,
-      '10th': 10,
-      '11th': 11,
-      '12th': 12
+      '9': 9,
+      '10': 10,
+      '11': 11,
+      '12': 12
     };
-    const grade = gradeMap[responses.grade] || 9;
+    const grade = gradeMap[responses.q1_grade] || 9;
 
-    // Ensure academic performance is an object
-    const academicPerformance = typeof responses.academicPerformance === 'object' 
-      ? responses.academicPerformance 
+    // Handle academic performance matrix
+    const academicPerformance = typeof responses.q8_academic_performance === 'object' 
+      ? responses.q8_academic_performance 
       : {};
 
     const profile: StudentProfile = {
       // Basic Information
       grade,
-      zipCode: responses.zipCode || '',
+      zipCode: responses.q2_zip || '',
 
       // Work Environment Preferences
       workEnvironment,
@@ -148,7 +139,7 @@ export class QuestionnaireService {
       thinkingStyle,
 
       // Education & Training
-      educationWillingness: responses.educationWillingness || "I'm not sure yet",
+      educationWillingness: responses.q6_education_willingness || "I'm not sure yet",
 
       // Academic Interests
       academicInterests,
@@ -157,32 +148,32 @@ export class QuestionnaireService {
       academicPerformance,
 
       // Interests & Experience
-      interests: responses.interests || '',
-      experience: responses.experience || 'None yet',
+      interests: responses.q9_interests_text || '',
+      experience: responses.q10_experience_text || 'None yet',
 
       // Personality & Traits
       traits,
-      otherTraits: responses.otherTraits,
+      otherTraits: '', // Not in new structure
 
       // Values
-      incomeImportance: responses.incomeImportance || 'Not sure',
-      stabilityImportance: responses.stabilityImportance || 'Not sure',
-      helpingImportance: responses.helpingImportance || 'Not sure',
+      incomeImportance: responses.q12_income_importance || 'I\'m not sure yet',
+      stabilityImportance: responses.q13_stability_importance || 'Not very important',
+      helpingImportance: responses.q14_helping_importance || 'I\'m not sure yet',
 
       // Lifestyle & Constraints
       constraints,
 
       // Decision Readiness & Risk
-      decisionPressure: responses.decisionPressure || 'Just exploring options',
-      riskTolerance: responses.riskTolerance || 'Not sure',
+      decisionPressure: responses.q16_decision_urgency || 'I\'m just exploring right now',
+      riskTolerance: responses.q17_risk_tolerance || 'I\'m not sure yet',
 
       // Support & Confidence
-      supportLevel: responses.supportLevel || 'Not sure about support',
-      careerConfidence: responses.careerConfidence || 'Unsure',
+      supportLevel: responses.q18_support_confidence || 'I\'m not sure',
+      careerConfidence: responses.q19_career_confidence || 'Very unsure',
 
       // Reflection
-      impactStatement: responses.impactStatement,
-      inspiration: responses.inspiration
+      impactStatement: responses.q20_impact_text || '',
+      inspiration: responses.q21_inspiration_text || ''
     };
 
     return profile;
@@ -192,46 +183,23 @@ export class QuestionnaireService {
    * Get questionnaire progress
    */
   static getProgress(responses: QuestionnaireResponse): {
-    completedSections: number;
-    totalSections: number;
     completedQuestions: number;
     totalQuestions: number;
     percentComplete: number;
   } {
     const questionnaire = this.getQuestionnaire();
-    let completedSections = 0;
     let completedQuestions = 0;
-    let totalQuestions = 0;
+    const totalQuestions = questionnaire.questions.length;
 
-    for (const section of questionnaire.sections) {
-      let sectionComplete = true;
-      let sectionHasRequiredQuestions = false;
-      
-      for (const question of section.questions) {
-        totalQuestions++;
-        
-        if (responses[question.id] && responses[question.id] !== '') {
-          completedQuestions++;
-        } else if (question.required) {
-          sectionComplete = false;
-        }
-        
-        if (question.required) {
-          sectionHasRequiredQuestions = true;
-        }
-      }
-      
-      // Only count section as complete if it has required questions and they're all answered
-      if (sectionComplete && sectionHasRequiredQuestions) {
-        completedSections++;
+    for (const question of questionnaire.questions) {
+      if (responses[question.id] && responses[question.id] !== '') {
+        completedQuestions++;
       }
     }
 
     const percentComplete = totalQuestions > 0 ? Math.round((completedQuestions / totalQuestions) * 100) : 0;
 
     return {
-      completedSections,
-      totalSections: questionnaire.sections.length,
       completedQuestions,
       totalQuestions,
       percentComplete
@@ -239,20 +207,18 @@ export class QuestionnaireService {
   }
 
   /**
-   * Get next incomplete section
+   * Get next incomplete question
    */
-  static getNextSection(responses: QuestionnaireResponse): QuestionnaireSection | null {
+  static getNextIncompleteQuestion(responses: QuestionnaireResponse): Question | null {
     const questionnaire = this.getQuestionnaire();
     
-    for (const section of questionnaire.sections) {
-      for (const question of section.questions) {
-        if (question.required && (!responses[question.id] || responses[question.id] === '')) {
-          return section;
-        }
+    for (const question of questionnaire.questions) {
+      if (question.required && (!responses[question.id] || responses[question.id] === '')) {
+        return question;
       }
     }
     
-    return null; // All required sections complete
+    return null; // All required questions complete
   }
 
   /**
@@ -267,32 +233,31 @@ export class QuestionnaireService {
   } {
     return {
       basicInfo: {
-        grade: responses.grade,
-        zipCode: responses.zipCode
+        grade: responses.q1_grade,
+        zipCode: responses.q2_zip
       },
       preferences: {
-        workEnvironment: responses.workEnvironment,
-        workStyle: responses.workStyle,
-        thinkingStyle: responses.thinkingStyle,
-        constraints: responses.constraints
+        workEnvironment: responses.q3_work_environment,
+        workStyle: responses.q4_work_style,
+        thinkingStyle: responses.q5_thinking_style,
+        constraints: responses.q15_constraints
       },
       academics: {
-        interests: responses.academicInterests,
-        performance: responses.academicPerformance,
-        educationWillingness: responses.educationWillingness
+        interests: responses.q7_academic_interests,
+        performance: responses.q8_academic_performance,
+        educationWillingness: responses.q6_education_willingness
       },
       personality: {
-        traits: responses.traits,
-        otherTraits: responses.otherTraits,
-        riskTolerance: responses.riskTolerance,
-        careerConfidence: responses.careerConfidence
+        traits: responses.q11_traits,
+        riskTolerance: responses.q17_risk_tolerance,
+        careerConfidence: responses.q19_career_confidence
       },
       goals: {
-        incomeImportance: responses.incomeImportance,
-        stabilityImportance: responses.stabilityImportance,
-        helpingImportance: responses.helpingImportance,
-        impactStatement: responses.impactStatement,
-        inspiration: responses.inspiration
+        incomeImportance: responses.q12_income_importance,
+        stabilityImportance: responses.q13_stability_importance,
+        helpingImportance: responses.q14_helping_importance,
+        impactStatement: responses.q20_impact_text,
+        inspiration: responses.q21_inspiration_text
       }
     };
   }
