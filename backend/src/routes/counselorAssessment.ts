@@ -56,359 +56,57 @@ router.get('/questions', async (req, res) => {
       }
     }
 
-    // Embedded counselor questions to avoid file path issues in deployment
-    const allQuestions = [
-      {
-        "id": "q1_grade_zip",
-        "order": 1,
-        "text": "What grade are you currently in, and what's your ZIP code?",
-        "type": "combined",
-        "category": "basic_info",
-        "fields": {
-          "grade": {
-            "type": "select",
-            "options": ["9", "10", "11", "12"],
-            "required": true
-          },
-          "zipCode": {
-            "type": "text",
-            "placeholder": "12345",
-            "maxLength": 5,
-            "required": true
-          }
-        }
-      },
-      {
-        "id": "q2_work_environment",
-        "order": 2,
-        "text": "Where do you see yourself working most comfortably?",
-        "type": "single_choice",
-        "category": "work_preferences",
-        "options": [
-          "Outdoors (construction sites, farms, parks)",
-          "Indoors (offices, hospitals, schools)",
-          "A mix of indoor and outdoor work",
-          "From home / remote",
-          "Traveling to different locations"
-        ],
-        "required": true
-      },
-      {
-        "id": "q3_work_style",
-        "order": 3,
-        "text": "How do you prefer to work?",
-        "type": "single_choice",
-        "category": "work_style",
-        "options": [
-          "Building, fixing, or working with tools",
-          "Helping people directly",
-          "Working with computers or technology",
-          "Working with numbers, data, or analysis",
-          "Creating designs, art, music, or media"
-        ],
-        "required": true
-      },
-      {
-        "id": "q4_thinking_style",
-        "order": 4,
-        "text": "What kinds of problems do you enjoy solving?",
-        "type": "single_choice",
-        "category": "thinking_style",
-        "options": [
-          "Troubleshooting and fixing things",
-          "Helping people overcome challenges",
-          "Understanding how systems or machines work",
-          "Inventing or designing new solutions",
-          "Planning, organizing, or managing projects"
-        ],
-        "required": true
-      },
-      {
-        "id": "q5_education_willingness",
-        "order": 5,
-        "text": "How much education or training are you willing to pursue after high school?",
-        "type": "single_choice",
-        "category": "education",
-        "options": [
-          "Work immediately after high school",
-          "A few months to 2 years (certifications or training)",
-          "2–4 years (college or technical school)",
-          "4+ years (college and possibly graduate school)",
-          "I'm not sure yet"
-        ],
-        "required": true
-      },
-      {
-        "id": "q6_academic_interests",
-        "order": 6,
-        "text": "Which subjects do you enjoy learning?",
-        "type": "multiple_choice",
-        "category": "academic_strengths",
-        "options": [
-          "Math",
-          "Science",
-          "English / Language Arts",
-          "Social Studies / History",
-          "Art / Creative Subjects",
-          "Physical Education / Health",
-          "Technology / Computer Science",
-          "Foreign Languages",
-          "Business / Economics"
-        ],
-        "required": true
-      },
-      {
-        "id": "q7_academic_performance",
-        "order": 7,
-        "text": "How would you rate your performance in the following subjects?",
-        "type": "matrix_radio",
-        "category": "academics",
-        "subjects": [
-          "Math",
-          "Science (Biology, Chemistry, Physics)",
-          "English / Language Arts",
-          "Social Studies / History",
-          "Art / Creative Subjects",
-          "Physical Education / Health",
-          "Technology / Computer Science",
-          "Foreign Languages",
-          "Business / Economics"
-        ],
-        "options": [
-          "Excellent",
-          "Good",
-          "Neutral",
-          "OK",
-          "Poor",
-          "Not Sure"
-        ],
-        "required": true
-      },
-      {
-        "id": "q8_interests_text",
-        "order": 8,
-        "text": "What are your interests or hobbies?",
-        "type": "free_text",
-        "category": "interests",
-        "placeholder": "Describe your interests, hobbies, activities you enjoy, things you're curious about, or causes you care about...",
-        "minLength": 0,
-        "maxLength": 500,
-        "required": true
-      },
-      {
-        "id": "q9_experience_text",
-        "order": 9,
-        "text": "What work, volunteer, or hands-on experience do you have?",
-        "type": "free_text",
-        "category": "experience",
-        "placeholder": "Example: I worked at a local restaurant as a server for 6 months, volunteered at the animal shelter on weekends, helped with my family's farm during summers, or 'None yet, but I'm interested in trying retail or healthcare volunteering'...",
-        "minLength": 0,
-        "maxLength": 500,
-        "required": true
-      },
-      {
-        "id": "q10_traits",
-        "order": 10,
-        "text": "Which traits best describe you?",
-        "type": "multiple_choice",
-        "category": "personality",
-        "options": [
-          "Creative and artistic",
-          "Analytical and logical",
-          "Compassionate and caring",
-          "Leadership-oriented",
-          "Detail-oriented and organized",
-          "Adventurous and willing to take risks",
-          "Patient and persistent",
-          "Outgoing and social",
-          "Independent and self-reliant",
-          "Collaborative and team-focused",
-          "Curious and inquisitive",
-          "Practical and hands-on"
-        ],
-        "required": true
-      },
-      {
-        "id": "q11_income_importance",
-        "order": 11,
-        "text": "How important is earning a high income to you?",
-        "type": "single_choice",
-        "category": "values",
-        "options": [
-          "Very important",
-          "Somewhat important",
-          "Not very important",
-          "I'm not sure yet"
-        ],
-        "required": true
-      },
-      {
-        "id": "q12_stability_importance",
-        "order": 12,
-        "text": "How important is job stability and security to you?",
-        "type": "single_choice",
-        "category": "values",
-        "options": [
-          "Very important",
-          "Somewhat important",
-          "Not very important",
-          "I'm not sure"
-        ],
-        "required": true
-      },
-      {
-        "id": "q13_helping_importance",
-        "order": 13,
-        "text": "How important is helping others in your future career?",
-        "type": "single_choice",
-        "category": "values",
-        "options": [
-          "Very important",
-          "Somewhat important",
-          "Not very important",
-          "I'm not sure yet"
-        ],
-        "required": true
-      },
-      {
-        "id": "q14_constraints",
-        "order": 14,
-        "text": "Are there any factors we should consider when suggesting careers?",
-        "type": "multiple_choice",
-        "category": "constraints",
-        "options": [
-          "Start earning money as soon as possible",
-          "Flexible hours",
-          "Predictable hours",
-          "Stay close to home",
-          "Open to relocating",
-          "Physical work may be difficult for me",
-          "No major constraints"
-        ],
-        "required": false
-      },
-      {
-        "id": "q15_decision_urgency",
-        "order": 15,
-        "text": "How soon do you feel pressure to decide on a career path?",
-        "type": "single_choice",
-        "category": "readiness",
-        "options": [
-          "I'm just exploring right now",
-          "I want to narrow things down this year",
-          "I need a clear plan soon",
-          "I already have a path in mind but want to confirm it"
-        ],
-        "required": true
-      },
-      {
-        "id": "q16_risk_tolerance",
-        "order": 16,
-        "text": "How comfortable are you with career uncertainty or risk?",
-        "type": "single_choice",
-        "category": "values",
-        "options": [
-          "Very comfortable",
-          "Somewhat comfortable",
-          "Prefer stability",
-          "I'm not sure yet"
-        ],
-        "required": true
-      },
-      {
-        "id": "q17_support_confidence",
-        "order": 17,
-        "text": "Do you feel you have support for education or training after high school?",
-        "type": "single_choice",
-        "category": "support",
-        "options": [
-          "Strong support",
-          "Some support",
-          "Limited support",
-          "I'm not sure"
-        ],
-        "required": true
-      },
-      {
-        "id": "q18_career_confidence",
-        "order": 18,
-        "text": "How confident do you feel about your future career direction?",
-        "type": "single_choice",
-        "category": "readiness",
-        "options": [
-          "Very confident",
-          "Somewhat confident",
-          "Unsure",
-          "Very unsure"
-        ],
-        "required": true
-      },
-      {
-        "id": "q19_impact_text",
-        "order": 19,
-        "text": "How do you want to be remembered or make an impact?",
-        "type": "free_text",
-        "category": "values",
-        "placeholder": "Think about the legacy you want to leave behind. For example: 'I want to be remembered as someone who helped sick children get better' or 'I want to be known for building things that make people's lives easier' or 'I want to leave the world a little better than I found it'...",
-        "minLength": 0,
-        "maxLength": 500,
-        "required": true
-      },
-      {
-        "id": "q20_inspiration_text",
-        "order": 20,
-        "text": "Who inspires you and why?",
-        "type": "free_text",
-        "category": "values",
-        "placeholder": "Tell me about someone who inspires you and what qualities they have that you admire. For example: 'My grandmother inspires me because she never gave up despite facing many challenges' or 'I'm inspired by Marie Curie because she broke barriers in science' or 'My coach inspires me because they believe in everyone's potential'...",
-        "minLength": 0,
-        "maxLength": 500,
-        "required": true
-      }
-    ];
+    // Use the new V3 assessment structure instead of old hardcoded questions
+    const { ImprovedAssessmentService } = require('../services/improvedAssessmentService');
+    const v3Assessment = ImprovedAssessmentService.getAssessment();
     
-    // Filter questions based on user authentication and profile
-    let questions = allQuestions;
-    let prefilledData = {};
-    
-    if (userProfile && userProfile.role === 'student') {
-      // For logged-in students, skip the first question if they have grade and zipCode
-      const studentProfile = userProfile.profile; // Note: profile is nested under 'profile'
-      if (studentProfile && studentProfile.grade && studentProfile.zip_code) {
-        // Skip the first question (q1_grade_zip)
-        questions = allQuestions.filter(q => q.id !== 'q1_grade_zip');
-        
-        // Renumber the remaining questions
-        questions = questions.map((q, index) => ({
-          ...q,
-          order: index + 1
-        }));
-        
-        // Provide prefilled data for the assessment
-        prefilledData = {
-          grade: studentProfile.grade.toString(),
-          zipCode: studentProfile.zip_code
-        };
-        
-        console.log(`📝 Skipping first question for logged-in student. Grade: ${studentProfile.grade}, ZIP: ${studentProfile.zip_code}`);
-      }
+    // Convert V3 questions to counselor assessment format
+    const counselorQuestions = v3Assessment.questions.map((q: any, index: number) => ({
+      id: q.id,
+      order: index + 1,
+      text: q.text,
+      type: q.type === 'single_choice' ? 'single_choice' : 
+            q.type === 'multiple_choice' ? 'multiple_choice' : 
+            q.type === 'matrix' ? 'matrix_radio' :
+            q.type === 'combined' ? 'combined' :
+            q.type === 'free_text' ? 'free_text' : q.type,
+      category: q.category,
+      required: q.required,
+      options: q.options?.map((opt: any) => opt.label || opt.value) || q.options,
+      subjects: q.subjects?.map((subj: any) => subj.id) || q.subjects,
+      fields: q.fields,
+      placeholder: q.placeholder,
+      minLength: q.minLength,
+      maxLength: q.maxLength,
+      hasOtherOption: false,
+      otherPlaceholder: ''
+    }));
+
+    // Prepare prefilled data if user is authenticated
+    let prefilledData = null;
+    if (userProfile) {
+      prefilledData = {
+        grade: userProfile.grade,
+        zipCode: userProfile.zipCode
+      };
     }
-    
+
     res.json({
       success: true,
       data: {
-        questions,
-        prefilledData,
+        questions: counselorQuestions,
         isAuthenticated: !!userProfile,
-        userRole: userProfile?.role || null
+        userRole: userProfile?.role || 'anonymous',
+        prefilledData
       },
-      message: `Retrieved ${questions.length} counselor assessment questions`
+      message: 'Counselor assessment questions retrieved successfully'
     } as ApiResponse);
+
   } catch (error) {
-    console.error('Error loading counselor questions:', error);
+    console.error('❌ Error getting counselor assessment questions:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to retrieve counselor questions'
+      error: 'Failed to retrieve counselor assessment questions'
     } as ApiResponse);
   }
 });
