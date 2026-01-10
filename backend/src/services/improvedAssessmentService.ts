@@ -72,7 +72,7 @@ export interface ImprovedAssessment {
 
 export interface FinalAssessmentResponse {
   assessmentVersion: 'v3';
-  pathTaken: 'hard_hat' | 'non_hard_hat' | 'unable_to_decide';
+  pathTaken: 'hard_hat' | 'non_hard_hat' | 'unable_to_decide' | 'decided' | 'undecided';
   responses: { [key: string]: any };
   completedAt: Date;
 }
@@ -90,10 +90,19 @@ export class FinalAssessmentService {
    */
   static getQuestionsForPath(path: string): ImprovedQuestion[] {
     const assessment = this.getAssessment();
-    const pathConfig = assessment.pathLogic[path];
+    
+    // Map legacy paths to new paths
+    let actualPath = path;
+    if (path === 'hard_hat' || path === 'non_hard_hat') {
+      actualPath = 'decided';
+    } else if (path === 'unable_to_decide') {
+      actualPath = 'undecided';
+    }
+    
+    const pathConfig = assessment.pathLogic[actualPath];
     
     if (!pathConfig) {
-      throw new Error(`Invalid path: ${path}`);
+      throw new Error(`Invalid path: ${path} (mapped to ${actualPath})`);
     }
 
     return pathConfig.questionFlow
@@ -106,6 +115,7 @@ export class FinalAssessmentService {
    */
   static getBranchingQuestion(): ImprovedQuestion | null {
     const assessment = this.getAssessment();
+    // Return the first branching question found (could be either decided or undecided version)
     return assessment.questions.find(q => q.branchingQuestion) || null;
   }
 
@@ -113,16 +123,14 @@ export class FinalAssessmentService {
    * Determine path based on work preference response
    */
   static determinePath(workPreferenceResponse: string): string {
-    // In v3, the work preference directly maps to the path
+    // In the simplified v3, we determine path based on the initial routing
+    // If they select specific categories, they go to decided path
+    // If they select "unable_to_decide", they go to undecided path
     switch (workPreferenceResponse) {
-      case 'hard_hat':
-        return 'hard_hat';
-      case 'non_hard_hat':
-        return 'non_hard_hat';
       case 'unable_to_decide':
-        return 'unable_to_decide';
+        return 'undecided'; // Student needs exploration
       default:
-        return 'unable_to_decide'; // Default to exploration path
+        return 'decided'; // Student chose specific direction
     }
   }
 
@@ -132,7 +140,7 @@ export class FinalAssessmentService {
   static getUniversalQuestions(): ImprovedQuestion[] {
     const assessment = this.getAssessment();
     return assessment.questions.filter(q => 
-      !q.appliesTo || (q.appliesTo.includes('hard_hat') && q.appliesTo.includes('non_hard_hat') && q.appliesTo.includes('unable_to_decide'))
+      !q.appliesTo || (q.appliesTo.includes('decided') && q.appliesTo.includes('undecided'))
     );
   }
 
@@ -146,7 +154,16 @@ export class FinalAssessmentService {
   } {
     const errors: string[] = [];
     const warnings: string[] = [];
-    const questions = this.getQuestionsForPath(path);
+    
+    // Map legacy paths to new paths for validation
+    let actualPath = path;
+    if (path === 'hard_hat' || path === 'non_hard_hat') {
+      actualPath = 'decided';
+    } else if (path === 'unable_to_decide') {
+      actualPath = 'undecided';
+    }
+    
+    const questions = this.getQuestionsForPath(actualPath);
 
     for (const question of questions) {
       const response = responses[question.id];
@@ -198,12 +215,31 @@ export class FinalAssessmentService {
           if (typeof response !== 'object' || Array.isArray(response)) {
             errors.push(`${question.text} must be an object with subject ratings`);
           } else {
-            // Check if at least some subjects are rated
-            const ratedSubjects = Object.values(response).filter(rating => 
-              rating && rating !== 'not_taken'
-            );
-            if (ratedSubjects.length === 0) {
-              warnings.push('Consider rating at least a few subjects to get better career matches');
+            // For the new 1-5 rating system, all subjects must be rated
+            if (question.id === 'subject_strengths') {
+              const subjects = question.subjects || [];
+              const missingRatings: string[] = [];
+              
+              subjects.forEach((subject: any) => {
+                const rating = response[subject.id];
+                const numericRating = parseInt(rating);
+                
+                if (!rating || isNaN(numericRating) || numericRating < 1 || numericRating > 5) {
+                  missingRatings.push(subject.label);
+                }
+              });
+              
+              if (missingRatings.length > 0) {
+                errors.push(`Please rate all subjects on a scale of 1-5. Missing ratings for: ${missingRatings.join(', ')}`);
+              }
+            } else {
+              // Legacy validation for other matrix questions
+              const ratedSubjects = Object.values(response).filter(rating => 
+                rating && rating !== 'not_taken'
+              );
+              if (ratedSubjects.length === 0) {
+                warnings.push('Consider rating at least a few subjects to get better career matches');
+              }
             }
           }
           break;
@@ -230,15 +266,11 @@ export class FinalAssessmentService {
     }
 
     // Path-specific warnings
-    if (path === 'hard_hat' && !responses.hard_hat_specific) {
-      warnings.push('Since you chose hard hat work, selecting a specific area will help us give better guidance');
+    if ((path === 'decided' || actualPath === 'decided') && !responses.work_preference_decided) {
+      warnings.push('Since you chose a specific work direction, selecting your preference will help us give better guidance');
     }
 
-    if (path === 'non_hard_hat' && !responses.non_hard_hat_specific) {
-      warnings.push('Since you chose non hard hat work, selecting a specific area will help us give better guidance');
-    }
-
-    if (path === 'unable_to_decide' && (!responses.personal_traits || !responses.interests_hobbies)) {
+    if ((path === 'undecided' || actualPath === 'undecided') && !responses.work_preference_undecided) {
       warnings.push('Your responses suggest you might benefit from career exploration activities');
     }
 
@@ -253,12 +285,20 @@ export class FinalAssessmentService {
    * Convert improved assessment responses to weighted format for AI
    */
   static convertToWeightedFormat(responses: { [key: string]: any }, path: string): any {
+    // Map legacy paths to new paths
+    let actualPath = path;
+    if (path === 'hard_hat' || path === 'non_hard_hat') {
+      actualPath = 'decided';
+    } else if (path === 'unable_to_decide') {
+      actualPath = 'undecided';
+    }
+    
     const weightedData = {
       assessmentVersion: 'v3',
-      pathTaken: path,
+      pathTaken: actualPath,
       responses,
-      primaryIndicators: this.extractPrimaryIndicators(responses, path),
-      secondaryIndicators: this.extractSecondaryIndicators(responses, path),
+      primaryIndicators: this.extractPrimaryIndicators(responses, actualPath),
+      secondaryIndicators: this.extractSecondaryIndicators(responses, actualPath),
       constraints: this.extractConstraints(responses)
     };
 
@@ -271,27 +311,24 @@ export class FinalAssessmentService {
   private static extractPrimaryIndicators(responses: { [key: string]: any }, path: string): any {
     const indicators: any = {};
 
-    // Work preference selection (Weight: 40)
-    if (responses.work_preference_main) {
+    // Work preference selection (Weight: 50)
+    const workPreferenceKey = path === 'decided' ? 'work_preference_decided' : 'work_preference_undecided';
+    const workPreferenceValue = responses[workPreferenceKey];
+    
+    if (workPreferenceValue) {
       indicators.workPreference = {
-        value: responses.work_preference_main,
-        weight: 40,
-        description: this.getWorkPreferenceDescription(responses.work_preference_main)
+        value: workPreferenceValue,
+        weight: 50,
+        description: this.getWorkPreferenceDescription(workPreferenceValue)
       };
     }
 
-    // Specific specialization choice (Weight: 35)
-    if (path === 'hard_hat' && responses.hard_hat_specific) {
-      indicators.hardHatSpecialization = {
-        value: responses.hard_hat_specific,
+    // For decided path, the specific choice is the work preference
+    if (path === 'decided' && workPreferenceValue) {
+      indicators.specificDirection = {
+        value: workPreferenceValue,
         weight: 35,
-        description: 'Student\'s specific hard hat career direction'
-      };
-    } else if (path === 'non_hard_hat' && responses.non_hard_hat_specific) {
-      indicators.nonHardHatSpecialization = {
-        value: responses.non_hard_hat_specific,
-        weight: 35,
-        description: 'Student\'s specific professional career direction'
+        description: 'Student\'s specific career direction choice'
       };
     }
 
@@ -314,21 +351,29 @@ export class FinalAssessmentService {
       };
     }
 
-    // Subject strengths (Weight: 25)
+    // Subject strengths (Weight: 25) - Updated for 1-5 rating system
     if (responses.subject_strengths) {
-      const excellentSubjects = Object.entries(responses.subject_strengths)
-        .filter(([_, rating]) => rating === 'excellent')
-        .map(([subject, _]) => subject);
+      const highInterestSubjects = Object.entries(responses.subject_strengths)
+        .filter(([_, rating]) => {
+          const numericRating = parseInt(rating as string);
+          return numericRating >= 4;
+        })
+        .map(([subject, rating]) => ({ subject, rating: parseInt(rating as string) }))
+        .sort((a, b) => b.rating - a.rating);
       
-      const goodSubjects = Object.entries(responses.subject_strengths)
-        .filter(([_, rating]) => rating === 'good')
+      const moderateInterestSubjects = Object.entries(responses.subject_strengths)
+        .filter(([_, rating]) => {
+          const numericRating = parseInt(rating as string);
+          return numericRating === 3;
+        })
         .map(([subject, _]) => subject);
 
       indicators.subjectStrengths = {
-        excellent: excellentSubjects,
-        good: goodSubjects,
+        highInterest: highInterestSubjects.map(s => s.subject),
+        highInterestRatings: highInterestSubjects,
+        moderateInterest: moderateInterestSubjects,
         weight: 25,
-        description: 'Subjects where student excels or performs well'
+        description: 'Subjects with high interest ratings (4-5) for career alignment'
       };
     }
 
@@ -341,9 +386,12 @@ export class FinalAssessmentService {
   private static extractConstraints(responses: { [key: string]: any }): any {
     const constraints: any = {};
 
-    if (responses.career_constraints && responses.career_constraints.trim()) {
+    // Check the unified constraint field
+    const constraintText = responses.career_constraints;
+    
+    if (constraintText && constraintText.trim()) {
       constraints.personalConstraints = {
-        value: responses.career_constraints,
+        value: constraintText,
         weight: 'OVERRIDE',
         description: 'Personal, physical, or situational constraints that may limit career options'
       };
@@ -357,8 +405,16 @@ export class FinalAssessmentService {
    */
   private static getWorkPreferenceDescription(preference: string): string {
     const assessment = this.getAssessment();
-    const workQuestion = assessment.questions.find(q => q.id === 'work_preference_main');
-    const option = workQuestion?.options?.find(opt => opt.value === preference);
+    
+    // Check both decided and undecided work preference questions
+    const decidedWorkQuestion = assessment.questions.find(q => q.id === 'work_preference_decided');
+    const undecidedWorkQuestion = assessment.questions.find(q => q.id === 'work_preference_undecided');
+    
+    let option = decidedWorkQuestion?.options?.find(opt => opt.value === preference);
+    if (!option) {
+      option = undecidedWorkQuestion?.options?.find(opt => opt.value === preference);
+    }
+    
     return option?.description || preference;
   }
 
@@ -388,7 +444,15 @@ export class FinalAssessmentService {
     percentComplete: number;
     nextQuestion?: ImprovedQuestion;
   } {
-    const questions = this.getQuestionsForPath(path);
+    // Map legacy paths to new paths
+    let actualPath = path;
+    if (path === 'hard_hat' || path === 'non_hard_hat') {
+      actualPath = 'decided';
+    } else if (path === 'unable_to_decide') {
+      actualPath = 'undecided';
+    }
+    
+    const questions = this.getQuestionsForPath(actualPath);
     let completedQuestions = 0;
     let nextQuestion: ImprovedQuestion | undefined;
 
@@ -435,24 +499,30 @@ export class FinalAssessmentService {
   static generateCareerMatches(responses: { [key: string]: any }, path: string): any {
     const assessment = this.getAssessment();
     
-    // Get the specific career category based on path
-    let careerCategory: string | undefined;
+    // Map legacy paths to new paths
+    let actualPath = path;
+    if (path === 'hard_hat' || path === 'non_hard_hat') {
+      actualPath = 'decided';
+    } else if (path === 'unable_to_decide') {
+      actualPath = 'undecided';
+    }
     
-    if (path === 'hard_hat') {
-      careerCategory = responses.hard_hat_specific;
-    } else if (path === 'non_hard_hat') {
-      careerCategory = responses.non_hard_hat_specific;
-    } else {
-      // For unable_to_decide, we'll generate exploration matches
+    // Get the specific career category from work preference
+    let workPreference = responses.work_preference_main;
+    
+    // For undecided students, determine their work preference based on exploration responses
+    if (actualPath === 'undecided' && workPreference === 'unable_to_decide') {
+      workPreference = this.determineWorkPreferenceFromExploration(responses);
+      console.log('🔍 Determined work preference for undecided student:', workPreference);
+    }
+    
+    if (actualPath === 'undecided' && (!workPreference || workPreference === 'unable_to_decide')) {
+      // For truly undecided students, generate exploration matches
       return this.generateExplorationMatches(responses);
     }
     
-    if (!careerCategory) {
-      return this.generateExplorationMatches(responses);
-    }
-
-    // Get careers for the selected category
-    const categoryMapping = assessment.careerMapping[careerCategory];
+    // Get careers for the determined category
+    const categoryMapping = assessment.careerMapping[workPreference];
     if (!categoryMapping) {
       return this.generateExplorationMatches(responses);
     }
@@ -468,10 +538,12 @@ export class FinalAssessmentService {
       primaryMatches: scoredCareers.slice(0, 3),
       secondaryMatches: scoredCareers.slice(3, 6),
       sectors: categoryMapping.primarySectors,
+      determinedWorkPreference: workPreference, // Include the determined preference
       matchingLogic: {
-        primaryFactor: `Selected career category: ${careerCategory}`,
+        primaryFactor: `Selected/Determined career category: ${workPreference}`,
         educationFilter: `Education level: ${educationLevel}`,
-        subjectAlignment: this.getSubjectAlignmentDescription(responses.subject_strengths)
+        subjectAlignment: this.getSubjectAlignmentDescription(responses.subject_strengths),
+        explorationBased: actualPath === 'undecided' ? 'Based on interests, traits, and experience analysis' : undefined
       }
     };
   }
@@ -510,43 +582,340 @@ export class FinalAssessmentService {
   }
 
   /**
-   * Score careers based on subject strengths
+   * Score careers based on subject strengths (1-5 rating system)
    */
   private static scoreCareersBySubjects(careers: string[], subjectStrengths: any): string[] {
     if (!subjectStrengths) return careers;
 
-    // Simple scoring based on subject alignment
-    // This would be enhanced with actual career-subject mapping
-    return careers.sort((a, b) => {
-      // Prioritize careers that align with excellent subjects
-      // This is a simplified version - would use actual career-subject database
-      return Math.random() - 0.5; // Placeholder random sort
-    });
+    // Enhanced subject-career mapping for better job matching
+    const subjectCareerMapping = {
+      'math': ['Data Analyst', 'Financial Analyst', 'Accountant', 'Statistician', 'Engineer', 'Actuary'],
+      'science': ['Research Scientist', 'Laboratory Technician', 'Environmental Scientist', 'Biomedical Engineer', 'Medical Technologist', 'Nurse'],
+      'english': ['Teacher', 'Writer', 'School Counselor', 'Corporate Trainer', 'Tutor'],
+      'art': ['Graphic Designer', 'Photographer', 'Art Director', 'Musician', 'Interior Designer', 'Fashion Designer'],
+      'technology': ['Software Developer', 'Web Developer', 'IT Specialist', 'Cybersecurity Analyst', 'Database Administrator'],
+      'history': ['Teacher', 'Police Officer', 'School Counselor'],
+      'physical_ed': ['Firefighter', 'EMT', 'Physical Therapist'],
+      'languages': ['Teacher', 'Tutor', 'Corporate Trainer']
+    };
+
+    return careers.map(career => {
+      let subjectScore = 0;
+      let matchCount = 0;
+      
+      // Calculate weighted score based on 1-5 ratings
+      Object.entries(subjectStrengths).forEach(([subject, rating]) => {
+        const numericRating = parseInt(rating as string);
+        if (numericRating >= 1 && numericRating <= 5) {
+          const relevantCareers = subjectCareerMapping[subject as keyof typeof subjectCareerMapping] || [];
+          const isRelevant = relevantCareers.some(careerTitle => 
+            career.toLowerCase().includes(careerTitle.toLowerCase()) || 
+            careerTitle.toLowerCase().includes(career.toLowerCase())
+          );
+          
+          if (isRelevant) {
+            // Weight: 5=25 points, 4=20 points, 3=10 points, 2=5 points, 1=0 points
+            const scoreWeight = Math.max(0, (numericRating - 1) * 5);
+            subjectScore += scoreWeight;
+            matchCount++;
+          }
+        }
+      });
+      
+      // Average the score if multiple subjects match
+      const finalScore = matchCount > 0 ? subjectScore / matchCount : 0;
+      
+      return {
+        career,
+        subjectScore: finalScore
+      };
+    })
+    .sort((a, b) => b.subjectScore - a.subjectScore) // Sort by highest subject alignment
+    .map(item => item.career);
   }
 
   /**
-   * Get subject alignment description
+   * Get subject alignment description (1-5 rating system)
    */
   private static getSubjectAlignmentDescription(subjectStrengths: any): string {
     if (!subjectStrengths) return 'No subject preferences specified';
 
-    const excellentSubjects = Object.entries(subjectStrengths)
-      .filter(([_, rating]) => rating === 'excellent')
-      .map(([subject, _]) => subject);
+    // Find subjects with high interest (4-5 rating)
+    const highInterestSubjects = Object.entries(subjectStrengths)
+      .filter(([_, rating]) => {
+        const numericRating = parseInt(rating as string);
+        return numericRating >= 4;
+      })
+      .map(([subject, rating]) => `${subject} (${rating}/5)`)
+      .sort((a, b) => {
+        const ratingA = parseInt(a.match(/\((\d)\/5\)/)?.[1] || '0');
+        const ratingB = parseInt(b.match(/\((\d)\/5\)/)?.[1] || '0');
+        return ratingB - ratingA;
+      });
 
-    if (excellentSubjects.length > 0) {
-      return `Strong in: ${excellentSubjects.join(', ')}`;
+    if (highInterestSubjects.length > 0) {
+      return `High interest in: ${highInterestSubjects.join(', ')}`;
     }
 
-    const goodSubjects = Object.entries(subjectStrengths)
-      .filter(([_, rating]) => rating === 'good')
+    // Find subjects with moderate interest (3 rating)
+    const moderateInterestSubjects = Object.entries(subjectStrengths)
+      .filter(([_, rating]) => {
+        const numericRating = parseInt(rating as string);
+        return numericRating === 3;
+      })
       .map(([subject, _]) => subject);
 
-    if (goodSubjects.length > 0) {
-      return `Good at: ${goodSubjects.join(', ')}`;
+    if (moderateInterestSubjects.length > 0) {
+      return `Moderate interest in: ${moderateInterestSubjects.join(', ')}`;
     }
 
-    return 'Subject strengths to be determined';
+    return 'Subject interests to be explored further';
+  }
+
+  /**
+   * Determine work preference for undecided students based on exploration responses
+   * Uses only the 3 exploration questions: interests/hobbies, experience, and traits
+   */
+  private static determineWorkPreferenceFromExploration(responses: { [key: string]: any }): string {
+    let hardHatScore = 0;
+    let nonHardHatScore = 0;
+    
+    console.log('🔍 Analyzing undecided student responses for work preference determination...');
+    
+    // Question 2.2.1: Analyze interests/hobbies text
+    const interests = (responses.undecided_interests_hobbies || '').toLowerCase();
+    console.log('📝 Interests/hobbies:', interests.substring(0, 100) + '...');
+    
+    const hardHatInterestKeywords = [
+      'build', 'fix', 'repair', 'construct', 'tools', 'hands-on', 'mechanical', 
+      'woodworking', 'metalworking', 'automotive', 'electrical', 'plumbing',
+      'crafts', 'making', 'creating things', 'workshop', 'garage', 'carpentry',
+      'welding', 'machinery', 'engines', 'hardware', 'construction',
+      'architecture', 'blueprints', 'building designs', 'structural', 'engineering'
+    ];
+    
+    const nonHardHatInterestKeywords = [
+      'computer', 'programming', 'coding', 'software', 'technology', 'data',
+      'research', 'writing', 'reading', 'teaching', 'helping people', 'healthcare',
+      'art', 'design', 'music', 'photography', 'business', 'finance', 'analysis',
+      'communication', 'languages', 'science experiments', 'laboratory', 'studying',
+      'tutoring', 'volunteering', 'community service', 'drawing', 'painting'
+    ];
+    
+    let interestHardHatMatches = 0;
+    let interestNonHardHatMatches = 0;
+    
+    hardHatInterestKeywords.forEach(keyword => {
+      if (interests.includes(keyword)) {
+        hardHatScore += 4;
+        interestHardHatMatches++;
+      }
+    });
+    
+    nonHardHatInterestKeywords.forEach(keyword => {
+      if (interests.includes(keyword)) {
+        nonHardHatScore += 4;
+        interestNonHardHatMatches++;
+      }
+    });
+    
+    // Question 2.2.2: Analyze work/volunteer experience text
+    const experience = (responses.undecided_work_experience || '').toLowerCase();
+    console.log('💼 Work/volunteer experience:', experience.substring(0, 100) + '...');
+    
+    const hardHatExperienceKeywords = [
+      'construction', 'building', 'repair', 'maintenance', 'workshop', 'garage',
+      'tools', 'mechanical', 'electrical', 'plumbing', 'carpentry', 'welding',
+      'automotive', 'machinery', 'hardware store', 'landscaping', 'farming',
+      'architect', 'engineering', 'design projects'
+    ];
+    
+    const nonHardHatExperienceKeywords = [
+      'office', 'computer', 'technology', 'tutoring', 'teaching', 'healthcare',
+      'hospital', 'clinic', 'research', 'laboratory', 'library', 'customer service',
+      'retail', 'restaurant', 'art', 'design', 'photography', 'writing', 'editing',
+      'social media', 'marketing', 'business', 'finance', 'accounting'
+    ];
+    
+    let experienceHardHatMatches = 0;
+    let experienceNonHardHatMatches = 0;
+    
+    hardHatExperienceKeywords.forEach(keyword => {
+      if (experience.includes(keyword)) {
+        hardHatScore += 5; // Experience weighted higher than interests
+        experienceHardHatMatches++;
+      }
+    });
+    
+    nonHardHatExperienceKeywords.forEach(keyword => {
+      if (experience.includes(keyword)) {
+        nonHardHatScore += 5;
+        experienceNonHardHatMatches++;
+      }
+    });
+    
+    // Question 2.2.3: Analyze personal traits
+    const personalTraits = responses.undecided_personal_traits || [];
+    console.log('🎯 Personal traits:', personalTraits);
+    
+    const hardHatTraits = {
+      'hands_on': 6,        // Strong indicator for hard hat work
+      'problem_solver': 3,   // Useful for both but slightly more for hard hat
+      'independent': 2,      // Trades often work independently
+      'detail_oriented': 2   // Important for precision work
+    };
+    
+    const nonHardHatTraits = {
+      'analytical': 5,       // Strong indicator for data/research work
+      'creative': 4,         // Arts, design, creative fields
+      'helpful': 4,          // Healthcare, education, service
+      'leader': 3,           // Management, education roles
+      'communicator': 5,     // Education, business, service roles
+      'team_player': 3       // Office environments, collaborative work
+    };
+    
+    let traitHardHatMatches = 0;
+    let traitNonHardHatMatches = 0;
+    
+    personalTraits.forEach((trait: string) => {
+      const hardHatWeight = hardHatTraits[trait as keyof typeof hardHatTraits];
+      const nonHardHatWeight = nonHardHatTraits[trait as keyof typeof nonHardHatTraits];
+      
+      if (hardHatWeight) {
+        hardHatScore += hardHatWeight;
+        traitHardHatMatches++;
+      }
+      if (nonHardHatWeight) {
+        nonHardHatScore += nonHardHatWeight;
+        traitNonHardHatMatches++;
+      }
+    });
+    
+    console.log('📊 Analysis Results:');
+    console.log(`   Hard Hat Score: ${hardHatScore} (Interests: ${interestHardHatMatches}, Experience: ${experienceHardHatMatches}, Traits: ${traitHardHatMatches})`);
+    console.log(`   Non Hard Hat Score: ${nonHardHatScore} (Interests: ${interestNonHardHatMatches}, Experience: ${experienceNonHardHatMatches}, Traits: ${traitNonHardHatMatches})`);
+    
+    // Determine the specific category based on highest scoring area
+    if (hardHatScore > nonHardHatScore) {
+      console.log('🔨 Determined: Hard Hat work preference');
+      
+      // Determine specific hard hat category
+      if (personalTraits.includes('creative') || 
+          interests.includes('design') || 
+          interests.includes('architecture') ||
+          interests.includes('drawing') ||
+          experience.includes('design')) {
+        console.log('🏗️ Specific category: Creating Designs (Architecture/Engineering)');
+        return 'hard_hat_creating_designs';
+      } else {
+        console.log('🔧 Specific category: Building/Fixing with Tools');
+        return 'hard_hat_building_fixing';
+      }
+    } else if (nonHardHatScore > hardHatScore) {
+      console.log('💼 Determined: Non Hard Hat work preference');
+      
+      // Determine specific non hard hat category based on strongest indicators
+      const categoryScores = {
+        'non_hard_hat_technology': 0,
+        'non_hard_hat_healthcare': 0,
+        'non_hard_hat_education': 0,
+        'non_hard_hat_data_analysis': 0,
+        'non_hard_hat_creative': 0,
+        'non_hard_hat_research': 0,
+        'non_hard_hat_rescue': 0
+      };
+      
+      // Score each category based on specific indicators
+      
+      // Technology category
+      if (personalTraits.includes('analytical') || 
+          interests.includes('computer') || 
+          interests.includes('technology') ||
+          interests.includes('programming') ||
+          experience.includes('technology')) {
+        categoryScores.non_hard_hat_technology += 6;
+      }
+      
+      // Healthcare category
+      if (personalTraits.includes('helpful') || 
+          interests.includes('healthcare') || 
+          interests.includes('helping people') ||
+          interests.includes('medical') ||
+          experience.includes('hospital') ||
+          experience.includes('healthcare')) {
+        categoryScores.non_hard_hat_healthcare += 6;
+      }
+      
+      // Education category
+      if (personalTraits.includes('communicator') || 
+          interests.includes('teaching') || 
+          interests.includes('education') ||
+          interests.includes('tutoring') ||
+          experience.includes('tutoring') ||
+          experience.includes('teaching')) {
+        categoryScores.non_hard_hat_education += 6;
+      }
+      
+      // Data analysis category
+      if (personalTraits.includes('analytical') || 
+          interests.includes('data') || 
+          interests.includes('numbers') ||
+          interests.includes('math') ||
+          interests.includes('statistics')) {
+        categoryScores.non_hard_hat_data_analysis += 5;
+      }
+      
+      // Creative category
+      if (personalTraits.includes('creative') || 
+          interests.includes('art') || 
+          interests.includes('design') ||
+          interests.includes('music') ||
+          interests.includes('photography') ||
+          experience.includes('art') ||
+          experience.includes('design')) {
+        categoryScores.non_hard_hat_creative += 6;
+      }
+      
+      // Research category
+      if (interests.includes('research') || 
+          interests.includes('science') || 
+          interests.includes('discover') ||
+          interests.includes('experiments') ||
+          experience.includes('research') ||
+          experience.includes('laboratory')) {
+        categoryScores.non_hard_hat_research += 5;
+      }
+      
+      // Rescue/Public Safety category
+      if (interests.includes('help') || 
+          interests.includes('rescue') || 
+          interests.includes('emergency') ||
+          interests.includes('safety') ||
+          experience.includes('emergency') ||
+          experience.includes('safety')) {
+        categoryScores.non_hard_hat_rescue += 5;
+      }
+      
+      // Return the highest scoring category
+      const topCategory = Object.entries(categoryScores)
+        .sort(([,a], [,b]) => b - a)[0];
+      
+      console.log('🎯 Category scores:', categoryScores);
+      console.log(`✅ Selected category: ${topCategory[0]} (score: ${topCategory[1]})`);
+      
+      return topCategory[0];
+    } else {
+      // Scores are equal or both low - default based on any strong indicators
+      console.log('⚖️ Scores are equal, using fallback logic');
+      
+      if (personalTraits.includes('hands_on') || interests.includes('build') || interests.includes('fix')) {
+        console.log('🔧 Fallback: Hard Hat (hands-on indicators found)');
+        return 'hard_hat_building_fixing';
+      } else {
+        console.log('💻 Fallback: Technology (broad non-hard hat category)');
+        return 'non_hard_hat_technology';
+      }
+    }
   }
 }
 

@@ -1,5 +1,5 @@
 import express from 'express';
-import { ImprovedAssessmentService } from '../services/improvedAssessmentService';
+import { FinalAssessmentService } from '../services/improvedAssessmentService';
 import { WeightedAIPromptService } from '../services/weightedAIPromptService';
 import { CareerMatchingService } from '../services/careerMatchingService';
 import { AssessmentServiceDB } from '../services/assessmentServiceDB';
@@ -11,7 +11,7 @@ const router = express.Router();
 // GET /api/assessment/v2 - Get the improved assessment structure
 router.get('/', (req, res) => {
   try {
-    const assessment = ImprovedAssessmentService.getAssessment();
+    const assessment = FinalAssessmentService.getAssessment();
     
     res.json({
       success: true,
@@ -30,7 +30,7 @@ router.get('/', (req, res) => {
 // GET /api/assessment/v2/branching - Get the branching question
 router.get('/branching', (req, res) => {
   try {
-    const branchingQuestion = ImprovedAssessmentService.getBranchingQuestion();
+    const branchingQuestion = FinalAssessmentService.getBranchingQuestion();
     
     if (!branchingQuestion) {
       return res.status(404).json({
@@ -58,15 +58,15 @@ router.get('/questions/:path', (req, res) => {
   try {
     const { path } = req.params;
     
-    if (!['hard_hat', 'non_hard_hat', 'unable_to_decide'].includes(path)) {
+    if (!['hard_hat', 'non_hard_hat', 'unable_to_decide', 'decided', 'undecided'].includes(path)) {
       return res.status(400).json({
         success: false,
-        error: 'Invalid path. Must be hard_hat, non_hard_hat, or unable_to_decide'
+        error: 'Invalid path. Must be hard_hat, non_hard_hat, unable_to_decide, decided, or undecided'
       } as ApiResponse);
     }
     
-    const questions = ImprovedAssessmentService.getQuestionsForPath(path);
-    const assessment = ImprovedAssessmentService.getAssessment();
+    const questions = FinalAssessmentService.getQuestionsForPath(path);
+    const assessment = FinalAssessmentService.getAssessment();
     const pathConfig = assessment.pathLogic[path];
     
     res.json({
@@ -100,12 +100,25 @@ router.post('/determine-path', (req, res) => {
       } as ApiResponse);
     }
     
-    const path = ImprovedAssessmentService.determinePath(workPreference);
-    const assessment = ImprovedAssessmentService.getAssessment();
+    const path = FinalAssessmentService.determinePath(workPreference);
+    const assessment = FinalAssessmentService.getAssessment();
     const pathConfig = assessment.pathLogic[path];
     
     let reasoning = '';
     switch (path) {
+      case 'decided':
+        if (workPreference === 'hard_hat') {
+          reasoning = 'Student prefers hands-on, physical work - using decided career path';
+        } else if (workPreference === 'non_hard_hat') {
+          reasoning = 'Student prefers professional, knowledge-based work - using decided career path';
+        } else {
+          reasoning = 'Student has clear career direction - using decided career path';
+        }
+        break;
+      case 'undecided':
+        reasoning = 'Student needs career exploration - using discovery and exploration approach';
+        break;
+      // Legacy support
       case 'hard_hat':
         reasoning = 'Student prefers hands-on, physical work - using hard hat career path';
         break;
@@ -147,7 +160,7 @@ router.post('/validate', (req, res) => {
       } as ApiResponse);
     }
     
-    const validation = ImprovedAssessmentService.validateResponses(responses, path);
+    const validation = FinalAssessmentService.validateResponses(responses, path);
     
     res.json({
       success: true,
@@ -175,7 +188,7 @@ router.post('/progress', (req, res) => {
       } as ApiResponse);
     }
     
-    const progress = ImprovedAssessmentService.getProgress(responses, path);
+    const progress = FinalAssessmentService.getProgress(responses, path);
     
     res.json({
       success: true,
@@ -201,7 +214,7 @@ router.post('/submit', async (req, res) => {
     console.log('📊 Response keys:', Object.keys(responses));
     
     // Validate responses
-    const validation = ImprovedAssessmentService.validateResponses(responses, path);
+    const validation = FinalAssessmentService.validateResponses(responses, path);
     
     if (!validation.isValid) {
       return res.status(400).json({
@@ -212,7 +225,7 @@ router.post('/submit', async (req, res) => {
     }
     
     // Convert to weighted format for AI processing
-    const weightedData = ImprovedAssessmentService.convertToWeightedFormat(responses, path);
+    const weightedData = FinalAssessmentService.convertToWeightedFormat(responses, path);
     
     console.log('🔄 Converting to weighted format');
     console.log('⚖️ Primary indicators:', Object.keys(weightedData.primaryIndicators));
@@ -221,7 +234,7 @@ router.post('/submit', async (req, res) => {
     // Generate weighted AI prompt
     const improvedAssessmentResponse: ImprovedAssessmentResponse = {
       assessmentVersion: 'v3' as const,
-      pathTaken: path as 'hard_hat' | 'non_hard_hat' | 'unable_to_decide',
+      pathTaken: path as 'hard_hat' | 'non_hard_hat' | 'unable_to_decide' | 'decided' | 'undecided',
       responses: responses as any
     };
     const aiPrompt = WeightedAIPromptService.generateWeightedPrompt(improvedAssessmentResponse);
@@ -229,7 +242,7 @@ router.post('/submit', async (req, res) => {
     console.log('🤖 Generated weighted AI prompt');
     
     // Get career matches using improved logic
-    const careerMatches = ImprovedAssessmentService.generateCareerMatches(responses, path);
+    const careerMatches = FinalAssessmentService.generateCareerMatches(responses, path);
     
     console.log('🎯 Generated career matches');
     console.log('📋 Primary matches:', careerMatches.primaryMatches?.length || 0);
@@ -332,7 +345,7 @@ router.post('/submit', async (req, res) => {
       improvedFeatures: {
         branchingLogic: `Used ${path} (${getPathDescription(path)}) path`,
         weightedMatching: 'Applied question weighting system for better AI guidance',
-        focusedQuestions: `Completed ${ImprovedAssessmentService.getQuestionsForPath(path).length} focused questions`,
+        focusedQuestions: `Completed ${FinalAssessmentService.getQuestionsForPath(path).length} focused questions`,
         enhancedExplainability: 'Career matches based on hierarchical work preference selection and subject strengths'
       }
     };
@@ -367,7 +380,7 @@ router.post('/weighted-prompt', (req, res) => {
     
     const improvedAssessmentResponse: ImprovedAssessmentResponse = {
       assessmentVersion: 'v3' as const,
-      pathTaken: path as 'hard_hat' | 'non_hard_hat' | 'unable_to_decide',
+      pathTaken: path as 'hard_hat' | 'non_hard_hat' | 'unable_to_decide' | 'decided' | 'undecided',
       responses: responses as any
     };
     const weightedPrompt = WeightedAIPromptService.generateWeightedPrompt(improvedAssessmentResponse);
@@ -399,10 +412,12 @@ router.post('/weighted-prompt', (req, res) => {
 function getReadinessLevel(path: string): string {
   switch (path) {
     case 'hard_hat':
-      return 'Hands-On Direction';
+    case 'decided':
+      return 'Clear Direction';
     case 'non_hard_hat':
       return 'Professional Direction';
     case 'unable_to_decide':
+    case 'undecided':
       return 'Exploring Options';
     default:
       return 'Unknown';
@@ -415,7 +430,10 @@ function getPathDescription(path: string): string {
       return 'Hard Hat Career Path';
     case 'non_hard_hat':
       return 'Non Hard Hat Career Path';
+    case 'decided':
+      return 'Decided Career Path';
     case 'unable_to_decide':
+    case 'undecided':
       return 'Career Exploration';
     default:
       return 'Unknown Path';

@@ -38,109 +38,277 @@
       "branchingQuestion": true,
       "options": [
         {
-          "value": "hard_hat",
-          "label": "Hard Hat",
-          "description": "Physical work, building, construction, hands-on technical work",
-          "nextPath": "hard_hat_options"
+          "value": "hard_hat_building_fixing",
+          "label": "Hard Hat - Building, fixing, working with tools",
+          "description": "eg: Construction, plumbing, electrical work and heavy machinery maintenance",
+          "category": "hard_hat",
+          "sectors": ["infrastructure", "manufacturing"]
         },
         {
-          "value": "non_hard_hat",
-          "label": "Non Hard Hat", 
-          "description": "Office work, professional services, knowledge-based work",
-          "nextPath": "non_hard_hat_options"
+          "value": "hard_hat_creating_designs",
+          "label": "Hard Hat - Creating Designs (Architecture/Civil engineers)",
+          "description": "eg: in office architects and engineers",
+          "category": "hard_hat",
+          "sectors": ["infrastructure", "creative"]
+        },
+        {
+          "value": "non_hard_hat_data_analysis",
+          "label": "Non Hard Hat - Working with numbers, data or analysis",
+          "description": "Eg: Accountants, financial analysts, data scientists",
+          "category": "non_hard_hat",
+          "sectors": ["business", "finance", "science"]
+        },
+        {
+          "value": "non_hard_hat_technology",
+          "label": "Non Hard Hat - Working with computer or technology",
+          "description": "Eg: software developers, IP specialists",
+          "category": "non_hard_hat",
+          "sectors": ["technology"]
+        },
+        {
+          "value": "non_hard_hat_education",
+          "label": "Non Hard Hat - Helping to empower people through education/coaching",
+          "description": "Eg: Teachers, Counsellors",
+          "category": "non_hard_hat",
+          "sectors": ["education"]
+        },
+        {
+          "value": "non_hard_hat_healthcare",
+          "label": "Non Hard Hat - Helping people to improve their health",
+          "description": "Eg: Nurse, medical practitioners, doctors",
+          "category": "non_hard_hat",
+          "sectors": ["healthcare"]
+        },
+        {
+          "value": "non_hard_hat_rescue",
+          "label": "Non Hard Hat - Rescue people",
+          "description": "Eg: Police officers, firefighters",
+          "category": "non_hard_hat",
+          "sectors": ["public-service"]
+        },
+        {
+          "value": "non_hard_hat_research",
+          "label": "Non Hard Hat - Invent or discover new things",
+          "description": "Eg: Researchers",
+          "category": "non_hard_hat",
+          "sectors": ["science", "technology"]
+        },
+        {
+          "value": "non_hard_hat_creative",
+          "label": "Non Hard Hat - Works with art, creative things",
+          "description": "Eg: Photographer, artists, musicians etc",
+          "category": "non_hard_hat",
+          "sectors": ["creative"]
         },
         {
           "value": "unable_to_decide",
           "label": "Unable to decide",
           "description": "I need help figuring out what type of work I'd enjoy",
+          "category": "exploration",
           "nextPath": "exploration_questions"
         }
       ]
     },
     {
-      "id": "hard_hat_specific",
+      "id": "subject_strengths",
       "order": 3,
-      "text": "Which type of Hard Hat work interests you most?",
-      "type": "single_choice",
-      "category": "hard_hat_specialization",
+      "text": "Rate your interest level in each subject (1 = Not Interested, 5 = Very Interested):",
+      "type": "matrix",
+      "category": "academic",
       "required": true,
-      "appliesTo": ["hard_hat"],
-      "options": [
+      "appliesTo": ["decided", "undecided"],
+      "subjects": [
         {
-          "value": "building_fixing",
-          "label": "Building, fixing, working with tools",
-          "description": "Construction, plumbing, electrical work and heavy machinery maintenance",
-          "sectors": ["infrastructure", "manufacturing"]
+          "id": "math",
+          "label": "Mathematics",
+          "description": "Algebra, geometry, calculus, statistics"
         },
         {
-          "value": "creating_designs",
-          "label": "Creating Designs (Architecture/Civil engineers)",
-          "description": "In office architects and engineers",
-          "sectors": ["infrastructure", "creative"]
+          "id": "science",
+          "label": "Science",
+          "description": "Biology, chemistry, physics, earth science"
+        },
+        {
+          "id": "english",
+          "label": "English/Writing",
+          "description": "Literature, composition, communication"
+        },
+        {
+          "id": "history",
+          "label": "History/Social Studies",
+          "description": "History, government, psychology, sociology"
+        },
+        {
+          "id": "art",
+          "label": "Art/Creative",
+          "description": "Visual arts, music, drama, creative writing"
+        },
+        {
+          "id": "technology",
+          "label": "Technology/Computers",
+          "description": "Computer science, programming, digital media"
+        },
+        {
+          "id": "languages",
+          "label": "Foreign Languages",
+          "description": "Spanish, French, other world languages"
+        },
+        {
+          "id": "physical_ed",
+          "label": "Physical Education/Health",
+          "description": "Sports, fitness, health sciences"
+        }
+      ],
+      "ratingScale": [
+        {
+          "value": "1",
+          "label": "1",
+          "description": "Not Interested"
+        },
+        {
+          "value": "2",
+          "label": "2",
+          "description": "Slightly Interested"
+        },
+        {
+          "value": "3",
+          "label": "3",
+          "description": "Moderately Interested"
+        },
+        {
+          "value": "4",
+          "label": "4",
+          "description": "Very Interested"
+        },
+        {
+          "value": "5",
+          "label": "5",
+          "description": "Extremely Interested"
         }
       ]
     },
     {
-      "id": "non_hard_hat_specific",
-      "order": 3,
-      "text": "Which type of Non Hard Hat work interests you most?",
-      "type": "single_choice",
-      "category": "non_hard_hat_specialization",
-      "required": true,
-      "appliesTo": ["non_hard_hat"],
-      "options": [
-        {
-          "value": "data_analysis",
-          "label": "Working with numbers, data, or analysis",
-          "description": "Accountants, financial analysts, data scientists",
-          "sectors": ["business", "finance", "science"]
-        },
-        {
-          "value": "technology",
-          "label": "Working with computer or technology",
-          "description": "Software developers, IT specialists",
-          "sectors": ["technology"]
-        },
-        {
-          "value": "education_coaching",
-          "label": "Helping to empower people through education/coaching",
-          "description": "Teachers, Counsellors",
-          "sectors": ["education"]
-        },
-        {
-          "value": "healthcare",
-          "label": "Helping people to improve their health",
-          "description": "Nurse, medical practitioners, doctors",
-          "sectors": ["healthcare"]
-        },
-        {
-          "value": "rescue_people",
-          "label": "Rescue people",
-          "description": "Police officers, firefighters",
-          "sectors": ["public-service"]
-        },
-        {
-          "value": "research_innovation",
-          "label": "Invent or discover new things",
-          "description": "Researchers",
-          "sectors": ["science", "technology"]
-        },
-        {
-          "value": "creative_arts",
-          "label": "Works with art, creative things",
-          "description": "Photographers, artists, musicians etc",
-          "sectors": ["creative"]
-        }
-      ]
-    },
-    {
-      "id": "personal_traits",
+      "id": "education_commitment",
       "order": 4,
+      "text": "How much education are you willing to pursue after high school?",
+      "type": "single_choice",
+      "category": "education",
+      "required": true,
+      "appliesTo": ["decided", "undecided"],
+      "options": [
+        {
+          "value": "certificate",
+          "label": "Certificate or Trade School",
+          "description": "6 months to 2 years of specialized training"
+        },
+        {
+          "value": "associate",
+          "label": "Associate Degree",
+          "description": "2-year college degree"
+        },
+        {
+          "value": "bachelor",
+          "label": "Bachelor's Degree", 
+          "description": "4-year university degree"
+        },
+        {
+          "value": "advanced",
+          "label": "Advanced Degree",
+          "description": "Master's, PhD, or professional degree (6+ years)"
+        }
+      ]
+    },
+    {
+      "id": "decided_career_constraints",
+      "order": 5,
+      "text": "Are there any factors we should consider when suggesting careers?",
+      "type": "free_text",
+      "category": "constraints",
+      "required": false,
+      "appliesTo": ["decided"],
+      "placeholder": "Physical limitations, family considerations, location preferences, financial constraints, or other factors that might affect your career choices...",
+      "maxLength": 500
+    },
+    {
+      "id": "decided_education_support",
+      "order": 6,
+      "text": "Do you feel you have support for education or training after high school?",
+      "type": "single_choice",
+      "category": "support",
+      "required": true,
+      "appliesTo": ["decided"],
+      "options": [
+        {
+          "value": "strong_support",
+          "label": "Yes, I have strong support",
+          "description": "Family and/or financial support for education/training"
+        },
+        {
+          "value": "some_support",
+          "label": "I have some support",
+          "description": "Limited but available support for education/training"
+        },
+        {
+          "value": "minimal_support",
+          "label": "I have minimal support",
+          "description": "Very limited support, will need to find my own way"
+        },
+        {
+          "value": "no_support",
+          "label": "I don't have support",
+          "description": "No family or financial support available"
+        },
+        {
+          "value": "unsure",
+          "label": "I'm not sure",
+          "description": "Haven't discussed this with family yet"
+        }
+      ]
+    },
+    {
+      "id": "decided_impact_and_inspiration",
+      "order": 7,
+      "text": "Who inspires you, why and what do you want to be remembered for?",
+      "type": "free_text",
+      "category": "values_inspiration",
+      "required": true,
+      "appliesTo": ["decided"],
+      "placeholder": "Tell me about someone who inspires you and what qualities they have that you admire. Also describe how you want to be remembered or the impact you want to make...",
+      "minLength": 30,
+      "maxLength": 800
+    },
+    {
+      "id": "undecided_interests_hobbies",
+      "order": 5,
+      "text": "What are your interests/hobbies?",
+      "type": "free_text",
+      "category": "interests",
+      "required": true,
+      "appliesTo": ["undecided"],
+      "placeholder": "Describe your interests, hobbies, and activities you enjoy in your free time...",
+      "minLength": 20,
+      "maxLength": 500
+    },
+    {
+      "id": "undecided_work_experience",
+      "order": 6,
+      "text": "What clubs, work or volunteer experience do you have?",
+      "type": "free_text",
+      "category": "experience",
+      "required": true,
+      "appliesTo": ["undecided"],
+      "placeholder": "Describe any clubs you've joined, work experience, volunteer activities, internships, or hands-on projects you've been involved in...",
+      "minLength": 10,
+      "maxLength": 500
+    },
+    {
+      "id": "undecided_personal_traits",
+      "order": 7,
       "text": "What traits best describe you? (Select all that apply)",
       "type": "multiple_choice",
       "category": "personality",
       "required": true,
-      "appliesTo": ["unable_to_decide"],
+      "appliesTo": ["undecided"],
       "minSelections": 2,
       "maxSelections": 5,
       "options": [
@@ -197,157 +365,24 @@
       ]
     },
     {
-      "id": "interests_hobbies",
-      "order": 5,
-      "text": "What are your interests/hobbies?",
-      "type": "free_text",
-      "category": "interests",
-      "required": true,
-      "appliesTo": ["unable_to_decide"],
-      "placeholder": "Describe your interests, hobbies, and activities you enjoy in your free time...",
-      "minLength": 20,
-      "maxLength": 500
-    },
-    {
-      "id": "work_experience",
-      "order": 6,
-      "text": "What work, volunteer, or hands-on experience do you have?",
-      "type": "free_text",
-      "category": "experience",
-      "required": true,
-      "appliesTo": ["unable_to_decide"],
-      "placeholder": "Describe any work experience, volunteer activities, internships, or hands-on projects you've been involved in...",
-      "minLength": 10,
-      "maxLength": 500
-    },
-    {
-      "id": "subject_strengths",
-      "order": 7,
-      "text": "Which subjects do you enjoy studying, and how do you rate yourself there?",
-      "type": "matrix",
-      "category": "academic",
-      "required": true,
-      "appliesTo": ["hard_hat", "non_hard_hat", "unable_to_decide"],
-      "subjects": [
-        {
-          "id": "math",
-          "label": "Mathematics",
-          "description": "Algebra, geometry, calculus, statistics"
-        },
-        {
-          "id": "science",
-          "label": "Science",
-          "description": "Biology, chemistry, physics, earth science"
-        },
-        {
-          "id": "english",
-          "label": "English/Writing",
-          "description": "Literature, composition, communication"
-        },
-        {
-          "id": "history",
-          "label": "History/Social Studies",
-          "description": "History, government, psychology, sociology"
-        },
-        {
-          "id": "art",
-          "label": "Art/Creative",
-          "description": "Visual arts, music, drama, creative writing"
-        },
-        {
-          "id": "technology",
-          "label": "Technology/Computers",
-          "description": "Computer science, programming, digital media"
-        },
-        {
-          "id": "languages",
-          "label": "Foreign Languages",
-          "description": "Spanish, French, other world languages"
-        },
-        {
-          "id": "physical_ed",
-          "label": "Physical Education/Health",
-          "description": "Sports, fitness, health sciences"
-        }
-      ],
-      "ratingScale": [
-        {
-          "value": "excellent",
-          "label": "Excellent",
-          "description": "I excel in this subject and really enjoy it"
-        },
-        {
-          "value": "good",
-          "label": "Good",
-          "description": "I do well and generally like this subject"
-        },
-        {
-          "value": "average",
-          "label": "Average",
-          "description": "I'm okay at this subject, neither love nor hate it"
-        },
-        {
-          "value": "struggling",
-          "label": "Struggling",
-          "description": "This subject is challenging for me"
-        },
-        {
-          "value": "not_taken",
-          "label": "Haven't Taken",
-          "description": "I haven't taken this subject yet"
-        }
-      ]
-    },
-    {
-      "id": "education_commitment",
+      "id": "undecided_career_constraints",
       "order": 8,
-      "text": "How much education are you willing to pursue after high school?",
-      "type": "single_choice",
-      "category": "education",
-      "required": true,
-      "appliesTo": ["hard_hat", "non_hard_hat", "unable_to_decide"],
-      "options": [
-        {
-          "value": "certificate",
-          "label": "Certificate or Trade School",
-          "description": "6 months to 2 years of specialized training"
-        },
-        {
-          "value": "associate",
-          "label": "Associate Degree",
-          "description": "2-year college degree"
-        },
-        {
-          "value": "bachelor",
-          "label": "Bachelor's Degree", 
-          "description": "4-year university degree"
-        },
-        {
-          "value": "advanced",
-          "label": "Advanced Degree",
-          "description": "Master's, PhD, or professional degree (6+ years)"
-        }
-      ]
-    },
-    {
-      "id": "career_constraints",
-      "order": 9,
       "text": "Are there any factors we should consider when suggesting careers?",
       "type": "free_text",
       "category": "constraints",
       "required": false,
-      "appliesTo": ["hard_hat", "non_hard_hat", "unable_to_decide"],
+      "appliesTo": ["undecided"],
       "placeholder": "Physical limitations, family considerations, location preferences, financial constraints, or other factors that might affect your career choices...",
       "maxLength": 500
     },
     {
-      "id": "education_support",
-      "order": 10,
+      "id": "undecided_education_support",
+      "order": 9,
       "text": "Do you feel you have support for education or training after high school?",
       "type": "single_choice",
       "category": "support",
       "required": true,
-      "appliesTo": ["hard_hat", "non_hard_hat", "unable_to_decide"],
+      "appliesTo": ["undecided"],
       "options": [
         {
           "value": "strong_support",
@@ -377,67 +412,49 @@
       ]
     },
     {
-      "id": "impact_and_inspiration",
-      "order": 11,
-      "text": "How do you want to be remembered or make an impact? Who inspires you and why?",
+      "id": "undecided_impact_and_inspiration",
+      "order": 10,
+      "text": "Who inspires you, why and what do you want to be remembered for?",
       "type": "free_text",
       "category": "values_inspiration",
       "required": true,
-      "appliesTo": ["hard_hat", "non_hard_hat", "unable_to_decide"],
-      "placeholder": "Describe the kind of impact you want to make, how you want to be remembered, and who inspires you (could be someone you know personally, a public figure, or fictional character) and why they inspire you...",
+      "appliesTo": ["undecided"],
+      "placeholder": "Tell me about someone who inspires you and what qualities they have that you admire. Also describe how you want to be remembered or the impact you want to make...",
       "minLength": 30,
       "maxLength": 800
     }
   ],
   "pathLogic": {
-    "hard_hat": {
-      "name": "Hard Hat Career Path",
-      "description": "For students interested in physical, hands-on, technical work",
+    "decided": {
+      "name": "Decided Career Path",
+      "description": "For students who have selected a specific career direction",
       "questionFlow": [
         "basic_info",
         "work_preference_main",
-        "hard_hat_specific",
         "subject_strengths",
         "education_commitment",
-        "career_constraints",
-        "education_support",
-        "impact_and_inspiration"
+        "decided_career_constraints",
+        "decided_education_support",
+        "decided_impact_and_inspiration"
       ],
-      "totalQuestions": 8,
-      "focusAreas": ["hands_on_skills", "technical_training", "physical_work"],
-      "aiPromptStrategy": "hard_hat_focused"
+      "totalQuestions": 7,
+      "focusAreas": ["career_validation", "education_planning", "skill_development"],
+      "aiPromptStrategy": "decided_focused"
     },
-    "non_hard_hat": {
-      "name": "Non Hard Hat Career Path",
-      "description": "For students interested in professional, knowledge-based work",
-      "questionFlow": [
-        "basic_info",
-        "work_preference_main",
-        "non_hard_hat_specific",
-        "subject_strengths",
-        "education_commitment",
-        "career_constraints",
-        "education_support",
-        "impact_and_inspiration"
-      ],
-      "totalQuestions": 8,
-      "focusAreas": ["professional_skills", "higher_education", "knowledge_work"],
-      "aiPromptStrategy": "professional_focused"
-    },
-    "unable_to_decide": {
+    "undecided": {
       "name": "Career Exploration Path",
       "description": "For students who need help discovering their career interests",
       "questionFlow": [
         "basic_info",
         "work_preference_main",
-        "personal_traits",
-        "interests_hobbies",
-        "work_experience",
         "subject_strengths",
         "education_commitment",
-        "career_constraints",
-        "education_support",
-        "impact_and_inspiration"
+        "undecided_interests_hobbies",
+        "undecided_work_experience",
+        "undecided_personal_traits",
+        "undecided_career_constraints",
+        "undecided_education_support",
+        "undecided_impact_and_inspiration"
       ],
       "totalQuestions": 10,
       "focusAreas": ["self_discovery", "interest_exploration", "diverse_options"],
@@ -445,54 +462,55 @@
     }
   },
   "careerMapping": {
-    "building_fixing": {
+    "hard_hat_building_fixing": {
       "primarySectors": ["infrastructure", "manufacturing"],
       "careers": ["Electrician", "Plumber", "Construction Worker", "Heavy Equipment Operator", "Welder", "HVAC Technician", "Carpenter", "Mechanic"]
     },
-    "creating_designs": {
+    "hard_hat_creating_designs": {
       "primarySectors": ["infrastructure", "creative"],
       "careers": ["Architect", "Civil Engineer", "Structural Engineer", "CAD Technician", "Urban Planner", "Landscape Architect", "Surveyor"]
     },
-    "data_analysis": {
+    "non_hard_hat_data_analysis": {
       "primarySectors": ["business", "finance", "science"],
       "careers": ["Data Analyst", "Financial Analyst", "Accountant", "Statistician", "Market Research Analyst", "Business Analyst", "Actuary"]
     },
-    "technology": {
+    "non_hard_hat_technology": {
       "primarySectors": ["technology"],
       "careers": ["Software Developer", "Web Developer", "IT Specialist", "Cybersecurity Analyst", "Database Administrator", "Systems Administrator", "Network Engineer"]
     },
-    "education_coaching": {
+    "non_hard_hat_education": {
       "primarySectors": ["education"],
       "careers": ["Teacher", "School Counselor", "Corporate Trainer", "Tutor", "Educational Coordinator", "Instructional Designer", "Coach"]
     },
-    "healthcare": {
+    "non_hard_hat_healthcare": {
       "primarySectors": ["healthcare"],
       "careers": ["Registered Nurse", "Medical Assistant", "Physical Therapist", "Pharmacy Technician", "Medical Technologist", "Respiratory Therapist", "Radiologic Technologist"]
     },
-    "rescue_people": {
+    "non_hard_hat_rescue": {
       "primarySectors": ["public-service"],
       "careers": ["Police Officer", "Firefighter", "EMT", "Paramedic", "Security Guard", "Emergency Dispatcher", "Search and Rescue Specialist"]
     },
-    "research_innovation": {
+    "non_hard_hat_research": {
       "primarySectors": ["science", "technology"],
       "careers": ["Research Scientist", "Laboratory Technician", "Environmental Scientist", "Biomedical Engineer", "Quality Control Analyst", "R&D Specialist"]
     },
-    "creative_arts": {
+    "non_hard_hat_creative": {
       "primarySectors": ["creative"],
       "careers": ["Graphic Designer", "Photographer", "Musician", "Writer", "Art Director", "Video Editor", "Interior Designer", "Fashion Designer"]
     }
   },
   "questionWeights": {
-    "work_preference_main": 40,
-    "hard_hat_specific": 35,
-    "non_hard_hat_specific": 35,
-    "education_commitment": 30,
-    "subject_strengths": 25,
-    "personal_traits": 20,
-    "interests_hobbies": 15,
-    "work_experience": 15,
-    "impact_and_inspiration": 10,
-    "education_support": 10,
-    "career_constraints": "OVERRIDE"
+    "work_preference_main": 50,
+    "subject_strengths": 30,
+    "education_commitment": 25,
+    "undecided_personal_traits": 20,
+    "undecided_interests_hobbies": 15,
+    "undecided_work_experience": 15,
+    "decided_impact_and_inspiration": 10,
+    "undecided_impact_and_inspiration": 10,
+    "decided_education_support": 10,
+    "undecided_education_support": 10,
+    "decided_career_constraints": "OVERRIDE",
+    "undecided_career_constraints": "OVERRIDE"
   }
 }

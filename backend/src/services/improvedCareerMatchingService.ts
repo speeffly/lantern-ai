@@ -2,7 +2,7 @@ import { StudentProfile, AssessmentAnswer, CareerMatch } from '../types';
 
 export interface ImprovedAssessmentResponse {
   assessmentVersion: 'v2' | 'v3';
-  pathTaken: 'pathA' | 'pathB' | 'hard_hat' | 'non_hard_hat' | 'unable_to_decide';
+  pathTaken: 'pathA' | 'pathB' | 'hard_hat' | 'non_hard_hat' | 'unable_to_decide' | 'decided' | 'undecided';
   responses: {
     basic_info: {
       grade: string;
