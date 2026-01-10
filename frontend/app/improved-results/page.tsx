@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
 import Header from '../components/Header';
 import AssessmentSummary from '../components/AssessmentSummary';
 
@@ -60,9 +60,8 @@ interface ImprovedResultsData {
   };
 }
 
-export default function ImprovedResultsPage() {
+function ImprovedResultsContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [resultsData, setResultsData] = useState<ImprovedResultsData | null>(null);
   const [assessmentData, setAssessmentData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -439,5 +438,20 @@ export default function ImprovedResultsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ImprovedResultsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50">
+        <Header title="Your Career Results" />
+        <div className="flex items-center justify-center pt-20">
+          <div className="text-xl">Loading your personalized results...</div>
+        </div>
+      </div>
+    }>
+      <ImprovedResultsContent />
+    </Suspense>
   );
 }
