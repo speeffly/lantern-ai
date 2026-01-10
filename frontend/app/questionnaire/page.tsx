@@ -455,6 +455,13 @@ export default function QuestionnairePage() {
     } else if (currentQuestion.type === 'multiple_choice') {
       // For multiple choice, check minimum selections
       canProceed = Array.isArray(response) && response.length >= (currentQuestion.minSelections || 1);
+    } else if (currentQuestion.type === 'matrix') {
+      // For matrix questions (subject ratings), check if all subjects are rated
+      if (currentQuestion.subjects && response) {
+        canProceed = currentQuestion.subjects.every((subject: any) => {
+          return response[subject.id] && response[subject.id] !== '';
+        });
+      }
     } else {
       // For other types, just check if response exists
       canProceed = response !== undefined && response !== '' && response !== null;
