@@ -58,10 +58,10 @@ router.get('/questions/:path', (req, res) => {
   try {
     const { path } = req.params;
     
-    if (!['pathA', 'pathB'].includes(path)) {
+    if (!['hard_hat', 'non_hard_hat', 'unable_to_decide'].includes(path)) {
       return res.status(400).json({
         success: false,
-        error: 'Invalid path. Must be pathA or pathB'
+        error: 'Invalid path. Must be hard_hat, non_hard_hat, or unable_to_decide'
       } as ApiResponse);
     }
     
@@ -88,30 +88,41 @@ router.get('/questions/:path', (req, res) => {
   }
 });
 
-// POST /api/assessment/v2/determine-path - Determine path based on career clarity
+// POST /api/assessment/v2/determine-path - Determine path based on work preference
 router.post('/determine-path', (req, res) => {
   try {
-    const { careerClarity } = req.body;
+    const { workPreference } = req.body;
     
-    if (!careerClarity) {
+    if (!workPreference) {
       return res.status(400).json({
         success: false,
-        error: 'Career clarity response is required'
+        error: 'Work preference response is required'
       } as ApiResponse);
     }
     
-    const path = ImprovedAssessmentService.determinePath(careerClarity);
+    const path = ImprovedAssessmentService.determinePath(workPreference);
     const assessment = ImprovedAssessmentService.getAssessment();
     const pathConfig = assessment.pathLogic[path];
+    
+    let reasoning = '';
+    switch (path) {
+      case 'hard_hat':
+        reasoning = 'Student prefers hands-on, physical work - using hard hat career path';
+        break;
+      case 'non_hard_hat':
+        reasoning = 'Student prefers professional, knowledge-based work - using non hard hat career path';
+        break;
+      case 'unable_to_decide':
+        reasoning = 'Student needs career exploration - using discovery and exploration approach';
+        break;
+    }
     
     res.json({
       success: true,
       data: {
         selectedPath: path,
         pathConfig,
-        reasoning: path === 'pathA' 
-          ? 'Student has clear career direction - using validation and planning approach'
-          : 'Student is exploring options - using discovery and exploration approach'
+        reasoning
       },
       message: 'Path determined successfully'
     } as ApiResponse);
@@ -209,8 +220,8 @@ router.post('/submit', async (req, res) => {
     
     // Generate weighted AI prompt
     const improvedAssessmentResponse: ImprovedAssessmentResponse = {
-      assessmentVersion: 'v2' as const,
-      pathTaken: path as 'pathA' | 'pathB',
+      assessmentVersion: 'v3' as const,
+      pathTaken: path as 'hard_hat' | 'non_hard_hat' | 'unable_to_decide',
       responses: responses as any
     };
     const aiPrompt = WeightedAIPromptService.generateWeightedPrompt(improvedAssessmentResponse);
@@ -230,7 +241,7 @@ router.post('/submit', async (req, res) => {
       const zipCode = responses.basic_info?.zipCode || '00000';
       
       // Create a simplified profile for the existing service
-      const interestsText = responses.impact_legacy || responses.specific_career_interest || '';
+      const interestsText = responses.impact_and_inspiration || responses.interests_hobbies || '';
       const simplifiedProfile: Partial<StudentProfile> = {
         id: 'temp-id',
         studentId: 'temp-student-id',
@@ -248,7 +259,7 @@ router.post('/submit', async (req, res) => {
       
       // Create assessment answers for the existing service
       const assessmentAnswers = [
-        { questionId: 'career_category', answer: responses.career_category || 'mixed', timestamp: new Date() },
+        { questionId: 'work_preference_main', answer: responses.work_preference_main || 'mixed', timestamp: new Date() },
         { questionId: 'education_commitment', answer: responses.education_commitment || 'bachelor', timestamp: new Date() },
         { questionId: 'subject_strengths', answer: JSON.stringify(responses.subject_strengths || {}), timestamp: new Date() }
       ];
@@ -257,7 +268,7 @@ router.post('/submit', async (req, res) => {
       const baseMatches = careerMatches.primaryMatches?.map((career: string) => ({
         career: { title: career, sector: careerMatches.sectors?.[0] || 'general' },
         matchScore: 85,
-        explanation: `Match based on ${responses.career_category} selection`
+        explanation: `Match based on ${responses.work_preference_main} selection`
       })) || [];
       
       enhancedRecommendations = await CareerMatchingService.getEnhancedMatches(
@@ -273,11 +284,11 @@ router.post('/submit', async (req, res) => {
         matches: careerMatches.primaryMatches?.map((career: string) => ({
           career: { title: career, sector: careerMatches.sectors?.[0] || 'general' },
           matchScore: 85,
-          whyThisMatches: `Strong match based on your selection of ${responses.career_category}`,
+          whyThisMatches: `Strong match based on your selection of ${responses.work_preference_main}`,
           skillGaps: { immediate: [], longTerm: [] },
           careerPathway: { steps: [], timeline: '2-4 years' },
           insights: {
-            strengths: [`Interest in ${responses.career_category}`],
+            strengths: [`Interest in ${responses.work_preference_main}`],
             developmentAreas: ['Gain more specific experience'],
             nextSteps: ['Research specific career requirements']
           }
@@ -298,7 +309,7 @@ router.post('/submit', async (req, res) => {
     
     // Prepare response data
     const responseData = {
-      assessmentVersion: 'v2',
+      assessmentVersion: 'v3',
       pathTaken: path,
       recommendations: enhancedRecommendations,
       careerMatches,
@@ -309,19 +320,20 @@ router.post('/submit', async (req, res) => {
         grade: responses.basic_info?.grade,
         zipCode: responses.basic_info?.zipCode,
         pathTaken: path,
-        careerCategory: responses.career_category,
+        workPreference: responses.work_preference_main,
+        specificChoice: responses.hard_hat_specific || responses.non_hard_hat_specific,
         educationCommitment: responses.education_commitment,
-        readinessLevel: path === 'pathA' ? 'Clear Direction' : 'Exploring Options',
+        readinessLevel: this.getReadinessLevel(path),
         keyStrengths: Object.entries(responses.subject_strengths || {})
           .filter(([_, rating]) => rating === 'excellent')
           .map(([subject, _]) => subject),
-        primaryInterests: [responses.career_category || 'exploring']
+        primaryInterests: [responses.work_preference_main || 'exploring']
       },
       improvedFeatures: {
-        branchingLogic: `Used ${path} (${path === 'pathA' ? 'Clear Direction' : 'Exploration'}) path`,
+        branchingLogic: `Used ${path} (${this.getPathDescription(path)}) path`,
         weightedMatching: 'Applied question weighting system for better AI guidance',
         focusedQuestions: `Completed ${ImprovedAssessmentService.getQuestionsForPath(path).length} focused questions`,
-        enhancedExplainability: 'Career matches based on primary category selection and subject strengths'
+        enhancedExplainability: 'Career matches based on hierarchical work preference selection and subject strengths'
       }
     };
     
@@ -354,8 +366,8 @@ router.post('/weighted-prompt', (req, res) => {
     }
     
     const improvedAssessmentResponse: ImprovedAssessmentResponse = {
-      assessmentVersion: 'v2' as const,
-      pathTaken: path as 'pathA' | 'pathB',
+      assessmentVersion: 'v3' as const,
+      pathTaken: path as 'hard_hat' | 'non_hard_hat' | 'unable_to_decide',
       responses: responses as any
     };
     const weightedPrompt = WeightedAIPromptService.generateWeightedPrompt(improvedAssessmentResponse);
@@ -382,5 +394,32 @@ router.post('/weighted-prompt', (req, res) => {
     } as ApiResponse);
   }
 });
+
+// Helper functions
+function getReadinessLevel(path: string): string {
+  switch (path) {
+    case 'hard_hat':
+      return 'Hands-On Direction';
+    case 'non_hard_hat':
+      return 'Professional Direction';
+    case 'unable_to_decide':
+      return 'Exploring Options';
+    default:
+      return 'Unknown';
+  }
+}
+
+function getPathDescription(path: string): string {
+  switch (path) {
+    case 'hard_hat':
+      return 'Hard Hat Career Path';
+    case 'non_hard_hat':
+      return 'Non Hard Hat Career Path';
+    case 'unable_to_decide':
+      return 'Career Exploration';
+    default:
+      return 'Unknown Path';
+  }
+}
 
 export default router;

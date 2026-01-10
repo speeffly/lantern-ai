@@ -66,11 +66,11 @@ export default function QuestionnairePage() {
       
       if (data.success) {
         setAssessment(data.data);
-        // Start with universal questions
+        // Start with the first two universal questions (basic_info and work_preference_main)
         const universalQuestions = data.data.questions.filter((q: Question) => 
-          !q.appliesTo || q.appliesTo.includes('pathA') && q.appliesTo.includes('pathB')
+          q.id === 'basic_info' || q.id === 'work_preference_main'
         );
-        setQuestions(universalQuestions.slice(0, 3)); // Start with first 3 universal questions
+        setQuestions(universalQuestions);
         setIsLoading(false);
       }
     } catch (error) {
@@ -90,19 +90,19 @@ export default function QuestionnairePage() {
     const newResponses = { ...responses, [questionId]: value };
     setResponses(newResponses);
 
-    // Check if this is the branching question
+    // Check if this is the branching question (work_preference_main)
     const currentQuestion = questions[currentQuestionIndex];
-    if (currentQuestion?.branchingQuestion) {
+    if (currentQuestion?.id === 'work_preference_main') {
       await determinePath(value);
     }
   };
 
-  const determinePath = async (careerClarity: string) => {
+  const determinePath = async (workPreference: string) => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/assessment/v2/determine-path`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ careerClarity })
+        body: JSON.stringify({ workPreference })
       });
 
       const data = await response.json();
@@ -183,6 +183,48 @@ export default function QuestionnairePage() {
 
   const renderQuestion = (question: Question) => {
     const currentResponse = responses[question.id];
+
+    // Special handling for hierarchical branching
+    if (question.id === 'work_preference_main') {
+      return (
+        <div className="space-y-4">
+          {/* Main work preference options */}
+          <div className="space-y-3">
+            {question.options?.map((option) => (
+              <label key={option.value} className="flex items-start space-x-3 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                <input
+                  type="radio"
+                  name={question.id}
+                  value={option.value}
+                  checked={currentResponse === option.value}
+                  onChange={(e) => handleResponse(question.id, e.target.value)}
+                  className="mt-1"
+                />
+                <div>
+                  <div className="font-medium">{option.label}</div>
+                  {option.description && (
+                    <div className="text-sm text-gray-600 mt-1">{option.description}</div>
+                  )}
+                </div>
+              </label>
+            ))}
+          </div>
+
+          {/* Show sub-options if a main preference is selected */}
+          {currentResponse && currentResponse !== 'unable_to_decide' && (
+            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+              <h4 className="font-medium mb-3">
+                {currentResponse === 'hard_hat' 
+                  ? 'Which type of Hard Hat work interests you most?'
+                  : 'Which type of Non Hard Hat work interests you most?'
+                }
+              </h4>
+              {renderSubOptions(currentResponse)}
+            </div>
+          )}
+        </div>
+      );
+    }
 
     switch (question.type) {
       case 'single_choice':
@@ -325,6 +367,41 @@ export default function QuestionnairePage() {
     }
   };
 
+  const renderSubOptions = (mainPreference: string) => {
+    if (!assessment) return null;
+
+    const subQuestionId = mainPreference === 'hard_hat' ? 'hard_hat_specific' : 'non_hard_hat_specific';
+    const subQuestion = assessment.questions.find((q: Question) => q.id === subQuestionId);
+    
+    if (!subQuestion) return null;
+
+    const subResponseKey = subQuestionId;
+    const currentSubResponse = responses[subResponseKey];
+
+    return (
+      <div className="space-y-3">
+        {subQuestion.options?.map((option: any) => (
+          <label key={option.value} className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-white cursor-pointer">
+            <input
+              type="radio"
+              name={subResponseKey}
+              value={option.value}
+              checked={currentSubResponse === option.value}
+              onChange={(e) => handleResponse(subResponseKey, e.target.value)}
+              className="mt-1"
+            />
+            <div>
+              <div className="font-medium text-sm">{option.label}</div>
+              {option.description && (
+                <div className="text-xs text-gray-600 mt-1">{option.description}</div>
+              )}
+            </div>
+          </label>
+        ))}
+      </div>
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -352,7 +429,25 @@ export default function QuestionnairePage() {
 
   const currentQuestion = questions[currentQuestionIndex];
   const isLastQuestion = currentQuestionIndex === questions.length - 1;
-  const canProceed = responses[currentQuestion.id] !== undefined && responses[currentQuestion.id] !== '';
+  
+  // Check if current question can proceed
+  let canProceed = false;
+  
+  if (currentQuestion.id === 'work_preference_main') {
+    // For the hierarchical question, need both main preference and sub-selection (unless unable_to_decide)
+    const mainResponse = responses[currentQuestion.id];
+    if (mainResponse === 'unable_to_decide') {
+      canProceed = true;
+    } else if (mainResponse === 'hard_hat') {
+      canProceed = !!responses['hard_hat_specific'];
+    } else if (mainResponse === 'non_hard_hat') {
+      canProceed = !!responses['non_hard_hat_specific'];
+    }
+  } else {
+    // Regular validation
+    const response = responses[currentQuestion.id];
+    canProceed = response !== undefined && response !== '';
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

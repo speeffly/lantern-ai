@@ -1,4 +1,4 @@
-import improvedAssessmentData from '../data/improved-assessment-v2.json';
+import finalAssessmentData from '../data/final-assessment-v3.json';
 import { WeightedAIPromptService } from './weightedAIPromptService';
 
 export interface ImprovedQuestion {
@@ -70,19 +70,19 @@ export interface ImprovedAssessment {
   };
 }
 
-export interface ImprovedAssessmentResponse {
-  assessmentVersion: string;
-  pathTaken: string;
+export interface FinalAssessmentResponse {
+  assessmentVersion: 'v3';
+  pathTaken: 'hard_hat' | 'non_hard_hat' | 'unable_to_decide';
   responses: { [key: string]: any };
   completedAt: Date;
 }
 
-export class ImprovedAssessmentService {
+export class FinalAssessmentService {
   /**
-   * Get the complete improved assessment structure
+   * Get the complete final assessment structure
    */
   static getAssessment(): ImprovedAssessment {
-    return improvedAssessmentData as ImprovedAssessment;
+    return finalAssessmentData as ImprovedAssessment;
   }
 
   /**
@@ -110,19 +110,20 @@ export class ImprovedAssessmentService {
   }
 
   /**
-   * Determine path based on career clarity response
+   * Determine path based on work preference response
    */
-  static determinePath(careerClarityResponse: string): string {
-    const branchingQuestion = this.getBranchingQuestion();
-    if (!branchingQuestion) {
-      return 'pathB'; // Default to exploration path
+  static determinePath(workPreferenceResponse: string): string {
+    // In v3, the work preference directly maps to the path
+    switch (workPreferenceResponse) {
+      case 'hard_hat':
+        return 'hard_hat';
+      case 'non_hard_hat':
+        return 'non_hard_hat';
+      case 'unable_to_decide':
+        return 'unable_to_decide';
+      default:
+        return 'unable_to_decide'; // Default to exploration path
     }
-
-    const selectedOption = branchingQuestion.options?.find(
-      option => option.value === careerClarityResponse
-    );
-
-    return selectedOption?.nextPath || 'pathB';
   }
 
   /**
@@ -131,7 +132,7 @@ export class ImprovedAssessmentService {
   static getUniversalQuestions(): ImprovedQuestion[] {
     const assessment = this.getAssessment();
     return assessment.questions.filter(q => 
-      !q.appliesTo || q.appliesTo.includes('pathA') && q.appliesTo.includes('pathB')
+      !q.appliesTo || (q.appliesTo.includes('hard_hat') && q.appliesTo.includes('non_hard_hat') && q.appliesTo.includes('unable_to_decide'))
     );
   }
 
@@ -229,11 +230,15 @@ export class ImprovedAssessmentService {
     }
 
     // Path-specific warnings
-    if (path === 'pathA' && !responses.specific_career_interest) {
-      warnings.push('Since you have a clear career direction, providing specific career interests will help us give better guidance');
+    if (path === 'hard_hat' && !responses.hard_hat_specific) {
+      warnings.push('Since you chose hard hat work, selecting a specific area will help us give better guidance');
     }
 
-    if (path === 'pathB' && responses.career_category === 'unable_to_decide') {
+    if (path === 'non_hard_hat' && !responses.non_hard_hat_specific) {
+      warnings.push('Since you chose non hard hat work, selecting a specific area will help us give better guidance');
+    }
+
+    if (path === 'unable_to_decide' && (!responses.personal_traits || !responses.interests_hobbies)) {
       warnings.push('Your responses suggest you might benefit from career exploration activities');
     }
 
@@ -249,7 +254,7 @@ export class ImprovedAssessmentService {
    */
   static convertToWeightedFormat(responses: { [key: string]: any }, path: string): any {
     const weightedData = {
-      assessmentVersion: 'v2',
+      assessmentVersion: 'v3',
       pathTaken: path,
       responses,
       primaryIndicators: this.extractPrimaryIndicators(responses, path),
@@ -266,21 +271,27 @@ export class ImprovedAssessmentService {
   private static extractPrimaryIndicators(responses: { [key: string]: any }, path: string): any {
     const indicators: any = {};
 
-    // Career category selection (Weight: 50)
-    if (responses.career_category) {
-      indicators.careerCategory = {
-        value: responses.career_category,
-        weight: 50,
-        description: this.getCareerCategoryDescription(responses.career_category)
+    // Work preference selection (Weight: 40)
+    if (responses.work_preference_main) {
+      indicators.workPreference = {
+        value: responses.work_preference_main,
+        weight: 40,
+        description: this.getWorkPreferenceDescription(responses.work_preference_main)
       };
     }
 
-    // Specific career interest for Path A (Weight: 45)
-    if (path === 'pathA' && responses.specific_career_interest) {
-      indicators.specificCareerInterest = {
-        value: responses.specific_career_interest,
-        weight: 45,
-        description: 'Student\'s explicit career direction'
+    // Specific specialization choice (Weight: 35)
+    if (path === 'hard_hat' && responses.hard_hat_specific) {
+      indicators.hardHatSpecialization = {
+        value: responses.hard_hat_specific,
+        weight: 35,
+        description: 'Student\'s specific hard hat career direction'
+      };
+    } else if (path === 'non_hard_hat' && responses.non_hard_hat_specific) {
+      indicators.nonHardHatSpecialization = {
+        value: responses.non_hard_hat_specific,
+        weight: 35,
+        description: 'Student\'s specific professional career direction'
       };
     }
 
@@ -330,9 +341,9 @@ export class ImprovedAssessmentService {
   private static extractConstraints(responses: { [key: string]: any }): any {
     const constraints: any = {};
 
-    if (responses.constraints_considerations && responses.constraints_considerations.trim()) {
+    if (responses.career_constraints && responses.career_constraints.trim()) {
       constraints.personalConstraints = {
-        value: responses.constraints_considerations,
+        value: responses.career_constraints,
         weight: 'OVERRIDE',
         description: 'Personal, physical, or situational constraints that may limit career options'
       };
@@ -342,12 +353,29 @@ export class ImprovedAssessmentService {
   }
 
   /**
+   * Get work preference description
+   */
+  private static getWorkPreferenceDescription(preference: string): string {
+    const assessment = this.getAssessment();
+    const workQuestion = assessment.questions.find(q => q.id === 'work_preference_main');
+    const option = workQuestion?.options?.find(opt => opt.value === preference);
+    return option?.description || preference;
+  }
+
+  /**
    * Get career category description
    */
   private static getCareerCategoryDescription(category: string): string {
     const assessment = this.getAssessment();
-    const careerQuestion = assessment.questions.find(q => q.id === 'career_category');
-    const option = careerQuestion?.options?.find(opt => opt.value === category);
+    
+    // Check hard hat specific options
+    const hardHatQuestion = assessment.questions.find(q => q.id === 'hard_hat_specific');
+    let option = hardHatQuestion?.options?.find(opt => opt.value === category);
+    if (option) return option.description || category;
+    
+    // Check non hard hat specific options
+    const nonHardHatQuestion = assessment.questions.find(q => q.id === 'non_hard_hat_specific');
+    option = nonHardHatQuestion?.options?.find(opt => opt.value === category);
     return option?.description || category;
   }
 
@@ -406,10 +434,20 @@ export class ImprovedAssessmentService {
    */
   static generateCareerMatches(responses: { [key: string]: any }, path: string): any {
     const assessment = this.getAssessment();
-    const careerCategory = responses.career_category;
     
-    if (!careerCategory || careerCategory === 'unable_to_decide') {
-      // Return diverse options for uncertain students
+    // Get the specific career category based on path
+    let careerCategory: string | undefined;
+    
+    if (path === 'hard_hat') {
+      careerCategory = responses.hard_hat_specific;
+    } else if (path === 'non_hard_hat') {
+      careerCategory = responses.non_hard_hat_specific;
+    } else {
+      // For unable_to_decide, we'll generate exploration matches
+      return this.generateExplorationMatches(responses);
+    }
+    
+    if (!careerCategory) {
       return this.generateExplorationMatches(responses);
     }
 
