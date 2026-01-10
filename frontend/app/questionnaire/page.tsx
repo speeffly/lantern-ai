@@ -95,8 +95,8 @@ export default function QuestionnairePage() {
       showPathSelection();
     }
     
-    // Check if this is a work preference question
-    if (questionId === 'work_preference_decided' || questionId === 'work_preference_undecided') {
+    // Check if this is the main work preference question
+    if (questionId === 'work_preference_main') {
       // Load the rest of the questions for this path
       await loadRemainingQuestions();
     }
@@ -142,7 +142,7 @@ export default function QuestionnairePage() {
         setPathConfig(data.data.pathConfig);
         // Move to the next question after work preference
         const workPrefIndex = data.data.questions.findIndex((q: Question) => 
-          q.id === 'work_preference_decided' || q.id === 'work_preference_undecided'
+          q.id === 'work_preference_main'
         );
         setCurrentQuestionIndex(workPrefIndex + 1);
       }
@@ -156,36 +156,12 @@ export default function QuestionnairePage() {
     
     // Load the work preference question for the selected path
     if (assessment) {
-      const workPrefQuestionId = selectedPath === 'decided' ? 'work_preference_decided' : 'work_preference_undecided';
-      const workPrefQuestion = assessment.questions.find((q: Question) => q.id === workPrefQuestionId);
+      const workPrefQuestion = assessment.questions.find((q: Question) => q.id === 'work_preference_main');
       
       if (workPrefQuestion) {
         setQuestions([questions[0], workPrefQuestion]); // Keep basic_info and add work preference
         setCurrentQuestionIndex(1);
       }
-    }
-  };
-
-  const determinePath = async (workPreference: string) => {
-    try {
-      // Determine path based on selection using the backend service
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/assessment/v2/determine-path`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ workPreference })
-      });
-      
-      const data = await response.json();
-      if (data.success) {
-        const selectedPath = data.data.selectedPath;
-        setCurrentPath(selectedPath);
-        setPathConfig(data.data.pathConfig);
-        
-        // Load questions for the determined path
-        await loadPathQuestions(selectedPath);
-      }
-    } catch (error) {
-      console.error('Error determining path:', error);
     }
   };
 
@@ -270,32 +246,6 @@ export default function QuestionnairePage() {
                   handleResponse(question.id, e.target.value);
                   handlePathSelection(e.target.value);
                 }}
-                className="mt-1"
-              />
-              <div>
-                <div className="font-medium">{option.label}</div>
-                {option.description && (
-                  <div className="text-sm text-gray-600 mt-1">{option.description}</div>
-                )}
-              </div>
-            </label>
-          ))}
-        </div>
-      );
-    }
-
-    // Special handling for work preference questions
-    if (question.id === 'work_preference_decided' || question.id === 'work_preference_undecided') {
-      return (
-        <div className="space-y-3">
-          {question.options?.map((option) => (
-            <label key={option.value} className="flex items-start space-x-3 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
-              <input
-                type="radio"
-                name={question.id}
-                value={option.value}
-                checked={currentResponse === option.value}
-                onChange={(e) => handleResponse(question.id, e.target.value)}
                 className="mt-1"
               />
               <div>
