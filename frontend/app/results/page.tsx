@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Header from '../components/Header';
 import JobListings from '../components/JobListings';
 import FeedbackWidget from '../components/FeedbackWidget';
+import AssessmentSummary from '../components/AssessmentSummary';
 
 interface Career {
   id: string;
@@ -77,6 +78,7 @@ export default function ResultsPage() {
   const [aiRecommendations, setAiRecommendations] = useState<AIRecommendations | null>(null);
   const [localJobMarket, setLocalJobMarket] = useState<any>(null);
   const [academicPlan, setAcademicPlan] = useState<any>(null);
+  const [assessmentData, setAssessmentData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [activeTab, setActiveTab] = useState('matches');
@@ -121,6 +123,7 @@ export default function ResultsPage() {
         setAiRecommendations(data.data.aiRecommendations);
         setLocalJobMarket(data.data.localJobMarket);
         setAcademicPlan(data.data.academicPlan);
+        setAssessmentData(data.data.assessmentData);
         setIsLoading(false);
       } else {
         // If session not found, redirect appropriately
@@ -164,6 +167,12 @@ export default function ResultsPage() {
         <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-4">Your Career Matches</h1>
+          
+          {/* Assessment Summary */}
+          {assessmentData && (
+            <AssessmentSummary assessmentData={assessmentData} />
+          )}
+          
           <div className="bg-white rounded-lg p-6 shadow">
             <h2 className="font-semibold mb-2">Your Profile</h2>
             <div className="flex flex-wrap gap-2">

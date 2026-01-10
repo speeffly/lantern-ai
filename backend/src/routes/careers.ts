@@ -9,6 +9,45 @@ import { ApiResponse, AssessmentAnswer, StudentProfile, EducationLevel } from '.
 
 const router = express.Router();
 
+// Helper functions for assessment data extraction
+function determinePathFromAnswers(answers: AssessmentAnswer[]): string {
+  const careerClarityAnswer = answers.find(a => a.questionId === 'career_clarity');
+  if (careerClarityAnswer) {
+    return careerClarityAnswer.answer === 'clear' ? 'pathA' : 'pathB';
+  }
+  return 'legacy'; // For older assessments
+}
+
+function buildResponsesFromAnswers(answers: AssessmentAnswer[]): any {
+  const responses: any = {};
+  
+  answers.forEach(answer => {
+    try {
+      // Try to parse JSON responses (for complex answers)
+      if (typeof answer.answer === 'string' && (answer.answer.startsWith('{') || answer.answer.startsWith('['))) {
+        responses[answer.questionId] = JSON.parse(answer.answer);
+      } else {
+        responses[answer.questionId] = answer.answer;
+      }
+    } catch (e) {
+      // If parsing fails, use as string
+      responses[answer.questionId] = answer.answer;
+    }
+  });
+  
+  return responses;
+}
+
+function getCareerCategoryFromAnswers(answers: AssessmentAnswer[]): string | undefined {
+  const categoryAnswer = answers.find(a => a.questionId === 'career_category');
+  return categoryAnswer?.answer as string;
+}
+
+function getEducationCommitmentFromAnswers(answers: AssessmentAnswer[]): string | undefined {
+  const educationAnswer = answers.find(a => a.questionId === 'education_commitment');
+  return educationAnswer?.answer as string;
+}
+
 // GET /api/careers - Get all careers
 router.get('/', (req, res) => {
   try {
@@ -132,6 +171,39 @@ router.post('/matches', async (req, res) => {
       11 // Default grade, could be enhanced to get from user profile
     );
 
+    // Get assessment data for display on results page
+    console.log('📋 Getting assessment data for results display...');
+    let assessmentData = null;
+    
+    if (session) {
+      // For database sessions, get the original responses
+      assessmentData = {
+        assessmentVersion: 'v2', // Assume v2 for database sessions
+        pathTaken: determinePathFromAnswers(answers),
+        responses: buildResponsesFromAnswers(answers),
+        studentProfile: {
+          grade: profileData.grade,
+          zipCode: zipCode,
+          careerCategory: getCareerCategoryFromAnswers(answers),
+          educationCommitment: getEducationCommitmentFromAnswers(answers)
+        }
+      };
+    } else {
+      // For memory sessions, try to get stored responses
+      const memorySession = SessionService.getSession(sessionId);
+      if (memorySession && (memorySession as any).originalResponses) {
+        assessmentData = {
+          assessmentVersion: 'v1', // Legacy version
+          pathTaken: 'legacy',
+          responses: (memorySession as any).originalResponses,
+          studentProfile: {
+            grade: profileData.grade,
+            zipCode: zipCode
+          }
+        };
+      }
+    }
+
     res.json({
       success: true,
       data: {
@@ -141,6 +213,7 @@ router.post('/matches', async (req, res) => {
         aiRecommendations,
         localJobMarket,
         academicPlan,
+        assessmentData, // Add assessment data for results display
         generatedAt: new Date().toISOString()
       },
       message: `Found ${matches.length} career matches with AI-powered recommendations`

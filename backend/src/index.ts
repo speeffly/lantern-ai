@@ -14,6 +14,7 @@ import jobsRoutes from './routes/jobs';
 import feedbackRoutes from './routes/feedback';
 import recommendationRoutes from './routes/recommendations';
 import questionnaireRoutes from './routes/questionnaire';
+import improvedAssessmentRoutes from './routes/improvedAssessment';
 import comprehensiveGuidanceRoutes from './routes/comprehensiveGuidance';
 import debugRoutes from './routes/debug';
 import testAIRoutes from './routes/testAI';
@@ -222,6 +223,7 @@ app.use('/api/action-plans', actionPlansRoutes);
 app.use('/api/feedback', feedbackRoutes); // Feedback system for AI improvement
 app.use('/api/recommendations', recommendationRoutes); // New deterministic recommendation engine
 app.use('/api/questionnaire', questionnaireRoutes); // Structured questionnaire system
+app.use('/api/assessment/v2', improvedAssessmentRoutes); // Improved assessment with branching logic
 app.use('/api/comprehensive-guidance', comprehensiveGuidanceRoutes); // Complete career guidance package
 app.use('/api/dynamic-salary', dynamicSalaryRoutes); // Dynamic salary calculation from real job data
 app.use('/api/counselor', counselorRoutes); // Counselor functionality for student management
