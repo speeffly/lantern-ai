@@ -56,31 +56,173 @@ router.get('/questions', async (req, res) => {
       }
     }
 
-    // Use the new V3 assessment structure instead of old hardcoded questions
-    const { ImprovedAssessmentService } = require('../services/improvedAssessmentService');
-    const v3Assessment = ImprovedAssessmentService.getAssessment();
+    // Use the updated QuestionnaireService with all required questions
+    const { QuestionnaireService } = require('../services/questionnaireService');
+    const questionnaire = QuestionnaireService.getQuestionnaire();
     
-    // Convert V3 questions to counselor assessment format
-    const counselorQuestions = v3Assessment.questions.map((q: any, index: number) => ({
-      id: q.id,
-      order: index + 1,
-      text: q.text,
-      type: q.type === 'single_choice' ? 'single_choice' : 
-            q.type === 'multiple_choice' ? 'multiple_choice' : 
-            q.type === 'matrix' ? 'matrix_radio' :
-            q.type === 'combined' ? 'combined' :
-            q.type === 'free_text' ? 'free_text' : q.type,
-      category: q.category,
-      required: q.required,
-      options: q.options?.map((opt: any) => opt.label || opt.value) || q.options,
-      subjects: q.subjects?.map((subj: any) => subj.id) || q.subjects,
-      fields: q.fields,
-      placeholder: q.placeholder,
-      minLength: q.minLength,
-      maxLength: q.maxLength,
-      hasOtherOption: false,
-      otherPlaceholder: ''
-    }));
+    // Convert questionnaire format to counselor assessment format and flatten conditional questions
+    const counselorQuestions: any[] = [];
+    
+    const processConditionalQuestions = (conditionalQuestions: any, parentId: string, triggerValue: string) => {
+      if (Array.isArray(conditionalQuestions)) {
+        // Handle array of questions (like "no" branch)
+        conditionalQuestions.forEach((condQ: any) => {
+          const conditionalQuestion = {
+            id: condQ.id,
+            order: counselorQuestions.length + 1,
+            text: condQ.label,
+            type: condQ.type === 'single_select' ? 'single_choice' : 
+                  condQ.type === 'multi_select' ? 'multiple_choice' : 
+                  condQ.type === 'matrix' ? 'matrix_radio' :
+                  condQ.type === 'combined' ? 'combined' :
+                  condQ.type === 'text_long' ? 'free_text' : 
+                  condQ.type === 'text' ? 'free_text' : condQ.type,
+            category: 'assessment',
+            required: condQ.required,
+            options: condQ.type === 'matrix' ? condQ.columns : (condQ.options?.map((opt: any) => typeof opt === 'string' ? opt : opt.label) || []),
+            subjects: condQ.type === 'matrix' ? condQ.rows : undefined,
+            rows: condQ.rows || [],
+            columns: condQ.columns || [],
+            fields: condQ.fields,
+            placeholder: condQ.placeholder,
+            minLength: condQ.minLength,
+            maxLength: condQ.maxLength,
+            hasOtherOption: false,
+            otherPlaceholder: '',
+            isConditional: true,
+            conditionalParent: parentId,
+            conditionalTrigger: triggerValue
+          };
+          
+          counselorQuestions.push(conditionalQuestion);
+        });
+      } else if (typeof conditionalQuestions === 'object') {
+        // Handle object with nested questions (like "yes" branch)
+        const question = {
+          id: conditionalQuestions.id,
+          order: counselorQuestions.length + 1,
+          text: conditionalQuestions.label,
+          type: conditionalQuestions.type === 'single_select' ? 'single_choice' : 
+                conditionalQuestions.type === 'multi_select' ? 'multiple_choice' : 
+                conditionalQuestions.type,
+          category: 'assessment',
+          required: conditionalQuestions.required,
+          options: conditionalQuestions.options?.map((opt: any) => typeof opt === 'string' ? opt : opt.label) || [],
+          placeholder: conditionalQuestions.placeholder,
+          minLength: conditionalQuestions.minLength,
+          maxLength: conditionalQuestions.maxLength,
+          hasOtherOption: false,
+          otherPlaceholder: '',
+          isConditional: true,
+          conditionalParent: parentId,
+          conditionalTrigger: triggerValue
+        };
+        
+        counselorQuestions.push(question);
+        
+        // Process nested conditional questions (career categories -> specific careers)
+        if (conditionalQuestions.conditional_questions) {
+          Object.entries(conditionalQuestions.conditional_questions).forEach(([key, nestedQ]: [string, any]) => {
+            if (typeof nestedQ === 'object' && nestedQ.id) {
+              // This is a specific career question
+              const nestedQuestion = {
+                id: nestedQ.id,
+                order: counselorQuestions.length + 1,
+                text: nestedQ.label,
+                type: nestedQ.type === 'single_select' ? 'single_choice' : 
+                      nestedQ.type === 'multi_select' ? 'multiple_choice' : 
+                      nestedQ.type,
+                category: 'assessment',
+                required: nestedQ.required,
+                options: nestedQ.options?.map((opt: any) => typeof opt === 'string' ? opt : opt.label) || [],
+                hasOtherOption: false,
+                otherPlaceholder: '',
+                isConditional: true,
+                conditionalParent: conditionalQuestions.id,
+                conditionalTrigger: key
+              };
+              
+              counselorQuestions.push(nestedQuestion);
+              
+              // Process "other" text fields for specific careers
+              if (nestedQ.conditional_questions && nestedQ.conditional_questions.other) {
+                const otherQuestion = {
+                  id: nestedQ.conditional_questions.other.id,
+                  order: counselorQuestions.length + 1,
+                  text: nestedQ.conditional_questions.other.label,
+                  type: 'free_text',
+                  category: 'assessment',
+                  required: nestedQ.conditional_questions.other.required,
+                  options: [],
+                  hasOtherOption: false,
+                  otherPlaceholder: '',
+                  isConditional: true,
+                  conditionalParent: nestedQ.id,
+                  conditionalTrigger: 'other'
+                };
+                
+                counselorQuestions.push(otherQuestion);
+              }
+            } else if (typeof nestedQ === 'object' && nestedQ.type === 'text_long') {
+              // This is a direct text question (like "other" category)
+              const textQuestion = {
+                id: nestedQ.id,
+                order: counselorQuestions.length + 1,
+                text: nestedQ.label,
+                type: 'free_text',
+                category: 'assessment',
+                required: nestedQ.required,
+                options: [],
+                hasOtherOption: false,
+                otherPlaceholder: '',
+                isConditional: true,
+                conditionalParent: conditionalQuestions.id,
+                conditionalTrigger: key
+              };
+              
+              counselorQuestions.push(textQuestion);
+            }
+          });
+        }
+      }
+    };
+    
+    questionnaire.questions.forEach((q: any, index: number) => {
+      // Add the main question
+      const mainQuestion = {
+        id: q.id,
+        order: counselorQuestions.length + 1,
+        text: q.label,
+        type: q.type === 'single_select' ? 'single_choice' : 
+              q.type === 'multi_select' ? 'multiple_choice' : 
+              q.type === 'matrix' ? 'matrix_radio' :
+              q.type === 'combined' ? 'combined' :
+              q.type === 'text_long' ? 'free_text' : 
+              q.type === 'text' ? 'free_text' : q.type,
+        category: 'assessment',
+        required: q.required,
+        options: q.type === 'matrix' ? q.columns : (q.options?.map((opt: any) => typeof opt === 'string' ? opt : opt.label) || []),
+        subjects: q.type === 'matrix' ? q.rows : undefined,
+        rows: q.rows || [],
+        columns: q.columns || [],
+        fields: q.fields,
+        conditional_questions: q.conditional_questions,
+        placeholder: q.placeholder,
+        minLength: q.minLength,
+        maxLength: q.maxLength,
+        hasOtherOption: false,
+        otherPlaceholder: ''
+      };
+      
+      counselorQuestions.push(mainQuestion);
+      
+      // Add conditional questions if they exist
+      if (q.conditional_questions) {
+        Object.entries(q.conditional_questions).forEach(([triggerValue, conditionalQ]) => {
+          processConditionalQuestions(conditionalQ, q.id, triggerValue);
+        });
+      }
+    });
 
     // Prepare prefilled data if user is authenticated
     let prefilledData = null;
@@ -176,8 +318,20 @@ router.post('/submit', upload.single('transcriptFile'), async (req, res) => {
       responses.academicPerformance.originalFileName = req.file.originalname;
     }
 
-    // Validate required fields
-    if (!responses.grade || !responses.zipCode) {
+    // Validate required fields - handle new combined grade/zip format
+    let grade, zipCode;
+    
+    if (responses.q1_grade_zip) {
+      // New combined format
+      grade = responses.q1_grade_zip.grade;
+      zipCode = responses.q1_grade_zip.zipCode;
+    } else {
+      // Legacy format fallback
+      grade = responses.grade;
+      zipCode = responses.zipCode;
+    }
+    
+    if (!grade || !zipCode) {
       return res.status(400).json({
         success: false,
         error: 'Grade and ZIP code are required'
@@ -186,12 +340,16 @@ router.post('/submit', upload.single('transcriptFile'), async (req, res) => {
 
     // Validate ZIP code format (5 digits only)
     const zipCodeRegex = /^\d{5}$/;
-    if (!zipCodeRegex.test(responses.zipCode)) {
+    if (!zipCodeRegex.test(zipCode)) {
       return res.status(400).json({
         success: false,
         error: 'ZIP code must be exactly 5 digits (e.g., 12345)'
       } as ApiResponse);
     }
+
+    // Ensure legacy format fields are available for downstream processing
+    if (!responses.grade) responses.grade = grade;
+    if (!responses.zipCode) responses.zipCode = zipCode;
 
     console.log('🎓 Processing counselor assessment submission...');
 
