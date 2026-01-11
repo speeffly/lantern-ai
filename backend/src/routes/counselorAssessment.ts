@@ -407,7 +407,7 @@ router.post('/submit', upload.single('transcriptFile'), async (req, res) => {
         await CareerPlanService.saveCareerRecommendations(
           session.id,
           parseInt(userId),
-          counselorRecommendation.topJobMatches.map(job => ({
+          counselorRecommendation.topJobMatches.map((job: any) => ({
             careerId: job.career.id,
             career: {
               ...job.career,
@@ -432,7 +432,7 @@ router.post('/submit', upload.single('transcriptFile'), async (req, res) => {
             localEmployers: job.localOpportunities.topEmployers
           })),
           counselorRecommendation.aiRecommendations, // AI recommendations
-          counselorRecommendation.topJobMatches.map(job => job.localOpportunities), // local job market
+          counselorRecommendation.topJobMatches.map((job: any) => job.localOpportunities), // local job market
           counselorRecommendation.fourYearPlan // academic plan
         );
 
@@ -443,7 +443,7 @@ router.post('/submit', upload.single('transcriptFile'), async (req, res) => {
             parseInt(userId),
             topCareer.career.id,
             topCareer.career.title,
-            counselorRecommendation.fourYearPlan.careerPreparation.skillsToDevelope.map(skill => skill.skill),
+            counselorRecommendation.fourYearPlan.careerPreparation.skillsToDevelope.map((skill: any) => skill.skill),
             counselorRecommendation.fourYearPlan.postGraduationPath.immediateSteps,
             counselorRecommendation.fourYearPlan.postGraduationPath.careerEntry.advancement,
             [], // skill gaps
