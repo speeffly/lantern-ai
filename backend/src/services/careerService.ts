@@ -2,6 +2,73 @@ import { Career, CareerMatch, StudentProfile, DemandLevel } from '../types';
 
 // Sample career data - in production, this would come from a database
 const CAREERS: Career[] = [
+  // ENGINEERING CAREERS
+  {
+    id: 'aero-eng-001',
+    title: 'Aerospace Engineer',
+    sector: 'infrastructure',
+    description: 'Design, develop, and test aircraft, spacecraft, and related systems.',
+    responsibilities: ['Design aircraft and spacecraft', 'Analyze flight data', 'Test prototypes', 'Ensure safety standards'],
+    requiredEducation: 'bachelor',
+    certifications: ['Professional Engineer (PE) License'],
+    averageSalary: 118000,
+    salaryRange: { min: 95000, max: 145000 },
+    growthOutlook: 'Faster than average (8% growth)',
+    onetCode: '17-2011.00'
+  },
+  {
+    id: 'civil-eng-001',
+    title: 'Civil Engineer',
+    sector: 'infrastructure',
+    description: 'Design and supervise construction of infrastructure projects.',
+    responsibilities: ['Design bridges and roads', 'Analyze survey data', 'Manage construction projects', 'Ensure structural safety'],
+    requiredEducation: 'bachelor',
+    certifications: ['Professional Engineer (PE) License', 'EIT Certification'],
+    averageSalary: 88000,
+    salaryRange: { min: 70000, max: 110000 },
+    growthOutlook: 'Faster than average (8% growth)',
+    onetCode: '17-2051.00'
+  },
+  {
+    id: 'mech-eng-001',
+    title: 'Mechanical Engineer',
+    sector: 'infrastructure',
+    description: 'Design, develop, and test mechanical devices and systems.',
+    responsibilities: ['Design mechanical systems', 'Analyze performance data', 'Test prototypes', 'Optimize designs'],
+    requiredEducation: 'bachelor',
+    certifications: ['Professional Engineer (PE) License'],
+    averageSalary: 95000,
+    salaryRange: { min: 75000, max: 120000 },
+    growthOutlook: 'Average growth (4% growth)',
+    onetCode: '17-2141.00'
+  },
+  {
+    id: 'elec-eng-001',
+    title: 'Electrical Engineer',
+    sector: 'infrastructure',
+    description: 'Design and develop electrical systems and equipment.',
+    responsibilities: ['Design electrical systems', 'Test electrical equipment', 'Troubleshoot problems', 'Ensure safety compliance'],
+    requiredEducation: 'bachelor',
+    certifications: ['Professional Engineer (PE) License'],
+    averageSalary: 103000,
+    salaryRange: { min: 80000, max: 130000 },
+    growthOutlook: 'Average growth (3% growth)',
+    onetCode: '17-2071.00'
+  },
+  {
+    id: 'struct-eng-001',
+    title: 'Structural Engineer',
+    sector: 'infrastructure',
+    description: 'Design and analyze structural components of buildings and infrastructure.',
+    responsibilities: ['Design building structures', 'Analyze load requirements', 'Ensure structural integrity', 'Review construction plans'],
+    requiredEducation: 'bachelor',
+    certifications: ['Professional Engineer (PE) License', 'Structural Engineer (SE) License'],
+    averageSalary: 92000,
+    salaryRange: { min: 75000, max: 115000 },
+    growthOutlook: 'Faster than average (8% growth)',
+    onetCode: '17-2051.01'
+  },
+
   // HEALTHCARE CAREERS
   {
     id: 'rn-001',

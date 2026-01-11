@@ -42,12 +42,12 @@ export class RealJobProvider {
     const isEnabled = flagCheck && credentialsCheck;
     
     if (!isEnabled) {
-      console.log('🟠 RealJobProvider disabled: set USE_REAL_JOBS=true and provide ADZUNA_APP_ID/ADZUNA_API_KEY');
-      console.log(`   - USE_REAL_JOBS: "${flag}" (needs: "true", "1", or "yes")`);
-      console.log(`   - ADZUNA_APP_ID: ${appId ? 'present' : 'missing'} (length: ${appId.length})`);
-      console.log(`   - ADZUNA_API_KEY: ${apiKey ? 'present' : 'missing'} (length: ${apiKey.length})`);
+      // console.log('🟠 RealJobProvider disabled: set USE_REAL_JOBS=true and provide ADZUNA_APP_ID/ADZUNA_API_KEY');
+      // console.log(`   - USE_REAL_JOBS: "${flag}" (needs: "true", "1", or "yes")`);
+      // console.log(`   - ADZUNA_APP_ID: ${appId ? 'present' : 'missing'} (length: ${appId.length})`);
+      // console.log(`   - ADZUNA_API_KEY: ${apiKey ? 'present' : 'missing'} (length: ${apiKey.length})`);
     } else {
-      console.log('✅ RealJobProvider enabled with valid credentials');
+      // console.log('✅ RealJobProvider enabled with valid credentials');
     }
     
     return isEnabled;
@@ -71,12 +71,12 @@ export class RealJobProvider {
     const query = [careerTitle, keywords].filter(Boolean).join(' ').trim();
 
     if (!query) {
-      console.log('⚠️ No search query provided, skipping job search');
+      // console.log('⚠️ No search query provided, skipping job search');
       return [];
     }
 
     try {
-      console.log(`🔍 Searching Adzuna for "${query}" near ${zipCode} (${radiusMiles} miles, limit: ${limit})`);
+      // console.log(`🔍 Searching Adzuna for "${query}" near ${zipCode} (${radiusMiles} miles, limit: ${limit})`);
       
       // Start with page 1, limit results per page to avoid rate limiting
       const resultsPerPage = Math.min(20, limit); // Reduced from 50 to avoid issues
@@ -94,16 +94,16 @@ export class RealJobProvider {
         url.searchParams.set('distance', radiusMiles.toString());
       }
       
-      console.log(`📡 API URL: ${url.toString().replace(this.apiKey, 'HIDDEN')}`);
+      // console.log(`📡 API URL: ${url.toString().replace(this.apiKey, 'HIDDEN')}`);
 
       const json = await this.fetchJson<AdzunaResponse>(url.toString());
       
       if (!json.results || json.results.length === 0) {
-        console.log('⚠️ No jobs found from Adzuna API');
+        // console.log('⚠️ No jobs found from Adzuna API');
         return [];
       }
 
-      console.log(`✅ Found ${json.results.length} jobs from Adzuna`);
+      // console.log(`✅ Found ${json.results.length} jobs from Adzuna`);
 
       const mapped = json.results
         .filter(job => !!job.title && !!job.company?.display_name) // Basic validation
@@ -124,24 +124,24 @@ export class RealJobProvider {
           distanceFromStudent: undefined
         } as JobListing));
 
-      console.log(`📋 Mapped ${mapped.length} valid job listings`);
+      // console.log(`📋 Mapped ${mapped.length} valid job listings`);
       return mapped;
 
     } catch (error) {
-      console.error('❌ RealJobProvider failed, falling back to mocks:', error);
+      // console.error('❌ RealJobProvider failed, falling back to mocks:', error);
       
       // Log specific error details for debugging
       if (error instanceof Error) {
         if (error.message.includes('HTTP 400')) {
-          console.error('   → HTTP 400: Bad Request - Check API parameters');
-          console.error(`   → Query: "${query}", Location: "${zipCode}", Distance: ${radiusMiles}`);
+          // console.error('   → HTTP 400: Bad Request - Check API parameters');
+          // console.error(`   → Query: "${query}", Location: "${zipCode}", Distance: ${radiusMiles}`);
         } else if (error.message.includes('HTTP 429')) {
-          console.error('   → HTTP 429: Rate Limited - Too many requests');
-          console.error('   → Consider implementing request throttling');
+          // console.error('   → HTTP 429: Rate Limited - Too many requests');
+          // console.error('   → Consider implementing request throttling');
         } else if (error.message.includes('HTTP 401')) {
-          console.error('   → HTTP 401: Unauthorized - Check API credentials');
+          // console.error('   → HTTP 401: Unauthorized - Check API credentials');
         } else if (error.message.includes('HTTP 403')) {
-          console.error('   → HTTP 403: Forbidden - API access denied');
+          // console.error('   → HTTP 403: Forbidden - API access denied');
         }
       }
       
@@ -163,12 +163,12 @@ export class RealJobProvider {
         
         // Handle different HTTP status codes
         if (res.statusCode && res.statusCode >= 400) {
-          console.error(`❌ Adzuna API returned HTTP ${res.statusCode}`);
+          // console.error(`❌ Adzuna API returned HTTP ${res.statusCode}`);
           
           // Collect error response body for debugging
           res.on('data', chunk => { data += chunk; });
           res.on('end', () => {
-            console.error(`   → Error response: ${data.substring(0, 200)}`);
+            // console.error(`   → Error response: ${data.substring(0, 200)}`);
             reject(new Error(`HTTP ${res.statusCode}`));
           });
           return;
@@ -181,20 +181,20 @@ export class RealJobProvider {
             const parsed = JSON.parse(data);
             resolve(parsed);
           } catch (err) {
-            console.error('❌ Failed to parse Adzuna API response:', err);
-            console.error('   → Response preview:', data.substring(0, 200));
+            // console.error('❌ Failed to parse Adzuna API response:', err);
+            // console.error('   → Response preview:', data.substring(0, 200));
             reject(err);
           }
         });
       });
 
       req.on('error', (err) => {
-        console.error('❌ Network error calling Adzuna API:', err);
+        // console.error('❌ Network error calling Adzuna API:', err);
         reject(err);
       });
       
       req.setTimeout(10000, () => {
-        console.error('❌ Adzuna API request timeout (10s)');
+        // console.error('❌ Adzuna API request timeout (10s)');
         req.destroy(new Error('Request timeout'));
       });
     });

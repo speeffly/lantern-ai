@@ -2,6 +2,7 @@ import express from 'express';
 import { FinalAssessmentService } from '../services/improvedAssessmentService';
 import { WeightedAIPromptService } from '../services/weightedAIPromptService';
 import { CareerMatchingService } from '../services/careerMatchingService';
+import { CleanAIRecommendationService } from '../services/cleanAIRecommendationService';
 import { AssessmentServiceDB } from '../services/assessmentServiceDB';
 import { ApiResponse, StudentProfile } from '../types';
 import { ImprovedAssessmentResponse } from '../services/improvedCareerMatchingService';
@@ -19,10 +20,29 @@ router.get('/', (req, res) => {
       message: 'Improved assessment structure retrieved successfully'
     } as ApiResponse);
   } catch (error) {
-    console.error('❌ Error getting improved assessment:', error);
+    // console.error('❌ Error getting improved assessment:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve improved assessment'
+    } as ApiResponse);
+  }
+});
+
+// GET /api/assessment/v2/v1 - Get the new v1 questionnaire structure
+router.get('/v1', (req, res) => {
+  try {
+    const questionnaire = FinalAssessmentService.getQuestionnaireV1();
+    
+    res.json({
+      success: true,
+      data: questionnaire,
+      message: 'V1 questionnaire structure retrieved successfully'
+    } as ApiResponse);
+  } catch (error) {
+    // console.error('❌ Error getting v1 questionnaire:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve v1 questionnaire'
     } as ApiResponse);
   }
 });
@@ -45,7 +65,7 @@ router.get('/branching', (req, res) => {
       message: 'Branching question retrieved successfully'
     } as ApiResponse);
   } catch (error) {
-    console.error('❌ Error getting branching question:', error);
+    // console.error('❌ Error getting branching question:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve branching question'
@@ -80,7 +100,7 @@ router.get('/questions/:path', (req, res) => {
       message: `Questions for ${path} retrieved successfully`
     } as ApiResponse);
   } catch (error) {
-    console.error('❌ Error getting path questions:', error);
+    // console.error('❌ Error getting path questions:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve path questions'
@@ -140,7 +160,7 @@ router.post('/determine-path', (req, res) => {
       message: 'Path determined successfully'
     } as ApiResponse);
   } catch (error) {
-    console.error('❌ Error determining path:', error);
+    // console.error('❌ Error determining path:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to determine assessment path'
@@ -168,7 +188,7 @@ router.post('/validate', (req, res) => {
       message: 'Validation completed'
     } as ApiResponse);
   } catch (error) {
-    console.error('❌ Error validating responses:', error);
+    // console.error('❌ Error validating responses:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to validate responses'
@@ -196,7 +216,7 @@ router.post('/progress', (req, res) => {
       message: 'Progress calculated successfully'
     } as ApiResponse);
   } catch (error) {
-    console.error('❌ Error calculating progress:', error);
+    // console.error('❌ Error calculating progress:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to calculate progress'
@@ -208,10 +228,6 @@ router.post('/progress', (req, res) => {
 router.post('/submit', async (req, res) => {
   try {
     const { responses, path, sessionToken } = req.body;
-    
-    console.log('📝 Received improved assessment submission');
-    console.log('🛤️ Path taken:', path);
-    console.log('📊 Response keys:', Object.keys(responses));
     
     // Validate responses
     const validation = FinalAssessmentService.validateResponses(responses, path);
@@ -227,10 +243,6 @@ router.post('/submit', async (req, res) => {
     // Convert to weighted format for AI processing
     const weightedData = FinalAssessmentService.convertToWeightedFormat(responses, path);
     
-    console.log('🔄 Converting to weighted format');
-    console.log('⚖️ Primary indicators:', Object.keys(weightedData.primaryIndicators));
-    console.log('📈 Secondary indicators:', Object.keys(weightedData.secondaryIndicators));
-    
     // Generate weighted AI prompt
     const improvedAssessmentResponse: ImprovedAssessmentResponse = {
       assessmentVersion: 'v3' as const,
@@ -239,13 +251,8 @@ router.post('/submit', async (req, res) => {
     };
     const aiPrompt = WeightedAIPromptService.generateWeightedPrompt(improvedAssessmentResponse);
     
-    console.log('🤖 Generated weighted AI prompt');
-    
     // Get career matches using improved logic
     const careerMatches = FinalAssessmentService.generateCareerMatches(responses, path);
-    
-    console.log('🎯 Generated career matches');
-    console.log('📋 Primary matches:', careerMatches.primaryMatches?.length || 0);
     
     // Generate enhanced career recommendations using existing service with weighted prompt
     let enhancedRecommendations;
@@ -290,9 +297,8 @@ router.post('/submit', async (req, res) => {
         baseMatches
       );
       
-      console.log('✅ Enhanced recommendations generated');
     } catch (aiError) {
-      console.warn('⚠️ AI service unavailable, using fallback recommendations');
+      // console.warn('⚠️ AI service unavailable, using fallback recommendations');
       enhancedRecommendations = {
         matches: careerMatches.primaryMatches?.map((career: string) => ({
           career: { title: career, sector: careerMatches.sectors?.[0] || 'general' },
@@ -314,9 +320,8 @@ router.post('/submit', async (req, res) => {
       try {
         const zipCode = responses.basic_info?.zipCode || '00000';
         await AssessmentServiceDB.completeSession(sessionToken, zipCode);
-        console.log('💾 Assessment session completed');
       } catch (sessionError) {
-        console.warn('⚠️ Failed to save session:', sessionError);
+        // console.warn('⚠️ Failed to save session:', sessionError);
       }
     }
     
@@ -357,7 +362,7 @@ router.post('/submit', async (req, res) => {
     } as ApiResponse);
     
   } catch (error) {
-    console.error('❌ Error processing improved assessment submission:', error);
+    // console.error('❌ Error processing improved assessment submission:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to process improved assessment submission',
@@ -400,7 +405,7 @@ router.post('/weighted-prompt', (req, res) => {
       message: 'Weighted AI prompt generated successfully'
     } as ApiResponse);
   } catch (error) {
-    console.error('❌ Error generating weighted prompt:', error);
+    // console.error('❌ Error generating weighted prompt:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to generate weighted prompt'
@@ -438,6 +443,361 @@ function getPathDescription(path: string): string {
     default:
       return 'Unknown Path';
   }
+}
+
+// POST /api/assessment/v2/submit-v1 - Submit V1 questionnaire and get comprehensive AI recommendations
+router.post('/submit-v1', async (req, res) => {
+  try {
+    const { responses } = req.body;
+    
+    // Convert V1 responses to AssessmentAnswer format for AI processing
+    const assessmentAnswers = convertV1ResponsesToAssessmentAnswers(responses);
+    
+    // Process V1 questionnaire responses for career matching
+    const processedData = FinalAssessmentService.processV1QuestionnaireResponses(responses);
+    
+    // Create student profile from V1 responses
+    const zipCode = responses.q1_grade_zip?.zipCode || '00000';
+    const grade = responses.q1_grade_zip?.grade || '11';
+    
+    const studentProfile: Partial<StudentProfile> = {
+      id: 'temp-v1-id',
+      studentId: 'temp-v1-student-id',
+      interests: extractInterestsFromV1(responses),
+      skills: extractSkillsFromV1(responses),
+      workEnvironment: 'mixed' as const,
+      teamPreference: 'both' as const,
+      educationGoal: mapEducationWillingness(responses.q5_education_willingness) as any,
+      zipCode,
+      completedAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    // Generate initial career matches based on V1 responses
+    let initialCareerMatches: any[] = [];
+    
+    if (processedData.responses.specific_career) {
+      // Direct career selection - highest priority
+      const specificCareer = processedData.responses.specific_career;
+      
+      const mappedCareer = mapV1CareerToDatabase(specificCareer);
+      
+      if (mappedCareer) {
+        initialCareerMatches = [
+          {
+            career: mappedCareer,
+            matchScore: 95,
+            explanation: `You specifically selected "${specificCareer}" as your career interest.`,
+            reasoningFactors: [
+              'Direct career selection match',
+              'High confidence based on specific choice',
+              `Education commitment: ${responses.q5_education_willingness || 'Not specified'}`
+            ]
+          }
+        ];
+      }
+    }
+    
+    // Add category-based matches for broader exploration ONLY if no direct career selection
+    if (processedData.responses.career_category && !processedData.responses.specific_career) {
+      const categoryMatches = generateCategoryMatches(processedData.responses.career_category);
+      initialCareerMatches = [...initialCareerMatches, ...categoryMatches.slice(0, 5)];
+    }
+    
+    // If still no matches (undecided path), generate exploration matches
+    if (initialCareerMatches.length === 0) {
+      initialCareerMatches = generateExplorationMatches(processedData.responses);
+    }
+    
+    // Generate comprehensive AI recommendations using the enhanced service
+    let aiRecommendations;
+    let enhancedCareerMatches = initialCareerMatches;
+    
+    try {
+      // Use the clean AI recommendation service with all assessment data
+      aiRecommendations = await CleanAIRecommendationService.generateRecommendations(
+        studentProfile,
+        assessmentAnswers, // This now contains ALL V1 questionnaire data
+        initialCareerMatches,
+        zipCode,
+        parseInt(grade)
+      );
+      
+    } catch (aiError) {
+      // console.warn('⚠️ AI service error, using fallback recommendations:', aiError);
+      
+      // Generate fallback AI recommendations
+      aiRecommendations = await CleanAIRecommendationService.generateRecommendations(
+        studentProfile,
+        assessmentAnswers,
+        initialCareerMatches,
+        zipCode,
+        parseInt(grade)
+      );
+    }
+    
+    // Prepare comprehensive response data
+    const responseData = {
+      assessmentVersion: 'v1',
+      pathTaken: processedData.pathTaken,
+      careerMatches: enhancedCareerMatches.slice(0, 8), // Top 8 matches with AI insights
+      aiRecommendations: aiRecommendations,
+      determinedWorkPreference: processedData.responses.career_category,
+      specificCareerChoice: processedData.responses.specific_career,
+      studentProfile: {
+        grade: grade,
+        zipCode: zipCode,
+        careerKnowledge: responses.q3_career_knowledge,
+        educationWillingness: responses.q5_education_willingness,
+        constraints: responses.q14_constraints,
+        support: responses.q17_support_confidence,
+        academicPerformance: responses.q4_academic_performance,
+        traits: responses.q10_traits,
+        interests: responses.q8_interests_text,
+        experience: responses.q9_experience_text,
+        impactInspiration: responses.q19_20_impact_inspiration
+      },
+      comprehensiveAnalysis: {
+        totalQuestionsAnswered: Object.keys(responses).length,
+        assessmentDataCaptured: assessmentAnswers.length,
+        primaryFactor: processedData.responses.specific_career 
+          ? `Direct career selection: ${processedData.responses.specific_career}`
+          : processedData.responses.career_category
+          ? `Career category: ${processedData.responses.career_category}`
+          : 'Exploration based on traits and interests',
+        educationAlignment: responses.q5_education_willingness,
+        constraintsConsidered: responses.q14_constraints?.length > 0,
+        aiProcessingStatus: aiRecommendations ? 'Success' : 'Fallback used'
+      }
+    };
+    
+    res.json({
+      success: true,
+      data: responseData,
+      message: 'V1 questionnaire submitted and comprehensive AI recommendations generated successfully'
+    } as ApiResponse);
+    
+  } catch (error) {
+    // console.error('❌ Error processing V1 questionnaire submission:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to process V1 questionnaire submission',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    } as ApiResponse);
+  }
+});
+
+// Helper function to convert V1 responses to AssessmentAnswer format
+function convertV1ResponsesToAssessmentAnswers(responses: { [key: string]: any }): any[] {
+  const assessmentAnswers: any[] = [];
+  const timestamp = new Date();
+  
+  // Convert each V1 response to AssessmentAnswer format
+  Object.entries(responses).forEach(([questionId, answer]) => {
+    assessmentAnswers.push({
+      questionId,
+      answer,
+      timestamp
+    });
+  });
+  
+  return assessmentAnswers;
+}
+
+// Helper function to extract interests from V1 responses
+function extractInterestsFromV1(responses: { [key: string]: any }): string[] {
+  const interests: string[] = [];
+  
+  // Add career category as interest
+  if (responses.q3a_career_categories) {
+    interests.push(responses.q3a_career_categories);
+  }
+  
+  // Add specific career as interest
+  if (responses.q3a2_engineering_careers) {
+    interests.push('Engineering: ' + responses.q3a2_engineering_careers);
+  }
+  
+  // Add interests from text field
+  if (responses.q8_interests_text) {
+    interests.push(responses.q8_interests_text);
+  }
+  
+  // Add traits as interests
+  if (responses.q10_traits && Array.isArray(responses.q10_traits)) {
+    interests.push(...responses.q10_traits);
+  }
+  
+  return interests.filter(Boolean);
+}
+
+// Helper function to extract skills from V1 responses
+function extractSkillsFromV1(responses: { [key: string]: any }): string[] {
+  const skills: string[] = [];
+  
+  // Extract skills from academic performance
+  if (responses.q4_academic_performance) {
+    Object.entries(responses.q4_academic_performance).forEach(([subject, performance]) => {
+      if (performance === 'Excellent' || performance === 'Good') {
+        skills.push(subject);
+      }
+    });
+  }
+  
+  // Extract skills from experience
+  if (responses.q9_experience_text) {
+    // Simple keyword extraction for skills
+    const experienceText = responses.q9_experience_text.toLowerCase();
+    const skillKeywords = ['programming', 'coding', 'design', 'leadership', 'teamwork', 'communication', 'problem solving', 'mathematics', 'science', 'writing', 'research'];
+    
+    skillKeywords.forEach(keyword => {
+      if (experienceText.includes(keyword)) {
+        skills.push(keyword);
+      }
+    });
+  }
+  
+  return skills.filter(Boolean);
+}
+
+// Helper function to map education willingness to education goal
+function mapEducationWillingness(willingness: string): string {
+  const mapping = {
+    'work_immediately': 'high-school',
+    'short_training': 'certificate',
+    'college_technical': 'associate',
+    'advanced_degree': 'bachelor',
+    'not_sure': 'associate'
+  };
+  
+  return mapping[willingness as keyof typeof mapping] || 'associate';
+}
+
+// Helper method to map V1 career selections to database careers
+function mapV1CareerToDatabase(specificCareer: string): any {
+  // Import career service to get career data
+  const { CareerService } = require('../services/careerService');
+  const allCareers = CareerService.getAllCareers();
+  
+  // Direct mapping for engineering careers
+  const engineeringMapping = {
+    'aerospace_engineer': 'Aerospace Engineer',
+    'mechanical_engineer': 'Mechanical Engineer',
+    'electrical_engineer': 'Electrical Engineer',
+    'civil_engineer': 'Civil Engineer',
+    'chemical_engineer': 'Chemical Engineer',
+    'biomedical_engineer': 'Biomedical Engineer',
+    'environmental_engineer': 'Environmental Engineer',
+    'materials_engineer': 'Materials Engineer',
+    'industrial_engineer': 'Industrial Engineer',
+    'systems_engineer': 'Systems Engineer',
+    'robotics_engineer': 'Robotics Engineer',
+    'petroleum_engineer': 'Petroleum Engineer'
+  };
+  
+  // Direct mapping for other careers
+  const careerMapping = {
+    ...engineeringMapping,
+    'registered_nurse': 'Registered Nurse',
+    'software_developer': 'Software Developer',
+    'web_developer': 'Web Developer',
+    'electrician': 'Electrician',
+    'plumber': 'Plumber',
+    'construction_worker': 'Construction Worker',
+    'police_officer': 'Police Officer',
+    'firefighter': 'Firefighter',
+    'graphic_designer': 'Graphic Designer',
+    'photographer': 'Photographer'
+  };
+  
+  const mappedTitle = careerMapping[specificCareer as keyof typeof careerMapping];
+  
+  if (mappedTitle) {
+    const career = allCareers.find((c: any) => c.title === mappedTitle);
+    if (career) {
+      return career;
+    }
+  }
+  
+  // If no direct mapping, try partial matching
+  const partialMatch = allCareers.find((c: any) => 
+    c.title.toLowerCase().includes(specificCareer.toLowerCase()) ||
+    specificCareer.toLowerCase().includes(c.title.toLowerCase())
+  );
+  
+  if (partialMatch) {
+    return partialMatch;
+  }
+  
+  return null;
+}
+
+// Helper method to generate category-based matches
+function generateCategoryMatches(category: string): any[] {
+  const { CareerService } = require('../services/careerService');
+  const allCareers = CareerService.getAllCareers();
+  
+  const categoryMapping = {
+    'engineering': ['infrastructure'],
+    'trade': ['infrastructure', 'manufacturing'],
+    'technology': ['technology'],
+    'healthcare': ['healthcare'],
+    'business_management': ['business', 'finance'],
+    'educator': ['education'],
+    'public_safety': ['public-service'],
+    'researcher': ['science'],
+    'artist': ['creative'],
+    'law': ['legal']
+  };
+  
+  const sectors = categoryMapping[category as keyof typeof categoryMapping] || [];
+  const categoryMatches = allCareers.filter((c: any) => sectors.includes(c.sector));
+  
+  return categoryMatches.slice(0, 6).map((career: any, index: number) => ({
+    career,
+    matchScore: 85 - (index * 5), // Decreasing scores
+    explanation: `This career aligns with your selected category: ${category}`,
+    reasoningFactors: [
+      `Category match: ${category}`,
+      `Sector alignment: ${career.sector}`,
+      'Good potential based on category selection'
+    ]
+  }));
+}
+
+// Helper method to generate exploration matches
+function generateExplorationMatches(responses: any): any[] {
+  const { CareerService } = require('../services/careerService');
+  const allCareers = CareerService.getAllCareers();
+  
+  // Return diverse career options for exploration
+  const diverseCareers = [
+    'Registered Nurse',
+    'Software Developer', 
+    'Electrician',
+    'Teacher',
+    'Graphic Designer',
+    'Police Officer'
+  ];
+  
+  const matches = diverseCareers.map((title, index) => {
+    const career = allCareers.find((c: any) => c.title === title);
+    if (career) {
+      return {
+        career,
+        matchScore: 70 - (index * 5),
+        explanation: 'This career represents a popular option for exploration based on your responses.',
+        reasoningFactors: [
+          'Exploration mode - diverse career options',
+          'Consider taking assessment again after research',
+          'Good starting point for career exploration'
+        ]
+      };
+    }
+    return null;
+  }).filter(Boolean);
+  
+  return matches;
 }
 
 export default router;

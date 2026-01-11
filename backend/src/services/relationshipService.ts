@@ -48,10 +48,10 @@ export class RelationshipService {
         throw new Error('Failed to retrieve created relationship');
       }
 
-      console.log(`✅ Created ${relationshipType} relationship:`, primaryUserId, '->', secondaryUserId);
+      // console.log(`✅ Created ${relationshipType} relationship:`, primaryUserId, '->', secondaryUserId);
       return relationship;
     } catch (error) {
-      console.error('❌ Error creating relationship:', error);
+      // console.error('❌ Error creating relationship:', error);
       throw error;
     }
   }
@@ -67,7 +67,7 @@ export class RelationshipService {
 
       return relationship || null;
     } catch (error) {
-      console.error('❌ Error getting relationship by ID:', error);
+      // console.error('❌ Error getting relationship by ID:', error);
       return null;
     }
   }
@@ -88,7 +88,7 @@ export class RelationshipService {
 
       return relationship || null;
     } catch (error) {
-      console.error('❌ Error getting relationship:', error);
+      // console.error('❌ Error getting relationship:', error);
       return null;
     }
   }
@@ -111,7 +111,7 @@ export class RelationshipService {
 
       return students;
     } catch (error) {
-      console.error('❌ Error getting students for counselor:', error);
+      // console.error('❌ Error getting students for counselor:', error);
       return [];
     }
   }
@@ -134,7 +134,7 @@ export class RelationshipService {
 
       return children;
     } catch (error) {
-      console.error('❌ Error getting children for parent:', error);
+      // console.error('❌ Error getting children for parent:', error);
       return [];
     }
   }
@@ -156,7 +156,7 @@ export class RelationshipService {
 
       return counselor || null;
     } catch (error) {
-      console.error('❌ Error getting counselor for student:', error);
+      // console.error('❌ Error getting counselor for student:', error);
       return null;
     }
   }
@@ -179,7 +179,7 @@ export class RelationshipService {
 
       return parents;
     } catch (error) {
-      console.error('❌ Error getting parents for student:', error);
+      // console.error('❌ Error getting parents for student:', error);
       return [];
     }
   }
@@ -198,7 +198,7 @@ export class RelationshipService {
 
       return this.getRelationshipById(relationshipId);
     } catch (error) {
-      console.error('❌ Error updating relationship status:', error);
+      // console.error('❌ Error updating relationship status:', error);
       throw error;
     }
   }
@@ -214,7 +214,7 @@ export class RelationshipService {
 
       return (result.changes || 0) > 0;
     } catch (error) {
-      console.error('❌ Error deleting relationship:', error);
+      // console.error('❌ Error deleting relationship:', error);
       return false;
     }
   }
@@ -266,7 +266,7 @@ export class RelationshipService {
         } as User
       }));
     } catch (error) {
-      console.error('❌ Error getting relationships for user:', error);
+      // console.error('❌ Error getting relationships for user:', error);
       return [];
     }
   }
@@ -294,7 +294,7 @@ export class RelationshipService {
 
       return !!relationship;
     } catch (error) {
-      console.error('❌ Error checking permission:', error);
+      // console.error('❌ Error checking permission:', error);
       return false;
     }
   }

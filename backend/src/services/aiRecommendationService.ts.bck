@@ -24,12 +24,8 @@ export class AIRecommendationService {
     fourYearPlan: FourYearPlan;
   }> {
     try {
-      console.log('🎯 Generating comprehensive career guidance package...');
-
       // Fetch jobs once and reuse across all services
-      console.log('🔍 Fetching job opportunities once for all services...');
       const sharedJobs = await this.generateLocalJobOpportunities(careerMatches, zipCode);
-      console.log(`✅ Fetched ${sharedJobs.length} job opportunities to share across services`);
 
       // Generate all components in parallel for efficiency, passing shared jobs
       const [
@@ -44,8 +40,6 @@ export class AIRecommendationService {
         AcademicPlanService.generateFourYearPlan(profile, answers, careerMatches, zipCode, currentGrade, sharedJobs)
       ]);
 
-      console.log('✅ Comprehensive career guidance package generated successfully');
-      
       return {
         enhancedCareerMatches,
         counselorRecommendations,
@@ -71,19 +65,11 @@ export class AIRecommendationService {
     preloadedJobs?: LocalJobOpportunity[]
   ): Promise<AIRecommendations> {
     try {
-      console.log('🤖 Generating AI recommendations for profile:', profile.interests);
-      
       // Validate AI configuration
       const aiConfig = this.validateAIConfiguration();
-      console.log('🔧 AI Configuration:', aiConfig);
 
       // Check if we should use real OpenAI or fallback mode
       const useRealAI = process.env.USE_REAL_AI === 'true';
-      
-      console.log('🔧 AI Mode Configuration:');
-      console.log('   - USE_REAL_AI flag:', useRealAI);
-      console.log('   - AI Provider:', aiConfig.provider);
-      console.log('   - Provider available:', aiConfig.available);
       
       // If real AI is requested but no valid provider, throw error
       if (useRealAI && !aiConfig.available) {
@@ -93,7 +79,6 @@ export class AIRecommendationService {
       
       // If not using real AI, use fallback recommendations
       if (!useRealAI) {
-        console.log('🔄 Using fallback AI recommendations (USE_REAL_AI=false)');
         return this.generateFallbackRecommendations(profile, careerMatches, zipCode, currentGrade);
       }
 
@@ -103,52 +88,30 @@ export class AIRecommendationService {
       // Use preloaded jobs if available, otherwise fetch them once
       const localJobs = preloadedJobs || await this.generateLocalJobOpportunities(careerMatches, zipCode);
       
-      // Prepare context for AI (now includes real job data)
-      console.log('\n' + '='.repeat(80));
-      console.log('📊 PREPARING STUDENT CONTEXT FOR AI');
-      console.log('='.repeat(80));
-      console.log('Student Profile:', JSON.stringify(profile, null, 2));
-      console.log('Assessment Answers Count:', answers.length);
-      console.log('Feedback Improvements:', feedbackImprovements.length, 'suggestions found');
-      if (feedbackImprovements.length > 0) {
-        console.log('Improvement Suggestions:', feedbackImprovements);
-      }
-      console.log('Career Matches Count:', careerMatches.length);
-      console.log('Real Jobs Found:', localJobs.length);
-      console.log('ZIP Code:', zipCode);
-      console.log('Current Grade:', currentGrade);
-      console.log('='.repeat(80));
-      
+      // Prepare context for AI - minimal logging
       const context = this.prepareAIContext(profile, answers, careerMatches, zipCode, currentGrade, feedbackImprovements, localJobs);
       
-      console.log('\n📋 GENERATED CONTEXT FOR AI:');
-      console.log('-'.repeat(50));
+      // LOG ONLY THE PROMPT BEING SENT
+      console.log('\n🚀 PROMPT BEING SENT TO AI:');
+      console.log('='.repeat(80));
       console.log(context);
-      console.log('='.repeat(80) + '\n');
+      console.log('='.repeat(80));
+      
+      // Also log the career matches to debug old results issue
+      console.log('\n🎯 CAREER MATCHES BEING SENT TO AI:');
+      careerMatches.forEach((match, index) => {
+        console.log(`${index + 1}. ${match.career.title} (${match.matchScore}% match)`);
+      });
+      console.log('='.repeat(80));
       
       // Generate recommendations using AI (OpenAI or Gemini)
       const aiResponse = await this.callAI(context);
       
       // Parse and structure the AI response
-      console.log('\n' + '='.repeat(80));
-      console.log('🔄 PARSING AI RESPONSE INTO STRUCTURED RECOMMENDATIONS');
-      console.log('='.repeat(80));
-      
       const recommendations = await this.parseAIResponse(aiResponse, profile, careerMatches, zipCode, localJobs, currentGrade);
       
       // Use the real jobs we already fetched
       recommendations.localJobs = localJobs;
-      
-      console.log('\n📊 FINAL STRUCTURED RECOMMENDATIONS:');
-      console.log('-'.repeat(50));
-      console.log('Academic Plan Items:', recommendations.academicPlan?.currentYear?.length || 0);
-      console.log('Local Jobs:', recommendations.localJobs?.length || 0);
-      console.log('Career Pathway Steps:', recommendations.careerPathway?.steps?.length || 0);
-      console.log('Skill Gaps:', recommendations.skillGaps?.length || 0);
-      console.log('Action Items:', recommendations.actionItems?.length || 0);
-      
-      console.log('\n✅ AI RECOMMENDATION GENERATION COMPLETE');
-      console.log('='.repeat(80) + '\n');
       
       return recommendations;
     } catch (error) {
@@ -161,7 +124,6 @@ export class AIRecommendationService {
       }
       
       // Otherwise, fallback to rule-based recommendations
-      console.log('🔄 Falling back to rule-based recommendations due to error');
       return await this.generateFallbackRecommendations(profile, careerMatches, zipCode, currentGrade);
     }
   }
@@ -186,6 +148,17 @@ export class AIRecommendationService {
     const topCareer = careerMatches[0]?.career;
     const userSpecificContext = this.generateUserSpecificContext(profile, answers, careerMatches);
     
+    // Extract comprehensive student response data
+    const studentResponseData = this.extractComprehensiveStudentData(answers);
+    
+    // LOG ASSESSMENT ANSWERS FOR DEBUGGING
+    console.log('\n📝 ASSESSMENT ANSWERS CAPTURED:');
+    console.log('='.repeat(80));
+    answers.forEach((answer, index) => {
+      console.log(`${index + 1}. Q${answer.questionId}: ${JSON.stringify(answer.answer)}`);
+    });
+    console.log('='.repeat(80));
+    
     return `
 COMPREHENSIVE STUDENT PROFILE FOR PERSONALIZED CAREER COUNSELING:
 
@@ -195,6 +168,17 @@ CRITICAL PERSONALIZATION REQUIREMENTS:
 - Their TOP career match is: ${topCareer?.title || 'To be determined'} (${careerMatches[0]?.matchScore || 0}% match)
 - Location: ZIP Code ${zipCode} (Rural community)
 - Academic Level: Grade ${grade}
+
+🚨 CRITICAL: DIRECT CAREER SELECTION OVERRIDE PROTECTION 🚨
+${topCareer && careerMatches[0]?.matchScore >= 90 ? 
+  `⚠️ MANDATORY: This student has made a DIRECT CAREER SELECTION: "${topCareer.title}"
+  - You MUST respect this choice and focus on helping them achieve this specific goal
+  - DO NOT suggest alternative careers unless they are closely related specializations
+  - Your primary task is to provide a clear pathway to become a ${topCareer.title}
+  - Any career recommendations MUST prioritize ${topCareer.title} as the #1 choice
+  - If you suggest related careers, they must be in the same field (e.g., other engineering specializations)` :
+  'This student is exploring career options - provide diverse recommendations based on their interests and skills'
+}
 
 IMPORTANT: Provide SPECIFIC, PERSONALIZED recommendations based on THIS STUDENT'S unique profile. 
 DO NOT give generic advice. Reference their specific interests, skills, and career matches throughout your response.
@@ -209,6 +193,9 @@ DETAILED INTEREST & PREFERENCE ANALYSIS:
 - Collaboration Style: ${profile.teamPreference || 'Comfortable with both team and individual work'}
 - Educational Commitment Level: ${profile.educationGoal || 'Open to certificate through associate degree programs'}
 
+COMPLETE STUDENT ASSESSMENT DATA - CRITICAL FOR PERSONALIZATION:
+${studentResponseData}
+
 PERSONALIZED ASSESSMENT INSIGHTS:
 ${answers.map((answer, index) => {
   const interpretation = this.interpretAssessmentAnswer(answer.questionId, answer.answer);
@@ -220,15 +207,13 @@ ${answers.map((answer, index) => {
    → Specific Recommendation: ${this.getSpecificRecommendation(answer.questionId, answer.answer, topCareer)}`;
 }).join('\n\n')}
 
-STUDENT'S FREE TEXT RESPONSES - CRITICAL PERSONALIZATION DATA:
-${this.extractFreeTextResponses(answers)}
-
-MANDATORY PERSONALIZATION REQUIREMENTS BASED ON STUDENT'S WORDS:
-- Use the student's own language and interests from their free text responses
+MANDATORY PERSONALIZATION REQUIREMENTS BASED ON STUDENT'S ACTUAL RESPONSES:
+- Use the student's own language and interests from their responses
 - Reference specific experiences, hobbies, and passions they mentioned
 - Connect career recommendations to their stated values and inspirations
 - Address their specific concerns or questions about career paths
 - Build on the work/volunteer experience they described (if any)
+- CRITICALLY IMPORTANT: Address any contradictions between career goals and education/financial constraints
 
 TOP CAREER MATCHES - PERSONALIZED ANALYSIS FOR THIS STUDENT:
 ${careerMatches.slice(0, 3).map((match, index) => {
@@ -276,6 +261,7 @@ MANDATORY PERSONALIZATION REQUIREMENTS:
 4. Provide SPECIFIC course names, not generic categories
 5. Give ACTIONABLE steps, not vague suggestions
 6. Explain WHY each recommendation fits THIS specific student
+7. CRITICALLY IMPORTANT: Address any contradictions between their career choice and education/financial constraints
 
 CRITICAL CAREER PATHWAY REQUIREMENTS:
 - Career pathway steps must be SPECIFIC to ${topCareer?.title || 'their chosen career'}
@@ -284,10 +270,11 @@ CRITICAL CAREER PATHWAY REQUIREMENTS:
 - Mention specific certifications needed for ${topCareer?.title || 'their field'}
 - Timeline should be realistic for ${topCareer?.requiredEducation || 'their education level'}
 - Steps should be actionable and measurable, not generic advice
-- INCORPORATE the student's own words and experiences from their free text responses
+- INCORPORATE the student's own words and experiences from their responses
 - REFERENCE their specific interests, hobbies, and passions they described
 - BUILD ON any work/volunteer experience they mentioned
 - CONNECT to their stated values and desired impact
+- ADDRESS any contradictions between career goals and constraints
 - EXAMPLE: Instead of "Step 1: Complete high school", use "Complete high school with focus on Biology and Chemistry courses for Registered Nurse career"
 - EXAMPLE: Instead of "Step 2: Get training", use "Complete 2-year Associate Degree in Nursing (ADN) program at local community college"
 - EXAMPLE: Instead of "Step 3: Get certified", use "Pass NCLEX-RN exam to obtain Registered Nurse license"
@@ -297,55 +284,456 @@ CRITICAL CAREER PATHWAY REQUIREMENTS:
   }
 
   /**
+   * Extract comprehensive student data from all assessment answers - Enhanced for V1 Questionnaire
+   */
+  private static extractComprehensiveStudentData(answers: AssessmentAnswer[]): string {
+    const dataByCategory: { [key: string]: string[] } = {
+      'Demographics': [],
+      'Career Knowledge & Selection': [],
+      'Academic Performance': [],
+      'Education & Support': [],
+      'Personal Traits & Exploration': [],
+      'Constraints & Goals': [],
+      'Legacy & Values': []
+    };
+    
+    answers.forEach(answer => {
+      let category = 'Other';
+      let formattedResponse = '';
+      
+      // Handle both V1 questionnaire and legacy assessment formats
+      switch (answer.questionId) {
+        // V1 QUESTIONNAIRE FORMAT
+        case 'q1_grade_zip':
+          category = 'Demographics';
+          if (typeof answer.answer === 'object' && answer.answer !== null) {
+            const info = answer.answer as any;
+            formattedResponse = `Grade ${info.grade || 'Unknown'}, ZIP Code ${info.zipCode || 'Unknown'}`;
+          } else {
+            formattedResponse = String(answer.answer);
+          }
+          break;
+          
+        case 'q3_career_knowledge':
+          category = 'Career Knowledge & Selection';
+          formattedResponse = `Career Knowledge: "${answer.answer}" - ${answer.answer === 'yes' ? 'Student has specific career interests' : 'Student needs career exploration'}`;
+          break;
+          
+        case 'q3a_career_categories':
+          category = 'Career Knowledge & Selection';
+          const categoryLabels = {
+            'trade': 'Trade/Skilled Labor',
+            'engineering': 'Engineering',
+            'business_management': 'Business & Management',
+            'technology': 'Technology',
+            'educator': 'Education',
+            'healthcare': 'Healthcare',
+            'public_safety': 'Public Safety',
+            'researcher': 'Research & Science',
+            'artist': 'Arts & Creative',
+            'law': 'Legal',
+            'other': 'Other Career Field'
+          };
+          const categoryLabel = categoryLabels[answer.answer as keyof typeof categoryLabels] || answer.answer;
+          formattedResponse = `Selected Career Category: "${categoryLabel}" - Primary field of interest`;
+          break;
+          
+        // SPECIFIC CAREER SELECTIONS - CRITICAL FOR AI CONTEXT
+        case 'q3a1_trade_careers':
+          category = 'Career Knowledge & Selection';
+          formattedResponse = `SPECIFIC TRADE CAREER: "${answer.answer}" - Student's exact career choice in trades`;
+          break;
+          
+        case 'q3a2_engineering_careers':
+          category = 'Career Knowledge & Selection';
+          const engineeringLabels = {
+            'aerospace_engineer': 'Aerospace Engineer',
+            'mechanical_engineer': 'Mechanical Engineer',
+            'electrical_engineer': 'Electrical Engineer',
+            'civil_engineer': 'Civil Engineer',
+            'chemical_engineer': 'Chemical Engineer',
+            'biomedical_engineer': 'Biomedical Engineer',
+            'environmental_engineer': 'Environmental Engineer',
+            'materials_engineer': 'Materials Engineer',
+            'industrial_engineer': 'Industrial Engineer',
+            'systems_engineer': 'Systems Engineer',
+            'robotics_engineer': 'Robotics Engineer',
+            'petroleum_engineer': 'Petroleum Engineer'
+          };
+          const engineeringLabel = engineeringLabels[answer.answer as keyof typeof engineeringLabels] || answer.answer;
+          formattedResponse = `SPECIFIC ENGINEERING CAREER: "${engineeringLabel}" - Student's exact engineering specialization choice`;
+          break;
+          
+        case 'q3a3_business_careers':
+          category = 'Career Knowledge & Selection';
+          formattedResponse = `SPECIFIC BUSINESS CAREER: "${answer.answer}" - Student's exact business/management career choice`;
+          break;
+          
+        case 'q3a4_technology_careers':
+          category = 'Career Knowledge & Selection';
+          formattedResponse = `SPECIFIC TECHNOLOGY CAREER: "${answer.answer}" - Student's exact technology career choice`;
+          break;
+          
+        case 'q3a5_educator_careers':
+          category = 'Career Knowledge & Selection';
+          formattedResponse = `SPECIFIC EDUCATION CAREER: "${answer.answer}" - Student's exact education career choice`;
+          break;
+          
+        case 'q3a6_healthcare_careers':
+          category = 'Career Knowledge & Selection';
+          formattedResponse = `SPECIFIC HEALTHCARE CAREER: "${answer.answer}" - Student's exact healthcare career choice`;
+          break;
+          
+        case 'q3a7_public_safety_careers':
+          category = 'Career Knowledge & Selection';
+          formattedResponse = `SPECIFIC PUBLIC SAFETY CAREER: "${answer.answer}" - Student's exact public safety career choice`;
+          break;
+          
+        case 'q3a8_researcher_careers':
+          category = 'Career Knowledge & Selection';
+          formattedResponse = `SPECIFIC RESEARCH CAREER: "${answer.answer}" - Student's exact research career choice`;
+          break;
+          
+        case 'q3a9_artist_careers':
+          category = 'Career Knowledge & Selection';
+          formattedResponse = `SPECIFIC ARTS CAREER: "${answer.answer}" - Student's exact arts/creative career choice`;
+          break;
+          
+        case 'q3a10_law_careers':
+          category = 'Career Knowledge & Selection';
+          formattedResponse = `SPECIFIC LAW CAREER: "${answer.answer}" - Student's exact legal career choice`;
+          break;
+          
+        // OTHER CAREER SPECIFICATIONS
+        case 'q3a1_trade_other':
+        case 'q3a2_engineering_other':
+        case 'q3a3_business_other':
+        case 'q3a4_technology_other':
+        case 'q3a5_educator_other':
+        case 'q3a6_healthcare_other':
+        case 'q3a7_public_safety_other':
+        case 'q3a8_researcher_other':
+        case 'q3a9_artist_other':
+        case 'q3a10_law_other':
+        case 'q3a11_other_career':
+          category = 'Career Knowledge & Selection';
+          formattedResponse = `CUSTOM CAREER SPECIFICATION: "${answer.answer}" - Student's specific career interest not in standard list`;
+          break;
+          
+        case 'q4_academic_performance':
+          category = 'Academic Performance';
+          if (typeof answer.answer === 'object' && answer.answer !== null) {
+            const performance = answer.answer as any;
+            const performanceDetails = Object.entries(performance).map(([subject, rating]) => 
+              `${subject}: ${rating}`
+            ).join(', ');
+            formattedResponse = `Academic Performance: ${performanceDetails}`;
+          } else {
+            formattedResponse = String(answer.answer);
+          }
+          break;
+          
+        case 'q5_education_willingness':
+          category = 'Education & Support';
+          const educationLabels = {
+            'work_immediately': 'Work immediately after high school',
+            'short_training': 'A few months to 2 years (certifications/training)',
+            'college_technical': '2-4 years (college/technical school)',
+            'advanced_degree': '4+ years (college and graduate school)',
+            'not_sure': 'Not sure yet'
+          };
+          const educationLabel = educationLabels[answer.answer as keyof typeof educationLabels] || answer.answer;
+          formattedResponse = `Education Commitment: "${educationLabel}" - Student's willingness to pursue post-secondary education`;
+          break;
+          
+        case 'q14_constraints':
+          category = 'Constraints & Goals';
+          if (Array.isArray(answer.answer)) {
+            const constraintLabels = {
+              'earn_money_soon': 'Start earning money as soon as possible',
+              'flexible_hours': 'Flexible hours',
+              'predictable_hours': 'Predictable hours',
+              'stay_close_home': 'Stay close to home',
+              'open_relocating': 'Open to relocating',
+              'physical_limitations': 'Physical work may be difficult',
+              'no_constraints': 'No major constraints'
+            };
+            const constraints = answer.answer.map(c => constraintLabels[c as keyof typeof constraintLabels] || c).join(', ');
+            formattedResponse = `Career Constraints: ${constraints} - CRITICAL factors affecting career choices`;
+          } else {
+            formattedResponse = `Career Constraints: "${answer.answer}"`;
+          }
+          break;
+          
+        case 'q17_support_confidence':
+          category = 'Education & Support';
+          const supportLabels = {
+            'strong_support': 'Strong support for education/training',
+            'some_support': 'Some support available',
+            'limited_support': 'Limited support available',
+            'not_sure': 'Not sure about support'
+          };
+          const supportLabel = supportLabels[answer.answer as keyof typeof supportLabels] || answer.answer;
+          formattedResponse = `Support Level: "${supportLabel}" - Affects ability to pursue education/training`;
+          break;
+          
+        case 'q19_20_impact_inspiration':
+          category = 'Legacy & Values';
+          formattedResponse = `Impact & Inspiration: "${answer.answer}" - Student's values, goals, and sources of inspiration`;
+          break;
+          
+        // UNDECIDED PATH QUESTIONS
+        case 'q10_traits':
+          category = 'Personal Traits & Exploration';
+          if (Array.isArray(answer.answer)) {
+            const traitLabels = {
+              'creative': 'Creative and artistic',
+              'analytical': 'Analytical and logical',
+              'compassionate': 'Compassionate and caring',
+              'leadership': 'Leadership-oriented',
+              'detail_oriented': 'Detail-oriented and organized',
+              'adventurous': 'Adventurous and willing to take risks',
+              'patient': 'Patient and persistent',
+              'outgoing': 'Outgoing and social',
+              'independent': 'Independent and self-reliant',
+              'collaborative': 'Collaborative and team-focused',
+              'curious': 'Curious and inquisitive',
+              'hands_on': 'Practical and hands-on'
+            };
+            const traits = answer.answer.map(t => traitLabels[t as keyof typeof traitLabels] || t).join(', ');
+            formattedResponse = `Personal Traits: ${traits} - Key personality characteristics for career matching`;
+          } else {
+            formattedResponse = `Personal Traits: "${answer.answer}"`;
+          }
+          break;
+          
+        case 'q8_interests_text':
+          category = 'Personal Traits & Exploration';
+          formattedResponse = `Interests & Hobbies: "${answer.answer}" - CRITICAL for understanding student's passions and natural inclinations`;
+          break;
+          
+        case 'q9_experience_text':
+          category = 'Personal Traits & Exploration';
+          formattedResponse = `Work/Volunteer Experience: "${answer.answer}" - Shows practical experience and exposure to different fields`;
+          break;
+          
+        // LEGACY ASSESSMENT FORMAT (V3) - Keep for backward compatibility
+        case 'basic_info':
+          category = 'Demographics';
+          if (typeof answer.answer === 'object' && answer.answer !== null) {
+            const info = answer.answer as any;
+            formattedResponse = `Grade ${info.grade || 'Unknown'}, ZIP Code ${info.zipCode || 'Unknown'}`;
+          } else {
+            formattedResponse = String(answer.answer);
+          }
+          break;
+          
+        case 'work_preference_main':
+          category = 'Career Knowledge & Selection';
+          formattedResponse = `Selected: "${answer.answer}" - This indicates their primary career direction and work style preference`;
+          break;
+          
+        case 'subject_strengths':
+          category = 'Academic Performance';
+          if (typeof answer.answer === 'object' && answer.answer !== null) {
+            const ratings = answer.answer as any;
+            const subjectRatings = Object.entries(ratings).map(([subject, rating]) => 
+              `${subject}: ${rating}/5`
+            ).join(', ');
+            formattedResponse = `Subject Interest Ratings: ${subjectRatings}`;
+          } else {
+            formattedResponse = String(answer.answer);
+          }
+          break;
+          
+        case 'education_commitment':
+          category = 'Education & Support';
+          formattedResponse = `Education Willingness: "${answer.answer}" - This shows their commitment level for post-secondary education`;
+          break;
+          
+        case 'decided_education_support':
+        case 'undecided_education_support':
+          category = 'Education & Support';
+          formattedResponse = `Support Level: "${answer.answer}" - This affects their ability to pursue education/training`;
+          break;
+          
+        case 'undecided_interests_hobbies':
+          category = 'Personal Traits & Exploration';
+          formattedResponse = `Interests & Hobbies: "${answer.answer}" - CRITICAL for understanding their passions`;
+          break;
+          
+        case 'undecided_work_experience':
+          category = 'Personal Traits & Exploration';
+          formattedResponse = `Work/Volunteer Experience: "${answer.answer}" - Shows practical experience and exposure`;
+          break;
+          
+        case 'undecided_personal_traits':
+          category = 'Personal Traits & Exploration';
+          if (Array.isArray(answer.answer)) {
+            formattedResponse = `Personal Traits: ${answer.answer.join(', ')} - Key personality characteristics`;
+          } else {
+            formattedResponse = `Personal Traits: "${answer.answer}"`;
+          }
+          break;
+          
+        case 'decided_career_constraints':
+        case 'undecided_career_constraints':
+          category = 'Constraints & Goals';
+          formattedResponse = `Career Constraints: "${answer.answer}" - CRITICAL factors that must be considered`;
+          break;
+          
+        case 'decided_impact_and_inspiration':
+        case 'undecided_impact_and_inspiration':
+          category = 'Legacy & Values';
+          formattedResponse = `Inspiration & Impact Goals: "${answer.answer}" - Their values and desired legacy`;
+          break;
+          
+        default:
+          formattedResponse = `${answer.questionId}: "${answer.answer}"`;
+      }
+      
+      dataByCategory[category].push(formattedResponse);
+    });
+    
+    // Format the comprehensive data with enhanced structure
+    let result = '\n=== COMPREHENSIVE STUDENT ASSESSMENT DATA ===\n';
+    Object.entries(dataByCategory).forEach(([category, responses]) => {
+      if (responses.length > 0) {
+        result += `\n${category.toUpperCase()}:\n`;
+        responses.forEach(response => {
+          result += `  • ${response}\n`;
+        });
+      }
+    });
+    
+    result += '\n=== END STUDENT DATA ===\n';
+    
+    return result;
+  }
+
+  /**
    * Extract and format free text responses for AI personalization
    */
   private static extractFreeTextResponses(answers: AssessmentAnswer[]): string {
     const freeTextResponses: string[] = [];
+    const allResponses: string[] = [];
     
     answers.forEach(answer => {
-      // Identify free text responses (longer than 20 characters, likely detailed responses)
-      if (typeof answer.answer === 'string' && answer.answer.length > 20) {
-        let questionContext = '';
-        
-        // Provide context for what each question was asking
-        switch (answer.questionId) {
-          case 'interests_detail':
-          case 'interests_free_text':
-            questionContext = 'INTERESTS & PASSIONS';
-            break;
-          case 'experience_detail':
-          case 'work_experience':
-            questionContext = 'WORK/VOLUNTEER EXPERIENCE';
-            break;
-          case 'values_impact':
-          case 'legacy':
-            questionContext = 'VALUES & DESIRED IMPACT';
-            break;
-          case 'inspiration':
-          case 'role_model':
-            questionContext = 'INSPIRATIONS & ROLE MODELS';
-            break;
-          case 'goals':
-          case 'future_goals':
-            questionContext = 'FUTURE GOALS & ASPIRATIONS';
-            break;
-          case 'challenges':
-          case 'concerns':
-            questionContext = 'CHALLENGES & CONCERNS';
-            break;
-          default:
-            questionContext = `STUDENT INPUT (${answer.questionId})`;
-        }
-        
+      let questionContext = '';
+      let responseValue = '';
+      
+      // Handle different answer types with proper type guards
+      if (typeof answer.answer === 'string') {
+        responseValue = answer.answer;
+      } else if (typeof answer.answer === 'number') {
+        responseValue = answer.answer.toString();
+      } else if (Array.isArray(answer.answer)) {
+        responseValue = (answer.answer as string[]).join(', ');
+      } else if (answer.answer && typeof answer.answer === 'object') {
+        responseValue = JSON.stringify(answer.answer);
+      } else {
+        responseValue = String(answer.answer || '');
+      }
+      
+      // Provide context for what each question was asking based on actual question IDs
+      switch (answer.questionId) {
+        case 'basic_info':
+          questionContext = 'BASIC INFORMATION (Grade & ZIP Code)';
+          break;
+        case 'work_preference_main':
+          questionContext = 'CAREER PREFERENCE SELECTION';
+          break;
+        case 'subject_strengths':
+          questionContext = 'SUBJECT INTEREST RATINGS (1-5 scale)';
+          break;
+        case 'education_commitment':
+          questionContext = 'EDUCATION WILLINGNESS';
+          break;
+        case 'decided_career_constraints':
+        case 'undecided_career_constraints':
+          questionContext = 'CAREER CONSTRAINTS & LIMITATIONS';
+          break;
+        case 'decided_education_support':
+        case 'undecided_education_support':
+          questionContext = 'EDUCATION SUPPORT AVAILABILITY';
+          break;
+        case 'decided_impact_and_inspiration':
+        case 'undecided_impact_and_inspiration':
+          questionContext = 'INSPIRATION & DESIRED IMPACT';
+          break;
+        case 'undecided_interests_hobbies':
+          questionContext = 'INTERESTS & HOBBIES';
+          break;
+        case 'undecided_work_experience':
+          questionContext = 'WORK/VOLUNTEER EXPERIENCE';
+          break;
+        case 'undecided_personal_traits':
+          questionContext = 'PERSONAL TRAITS & CHARACTERISTICS';
+          break;
+        default:
+          questionContext = `STUDENT RESPONSE (${answer.questionId})`;
+      }
+      
+      // Add all responses to comprehensive list
+      allResponses.push(`${questionContext}: "${responseValue}"`);
+      
+      // Identify detailed free text responses (longer than 10 characters for more comprehensive capture)
+      if (typeof answer.answer === 'string' && answer.answer.length > 10) {
         freeTextResponses.push(`${questionContext}: "${answer.answer}"`);
       }
     });
     
-    if (freeTextResponses.length === 0) {
-      return 'No detailed free text responses provided - use assessment data and career matches for personalization.';
+    // Always include all responses for complete context
+    let responseText = 'COMPLETE STUDENT RESPONSE DATA:\n' + allResponses.join('\n\n');
+    
+    if (freeTextResponses.length > 0) {
+      responseText += '\n\nDETAILED FREE TEXT RESPONSES (CRITICAL FOR PERSONALIZATION):\n' + freeTextResponses.join('\n\n');
+      responseText += '\n\nCRITICAL: Use these exact words and experiences from the student when creating recommendations. Reference their specific interests, experiences, and values throughout your response.';
     }
     
-    return freeTextResponses.join('\n\n') + '\n\nCRITICAL: Use these exact words and experiences from the student when creating recommendations. Reference their specific interests, experiences, and values throughout your response.';
+    // Add contradiction detection
+    const contradictions = this.detectResponseContradictions(answers);
+    if (contradictions.length > 0) {
+      responseText += '\n\n🚨 CRITICAL CONTRADICTIONS DETECTED - MUST ADDRESS:\n' + contradictions.join('\n');
+    }
+    
+    return responseText;
+  }
+
+  /**
+   * Detect contradictions in student responses that need special handling
+   */
+  private static detectResponseContradictions(answers: AssessmentAnswer[]): string[] {
+    const contradictions: string[] = [];
+    
+    // Find relevant answers
+    const workPreference = answers.find(a => a.questionId === 'work_preference_main')?.answer as string;
+    const educationCommitment = answers.find(a => a.questionId === 'education_commitment')?.answer as string;
+    const constraints = answers.find(a => a.questionId === 'decided_career_constraints' || a.questionId === 'undecided_career_constraints')?.answer as string;
+    const inspiration = answers.find(a => a.questionId === 'decided_impact_and_inspiration' || a.questionId === 'undecided_impact_and_inspiration')?.answer as string;
+    
+    // Check for healthcare career + immediate work contradiction
+    if (workPreference === 'non_hard_hat_healthcare' && educationCommitment === 'certificate') {
+      contradictions.push('⚠️ CONTRADICTION: Student wants healthcare career (typically requires 2-4+ years education) but selected "Work immediately after high school" - MUST address this gap and provide realistic pathway options');
+    }
+    
+    // Check for advanced careers with minimal education
+    const advancedCareers = ['non_hard_hat_healthcare', 'hard_hat_creating_designs', 'non_hard_hat_research'];
+    if (advancedCareers.includes(workPreference) && educationCommitment === 'certificate') {
+      contradictions.push(`⚠️ CONTRADICTION: Selected career typically requires more education than student is willing to pursue - provide alternative pathways and explain education requirements clearly`);
+    }
+    
+    // Check for financial constraints vs education requirements
+    if (constraints && constraints.toLowerCase().includes('money') && educationCommitment !== 'certificate') {
+      contradictions.push('⚠️ CONTRADICTION: Student needs to earn money quickly but selected career path requiring extended education - provide financial aid information and part-time work options');
+    }
+    
+    // Check for minimal inspiration responses
+    if (inspiration && inspiration.length < 10) {
+      contradictions.push(`⚠️ MINIMAL RESPONSE: Student provided very brief inspiration response ("${inspiration}") - focus on practical career guidance rather than values-based recommendations`);
+    }
+    
+    return contradictions;
   }
 
   /**
@@ -395,15 +783,10 @@ CRITICAL CAREER PATHWAY REQUIREMENTS:
   private static validateAIConfiguration(): { provider: string; available: boolean; reason?: string } {
     const aiProvider = (process.env.AI_PROVIDER || 'openai').toLowerCase();
     
-    console.log('🔧 Validating AI configuration...');
-    console.log('   - Requested provider:', aiProvider);
-    
     switch (aiProvider) {
       case 'openai':
         const hasOpenAIKey = !!process.env.OPENAI_API_KEY;
         const openAIKeyLength = process.env.OPENAI_API_KEY?.length || 0;
-        console.log('   - OpenAI API key present:', hasOpenAIKey);
-        console.log('   - OpenAI API key length:', openAIKeyLength);
         
         if (!hasOpenAIKey) {
           return {
@@ -426,8 +809,6 @@ CRITICAL CAREER PATHWAY REQUIREMENTS:
       case 'gemini':
         const hasGeminiKey = !!process.env.GEMINI_API_KEY;
         const geminiKeyLength = process.env.GEMINI_API_KEY?.length || 0;
-        console.log('   - Gemini API key present:', hasGeminiKey);
-        console.log('   - Gemini API key length:', geminiKeyLength);
         
         if (!hasGeminiKey) {
           return {
@@ -448,7 +829,6 @@ CRITICAL CAREER PATHWAY REQUIREMENTS:
         return { provider: 'gemini', available: true };
         
       default:
-        console.log('   - Invalid AI provider specified:', aiProvider);
         return {
           provider: aiProvider,
           available: false,
@@ -463,7 +843,13 @@ CRITICAL CAREER PATHWAY REQUIREMENTS:
   static async callAI(context: string): Promise<string> {
     const aiConfig = this.validateAIConfiguration();
     
-    console.log('🤖 AI Provider Configuration:', aiConfig);
+    // Comment out verbose logging - only show essential info
+    // console.log('🚀 RTCROS AI REQUEST');
+    // console.log('Provider:', aiConfig.provider);
+    // console.log('Model:', aiConfig.provider === 'gemini' ? 'gemini-2.0-flash-exp' : 'gpt-3.5-turbo');
+    // console.log('Context Length:', context.length, 'characters');
+    // console.log('Framework: RTCROS (Role-Task-Context-Reasoning-Output-Stopping)');
+    // console.log('Sending structured prompt...\n');
     
     if (!aiConfig.available) {
       throw new Error(`AI Provider '${aiConfig.provider}' is not available: ${aiConfig.reason}`);
@@ -482,8 +868,6 @@ CRITICAL CAREER PATHWAY REQUIREMENTS:
    * Call Google Gemini API for comprehensive recommendations
    */
   private static async callGemini(context: string): Promise<string> {
-    console.log('🔑 Initializing Gemini client with key length:', process.env.GEMINI_API_KEY?.length || 0);
-    
     if (!process.env.GEMINI_API_KEY) {
       throw new Error('GEMINI_API_KEY is required for Gemini AI provider');
     }
@@ -571,13 +955,24 @@ Provide your analysis in the following JSON format:
   ]
 }`;
 
-    console.log('🚀 Sending request to Gemini...');
+    // Comment out verbose Gemini logging
+    // console.log('\n🚀 RTCROS GEMINI REQUEST');
+    // console.log('Model: gemini-2.0-flash-exp');
+    // console.log('System Prompt: RTCROS structured (' + systemPrompt.length + ' chars)');
+    // console.log('User Prompt: Context + Instructions (' + userPrompt.length + ' chars)');
+    // console.log('Total: ' + (systemPrompt + userPrompt).length + ' characters');
+    // console.log('Sending to Gemini API...\n');
+
+    // console.log('🚀 Sending RTCROS request to Gemini...');
 
     const result = await model.generateContent(`${systemPrompt}\n\n${userPrompt}`);
     const response = result.response.text();
     
-    console.log('✅ GEMINI API RESPONSE RECEIVED');
-    console.log('Response Length:', response.length, 'characters');
+    // Comment out response logging
+    // console.log('✅ GEMINI RESPONSE RECEIVED');
+    // console.log('Response Length:', response.length, 'characters');
+    // console.log('JSON Structure:', response.includes('"academicPlan"') ? 'Valid' : 'Needs Parsing');
+    // console.log('Processing response...\n');
 
     return response;
   }
@@ -586,7 +981,6 @@ Provide your analysis in the following JSON format:
    * Call OpenAI API for comprehensive recommendations
    */
   private static async callOpenAI(context: string): Promise<string> {
-    console.log('🔑 Initializing OpenAI client with key length:', process.env.OPENAI_API_KEY?.length || 0);
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY || '',
     });
@@ -671,7 +1065,16 @@ Provide your analysis in the following JSON format:
   ]
 }`;
 
-    console.log('🚀 Sending request to OpenAI...');
+    // Comment out verbose OpenAI logging
+    // console.log('\n🚀 RTCROS OPENAI REQUEST');
+    // console.log('Model: gpt-3.5-turbo');
+    // console.log('Max Tokens: 4000, Temperature: 0.3');
+    // console.log('System Prompt: RTCROS structured (' + systemPrompt.length + ' chars)');
+    // console.log('User Prompt: Context + Instructions (' + userPrompt.length + ' chars)');
+    // console.log('Total: ' + (systemPrompt + userPrompt).length + ' characters');
+    // console.log('Sending to OpenAI API...\n');
+
+    // console.log('🚀 Sending RTCROS request to OpenAI...');
 
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
@@ -692,8 +1095,11 @@ Provide your analysis in the following JSON format:
 
     const response = completion.choices[0]?.message?.content || '';
     
-    console.log('✅ OPENAI API RESPONSE RECEIVED');
-    console.log('Response Length:', response.length, 'characters');
+    // Comment out OpenAI response logging
+    // console.log('✅ OPENAI RESPONSE RECEIVED');
+    // console.log('Response Length:', response.length, 'characters');
+    // console.log('JSON Structure:', response.includes('"academicPlan"') ? 'Valid' : 'Needs Parsing');
+    // console.log('Processing response...\n');
 
     return response;
   }

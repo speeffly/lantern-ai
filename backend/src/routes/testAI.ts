@@ -1,5 +1,5 @@
 import express from 'express';
-import { AIRecommendationService } from '../services/aiRecommendationService';
+import { CleanAIRecommendationService } from '../services/cleanAIRecommendationService';
 
 const router = express.Router();
 
@@ -28,7 +28,7 @@ router.post('/ai-recommendations', async (req, res) => {
       process.env.USE_REAL_AI = 'false';
       
       try {
-        recommendations = await AIRecommendationService.generateRecommendations(
+        recommendations = await CleanAIRecommendationService.generateRecommendations(
           profile,
           answers,
           careerMatches,
@@ -41,7 +41,7 @@ router.post('/ai-recommendations', async (req, res) => {
       }
     } else {
       console.log('🤖 Testing real AI recommendations');
-      recommendations = await AIRecommendationService.generateRecommendations(
+      recommendations = await CleanAIRecommendationService.generateRecommendations(
         profile,
         answers,
         careerMatches,

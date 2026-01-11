@@ -15,7 +15,7 @@ export class DatabaseService {
   static async initialize(): Promise<void> {
     if (this.isInitialized) return;
 
-    console.log('🔧 Starting database initialization...');
+    // console.log('🔧 Starting database initialization...');
     
     try {
       // Environment-specific database path with proper directory handling
@@ -25,19 +25,19 @@ export class DatabaseService {
       if (process.env.RENDER) {
         // On Render, use /tmp for ephemeral storage (persists during session)
         dbPath = '/tmp/lantern_ai.db';
-        console.log('🚀 Render deployment: Using /tmp for SQLite database');
+        // console.log('🚀 Render deployment: Using /tmp for SQLite database');
       } else if (process.env.NODE_ENV === 'production') {
         // Other production environments - ensure directory exists
         dbDir = './database';
         try {
           if (!fs.existsSync(dbDir)) {
             fs.mkdirSync(dbDir, { recursive: true });
-            console.log('📁 Created database directory:', dbDir);
+            // console.log('📁 Created database directory:', dbDir);
           }
           dbPath = path.join(dbDir, 'lantern_ai.db');
-          console.log('🏭 Production: Using database directory for SQLite database');
+          // console.log('🏭 Production: Using database directory for SQLite database');
         } catch (error) {
-          console.warn('⚠️ Could not create database directory, using current directory');
+          // console.warn('⚠️ Could not create database directory, using current directory');
           dbPath = './lantern_ai.db';
         }
       } else {
@@ -46,17 +46,17 @@ export class DatabaseService {
         try {
           if (!fs.existsSync(dbDir)) {
             fs.mkdirSync(dbDir, { recursive: true });
-            console.log('📁 Created data directory:', dbDir);
+            // console.log('📁 Created data directory:', dbDir);
           }
           dbPath = path.join(dbDir, 'lantern_ai.db');
-          console.log('💻 Development: Using ./data directory for SQLite database');
+          // console.log('💻 Development: Using ./data directory for SQLite database');
         } catch (error) {
-          console.warn('⚠️ Could not create data directory, using current directory');
+          // console.warn('⚠️ Could not create data directory, using current directory');
           dbPath = './lantern_ai_dev.db';
         }
       }
 
-      console.log('🗄️ Initializing SQLite database at:', dbPath);
+      // console.log('🗄️ Initializing SQLite database at:', dbPath);
 
       // Ensure parent directory exists and is writable
       const parentDir = path.dirname(dbPath);
@@ -64,15 +64,15 @@ export class DatabaseService {
         try {
           if (!fs.existsSync(parentDir)) {
             fs.mkdirSync(parentDir, { recursive: true });
-            console.log('📁 Created parent directory:', parentDir);
+            // console.log('📁 Created parent directory:', parentDir);
           }
           // Test write permissions
           const testFile = path.join(parentDir, '.write_test');
           fs.writeFileSync(testFile, 'test');
           fs.unlinkSync(testFile);
-          console.log('✅ Directory is writable:', parentDir);
+          // console.log('✅ Directory is writable:', parentDir);
         } catch (error) {
-          console.warn('⚠️ Directory permission issue, falling back to memory database');
+          // console.warn('⚠️ Directory permission issue, falling back to memory database');
           dbPath = ':memory:';
         }
       }
@@ -87,15 +87,15 @@ export class DatabaseService {
       await this.run('PRAGMA cache_size = 10000');   // More memory cache
       await this.run('PRAGMA temp_store = MEMORY');  // Temp tables in memory
       
-      console.log('✅ SQLite performance optimizations applied');
+      // console.log('✅ SQLite performance optimizations applied');
 
       // Create tables from embedded schema
       await this.createTables();
 
       this.isInitialized = true;
-      console.log('✅ Database initialized successfully');
+      // console.log('✅ Database initialized successfully');
     } catch (error) {
-      console.error('❌ Database initialization failed:', error);
+      // console.error('❌ Database initialization failed:', error);
       throw error;
     }
   }
@@ -108,17 +108,17 @@ export class DatabaseService {
       // Try to create the database connection
       const db = new sqlite.Database(dbPath, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, (err) => {
         if (err) {
-          console.error('❌ Error opening SQLite database:', err);
-          console.error('❌ Database path:', dbPath);
-          console.log('🔄 Falling back to in-memory database...');
+          // console.error('❌ Error opening SQLite database:', err);
+          // console.error('❌ Database path:', dbPath);
+          // console.log('🔄 Falling back to in-memory database...');
           
           // Fallback to memory database
           const memDb = new sqlite.Database(':memory:', (memErr) => {
             if (memErr) {
-              console.error('❌ Failed to create memory database:', memErr);
+              //console.error('❌ Failed to create memory database:', memErr);
               reject(memErr);
             } else {
-              console.log('✅ Connected to in-memory SQLite database');
+              //console.log('✅ Connected to in-memory SQLite database');
               this.db = memDb;
               resolve();
             }

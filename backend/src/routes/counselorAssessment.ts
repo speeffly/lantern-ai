@@ -352,9 +352,37 @@ router.post('/submit', upload.single('transcriptFile'), async (req, res) => {
     if (!responses.zipCode) responses.zipCode = zipCode;
 
     console.log('🎓 Processing counselor assessment submission...');
+    console.log('📋 DETAILED RESPONSES OBJECT:');
+    console.log('='.repeat(80));
+    console.log('📊 Response Type:', typeof responses);
+    console.log('📊 Response Keys:', Object.keys(responses));
+    console.log('📊 Response Length:', Object.keys(responses).length);
+    console.log('='.repeat(80));
+    
+    // Print each response element with detailed information
+    Object.entries(responses).forEach(([key, value], index) => {
+      console.log(`${index + 1}. KEY: "${key}"`);
+      console.log(`   TYPE: ${typeof value}`);
+      console.log(`   VALUE: ${JSON.stringify(value, null, 2)}`);
+      
+      // Additional details for objects and arrays
+      if (typeof value === 'object' && value !== null) {
+        if (Array.isArray(value)) {
+          console.log(`   ARRAY LENGTH: ${value.length}`);
+          console.log(`   ARRAY ELEMENTS: ${value.map(v => typeof v).join(', ')}`);
+        } else {
+          console.log(`   OBJECT KEYS: ${Object.keys(value).join(', ')}`);
+        }
+      }
+      console.log('   ' + '-'.repeat(50));
+    });
+    
+    console.log('='.repeat(80));
+    console.log('📋 END OF RESPONSES OBJECT DETAILS');
+    console.log('='.repeat(80));
 
-    // Generate comprehensive counselor recommendations
-    const counselorRecommendation = await CounselorGuidanceService.generateCounselorRecommendations(responses);
+    // Generate comprehensive counselor recommendations using DIRECT approach
+    const counselorRecommendation = await CounselorGuidanceService.generateDirectCounselorRecommendations(responses);
 
     // Save assessment session to database if user is logged in
     let assessmentSessionId = null;

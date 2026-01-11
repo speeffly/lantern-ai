@@ -37,12 +37,12 @@ export class JobListingService {
       });
 
       if (realJobs.length > 0) {
-        console.log(`🟢 Using real jobs for career "${careerTitle}" in ${zipCode}: ${realJobs.length} found`);
+        // console.log(`🟢 Using real jobs for career "${careerTitle}" in ${zipCode}: ${realJobs.length} found`);
         return realJobs.slice(0, limit);
       }
 
       // Otherwise, return mock data that looks realistic
-      console.log(`🟠 Falling back to mock jobs for career "${careerTitle}" in ${zipCode}`);
+      // console.log(`🟠 Falling back to mock jobs for career "${careerTitle}" in ${zipCode}`);
       const mockJobs = this.generateMockJobs(careerTitle, zipCode);
       return mockJobs
         .filter(job => (job.distanceFromStudent || 0) <= radiusMiles)
@@ -50,7 +50,7 @@ export class JobListingService {
         .slice(0, limit);
         
     } catch (error) {
-      console.error('Error fetching job listings:', error);
+      // console.error('Error fetching job listings:', error);
       return [];
     }
   }
@@ -162,7 +162,7 @@ export class JobListingService {
     });
 
     if (realJobs.length > 0) {
-      console.log(`🟢 Using real jobs for search "${keywords}" in ${zipCode}: ${realJobs.length} found`);
+      // console.log(`🟢 Using real jobs for search "${keywords}" in ${zipCode}: ${realJobs.length} found`);
       return realJobs.slice(0, limit);
     }
 
@@ -181,7 +181,7 @@ export class JobListingService {
     }
 
     if (expandedResults.length > 0) {
-      console.log(`🟢 Using real jobs for expanded search "${keywords}" -> [${expandedKeywords.join(', ')}] in ${zipCode}: ${expandedResults.length} found`);
+      // console.log(`🟢 Using real jobs for expanded search "${keywords}" -> [${expandedKeywords.join(', ')}] in ${zipCode}: ${expandedResults.length} found`);
       return this.dedup(expandedResults).slice(0, limit);
     }
 
@@ -195,9 +195,9 @@ export class JobListingService {
     }
 
     if (allJobs.length > 0) {
-      console.log(`🟠 Using fallback/mock jobs for search "${keywords}" in ${zipCode}: ${allJobs.length} found`);
+      // console.log(`🟠 Using fallback/mock jobs for search "${keywords}" in ${zipCode}: ${allJobs.length} found`);
     } else {
-      console.log(`🔴 No jobs found for search "${keywords}" in ${zipCode} (real provider unreachable or empty)`);
+      // console.log(`🔴 No jobs found for search "${keywords}" in ${zipCode} (real provider unreachable or empty)`);
     }
 
     return allJobs
@@ -234,7 +234,7 @@ export class JobListingService {
         .filter(Boolean)
         .filter((kw, idx, arr) => arr.indexOf(kw) === idx);
     } catch (err) {
-      console.error('AI keyword expansion failed, continuing without it:', err);
+      // console.error('AI keyword expansion failed, continuing without it:', err);
       return [];
     }
   }

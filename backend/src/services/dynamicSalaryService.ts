@@ -44,12 +44,12 @@ export class DynamicSalaryService {
     // Check cache first
     const cached = this.salaryCache.get(cacheKey);
     if (cached && (Date.now() - cached.timestamp) < this.CACHE_DURATION) {
-      console.log('📊 Using cached salary data');
+      // console.log('📊 Using cached salary data');
       return cached.data;
     }
 
     try {
-      console.log(`💰 Calculating dynamic salaries for ${careerMatches.length} careers near ${zipCode}`);
+      // console.log(`💰 Calculating dynamic salaries for ${careerMatches.length} careers near ${zipCode}`);
       
       const salaryAnalyses: SalaryAnalysis[] = [];
       
@@ -63,7 +63,7 @@ export class DynamicSalaryService {
           await new Promise(resolve => setTimeout(resolve, 200));
           
         } catch (error) {
-          console.error(`⚠️ Failed to analyze salary for ${match.career.title}:`, error);
+          // console.error(`⚠️ Failed to analyze salary for ${match.career.title}:`, error);
           
           // Fallback to static data
           salaryAnalyses.push({
@@ -96,11 +96,11 @@ export class DynamicSalaryService {
         timestamp: Date.now()
       });
 
-      console.log(`✅ Dynamic salary analysis complete for ${zipCode}`);
+      // console.log(`✅ Dynamic salary analysis complete for ${zipCode}`);
       return localSalaryData;
 
     } catch (error) {
-      console.error('❌ Dynamic salary analysis failed:', error);
+      // console.error('❌ Dynamic salary analysis failed:', error);
       return this.getFallbackSalaryData(zipCode, careerMatches, radiusMiles);
     }
   }
@@ -113,10 +113,10 @@ export class DynamicSalaryService {
     zipCode: string,
     radiusMiles: number
   ): Promise<SalaryAnalysis> {
-    console.log(`🔍 Analyzing salary for ${careerMatch.career.title}...`);
+    // console.log(`🔍 Analyzing salary for ${careerMatch.career.title}...`);
 
     if (!RealJobProvider.isEnabled()) {
-      console.log('⚠️ RealJobProvider disabled, using static salary data');
+      // console.log('⚠️ RealJobProvider disabled, using static salary data');
       return {
         careerTitle: careerMatch.career.title,
         averageSalary: careerMatch.career.averageSalary,
@@ -140,7 +140,7 @@ export class DynamicSalaryService {
       });
 
       if (jobs.length === 0) {
-        console.log(`⚠️ No jobs found for ${careerMatch.career.title}, using static data`);
+        // console.log(`⚠️ No jobs found for ${careerMatch.career.title}, using static data`);
         return {
           careerTitle: careerMatch.career.title,
           averageSalary: careerMatch.career.averageSalary,
@@ -158,7 +158,7 @@ export class DynamicSalaryService {
       const salaryData = this.extractSalaryData(jobs);
       
       if (salaryData.length === 0) {
-        console.log(`⚠️ No salary data found in jobs for ${careerMatch.career.title}`);
+        // console.log(`⚠️ No salary data found in jobs for ${careerMatch.career.title}`);
         return {
           careerTitle: careerMatch.career.title,
           averageSalary: careerMatch.career.averageSalary,
@@ -177,7 +177,7 @@ export class DynamicSalaryService {
       const minSalary = Math.min(...salaryData);
       const maxSalary = Math.max(...salaryData);
 
-      console.log(`💰 ${careerMatch.career.title}: $${averageSalary.toLocaleString()} avg (${salaryData.length} jobs with salary data)`);
+      // console.log(`💰 ${careerMatch.career.title}: $${averageSalary.toLocaleString()} avg (${salaryData.length} jobs with salary data)`);
 
       return {
         careerTitle: careerMatch.career.title,
@@ -192,7 +192,7 @@ export class DynamicSalaryService {
       };
 
     } catch (error) {
-      console.error(`❌ Salary analysis failed for ${careerMatch.career.title}:`, error);
+      // console.error(`❌ Salary analysis failed for ${careerMatch.career.title}:`, error);
       
       // Fallback to static data
       return {
@@ -343,6 +343,6 @@ export class DynamicSalaryService {
    */
   static clearCache(): void {
     this.salaryCache.clear();
-    console.log('🗑️ Salary cache cleared');
+    // console.log('🗑️ Salary cache cleared');
   }
 }

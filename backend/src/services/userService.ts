@@ -77,10 +77,10 @@ export class UserService {
         throw new Error('Failed to retrieve created user');
       }
 
-      console.log(`✅ Created ${userData.role} user:`, userData.email);
+      // console.log(`✅ Created ${userData.role} user:`, userData.email);
       return user;
     } catch (error) {
-      console.error('❌ Error creating user:', error);
+      // console.error('❌ Error creating user:', error);
       throw error;
     }
   }
@@ -97,7 +97,7 @@ export class UserService {
 
       return user || null;
     } catch (error) {
-      console.error('❌ Error getting user by ID:', error);
+      // console.error('❌ Error getting user by ID:', error);
       return null;
     }
   }
@@ -114,7 +114,7 @@ export class UserService {
 
       return user || null;
     } catch (error) {
-      console.error('❌ Error getting user by email:', error);
+      // console.error('❌ Error getting user by email:', error);
       return null;
     }
   }
@@ -143,7 +143,7 @@ export class UserService {
       const { password_hash, ...userWithoutPassword } = user;
       return userWithoutPassword as User;
     } catch (error) {
-      console.error('❌ Error authenticating user:', error);
+      // console.error('❌ Error authenticating user:', error);
       return null;
     }
   }
@@ -187,7 +187,7 @@ export class UserService {
 
       return this.getUserById(userId);
     } catch (error) {
-      console.error('❌ Error updating user:', error);
+      // console.error('❌ Error updating user:', error);
       throw error;
     }
   }
@@ -234,10 +234,10 @@ export class UserService {
         throw new Error('Failed to retrieve created student profile');
       }
 
-      console.log('✅ Created student profile for user:', userId);
+      // console.log('✅ Created student profile for user:', userId);
       return profile;
     } catch (error) {
-      console.error('❌ Error creating student profile:', error);
+      // console.error('❌ Error creating student profile:', error);
       throw error;
     }
   }
@@ -263,7 +263,7 @@ export class UserService {
         extracurricular_activities: JSON.parse(profile.extracurricular_activities || '[]')
       } as StudentProfile;
     } catch (error) {
-      console.error('❌ Error getting student profile:', error);
+      // console.error('❌ Error getting student profile:', error);
       return null;
     }
   }
@@ -338,7 +338,7 @@ export class UserService {
 
       return this.getStudentProfile(userId);
     } catch (error) {
-      console.error('❌ Error updating student profile:', error);
+      // console.error('❌ Error updating student profile:', error);
       throw error;
     }
   }
@@ -366,10 +366,10 @@ export class UserService {
         throw new Error('Failed to retrieve created counselor profile');
       }
 
-      console.log('✅ Created counselor profile for user:', userId);
+      // console.log('✅ Created counselor profile for user:', userId);
       return profile;
     } catch (error) {
-      console.error('❌ Error creating counselor profile:', error);
+      // console.error('❌ Error creating counselor profile:', error);
       throw error;
     }
   }
@@ -392,7 +392,7 @@ export class UserService {
         specializations: JSON.parse(profile.specializations || '[]')
       } as CounselorProfile;
     } catch (error) {
-      console.error('❌ Error getting counselor profile:', error);
+      // console.error('❌ Error getting counselor profile:', error);
       return null;
     }
   }
@@ -416,10 +416,10 @@ export class UserService {
         throw new Error('Failed to retrieve created parent profile');
       }
 
-      console.log('✅ Created parent profile for user:', userId);
+      // console.log('✅ Created parent profile for user:', userId);
       return profile;
     } catch (error) {
-      console.error('❌ Error creating parent profile:', error);
+      // console.error('❌ Error creating parent profile:', error);
       throw error;
     }
   }
@@ -435,7 +435,7 @@ export class UserService {
 
       return profile || null;
     } catch (error) {
-      console.error('❌ Error getting parent profile:', error);
+      // console.error('❌ Error getting parent profile:', error);
       return null;
     }
   }
@@ -453,7 +453,7 @@ export class UserService {
 
       return users;
     } catch (error) {
-      console.error('❌ Error getting users by role:', error);
+      // console.error('❌ Error getting users by role:', error);
       return [];
     }
   }

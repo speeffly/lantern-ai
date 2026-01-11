@@ -346,11 +346,11 @@ PATH B (EXPLORATION) SPECIFIC INSTRUCTIONS:
     if (!subjects || typeof subjects !== 'object') return 50;
     
     const subjectCareerMapping: { [key: string]: string[] } = {
-      'math': ['Data Analyst', 'Financial Analyst', 'Accountant', 'Engineer'],
-      'science': ['Nurse', 'Medical', 'Research', 'Laboratory', 'Environmental'],
+      'math': ['Data Analyst', 'Financial Analyst', 'Accountant', 'Aerospace Engineer', 'Civil Engineer', 'Mechanical Engineer', 'Electrical Engineer', 'Structural Engineer'],
+      'science': ['Nurse', 'Medical', 'Research', 'Laboratory', 'Environmental', 'Aerospace Engineer', 'Mechanical Engineer', 'Electrical Engineer'],
       'english': ['Teacher', 'Writer', 'Counselor', 'Trainer'],
       'art': ['Designer', 'Photographer', 'Artist'],
-      'technology': ['Developer', 'IT', 'Cybersecurity'],
+      'technology': ['Developer', 'IT', 'Cybersecurity', 'Electrical Engineer'],
       'history': ['Teacher', 'Police', 'Counselor'],
       'physical_ed': ['Firefighter', 'EMT', 'Therapist']
     };

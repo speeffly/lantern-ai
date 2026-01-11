@@ -468,7 +468,7 @@
     },
     "hard_hat_creating_designs": {
       "primarySectors": ["infrastructure", "creative"],
-      "careers": ["Architect", "Civil Engineer", "Structural Engineer", "CAD Technician", "Urban Planner", "Landscape Architect", "Surveyor"]
+      "careers": ["Architect", "Civil Engineer", "Structural Engineer", "Aerospace Engineer", "Mechanical Engineer", "Electrical Engineer", "CAD Technician", "Urban Planner", "Landscape Architect", "Surveyor"]
     },
     "non_hard_hat_data_analysis": {
       "primarySectors": ["business", "finance", "science"],

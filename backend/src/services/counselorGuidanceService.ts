@@ -1,6 +1,6 @@
 import { CareerService } from './careerService';
 import { CareerMatch, AssessmentAnswer } from '../types';
-import { AIRecommendationService } from './aiRecommendationService';
+import { CleanAIRecommendationService } from './cleanAIRecommendationService';
 import { DynamicSalaryService } from './dynamicSalaryService';
 import { EnhancedCareerService } from './enhancedCareerService';
 import { CareerMatchingService, EnhancedCareerMatch } from './careerMatchingService';
@@ -133,8 +133,402 @@ export interface CounselorRecommendation {
 
 export class CounselorGuidanceService {
   /**
-   * Generate comprehensive counselor recommendations
+   * Generate counselor recommendations directly from raw responses (NEW SIMPLIFIED APPROACH)
+   * Bypasses the complex mapping logic and sends responses directly to AI
    */
+  static async generateDirectCounselorRecommendations(responses: any): Promise<any> {
+    try {
+      console.log('🚀 Using DIRECT AI approach - no mapping layer');
+      
+      // Extract basic info
+      const grade = responses.q1_grade_zip?.grade || responses.grade;
+      const zipCode = responses.q1_grade_zip?.zipCode || responses.zipCode;
+
+      // Create a comprehensive RTCROS-structured prompt with all raw responses
+      const directPrompt = `ROLE:
+You are a Senior Career Counselor AI specializing in high school career guidance, with expertise in educational pathways, labor market analysis, and personalized career development planning.
+
+TASK:
+Analyze the student's direct assessment responses and generate a comprehensive, personalized career guidance package including career matches, academic planning, skill development recommendations, and actionable next steps.
+
+CONTEXT:
+- Platform: Lantern AI career guidance system for high school students
+- Student: Grade ${grade} student in ZIP code ${zipCode}
+- Assessment Type: Direct questionnaire responses covering interests, skills, education willingness, and career preferences
+- Output Usage: Direct student guidance, counselor support materials, parent communication
+- Geographic Focus: Local job market analysis for ZIP ${zipCode}
+
+STUDENT ASSESSMENT RESPONSES:
+${Object.entries(responses)
+  .filter(([key]) => !['grade', 'zipCode', 'q1_grade_zip'].includes(key))
+  .map(([questionId, answer]) => {
+    const cleanAnswer = typeof answer === 'object' ? JSON.stringify(answer) : answer;
+    return `${questionId}: ${cleanAnswer}`;
+  })
+  .join('\n')}
+
+REASONING FRAMEWORK:
+1. STUDENT-FIRST APPROACH: Prioritize the student's explicitly stated career goals and interests from their responses
+2. EVIDENCE-BASED RECOMMENDATIONS: Base all suggestions on actual student responses, not generic assumptions
+3. REALISTIC PATHWAYS: Align recommendations with student's education willingness and practical constraints
+4. LOCAL RELEVANCE: Consider ZIP code ${zipCode} job market and educational opportunities
+5. GROWTH MINDSET: Present challenges as development opportunities, not barriers
+6. CONTRADICTION RESOLUTION: When student goals conflict with constraints, provide bridging solutions
+
+OUTPUT REQUIREMENTS:
+Generate a structured JSON response with these exact sections:
+
+{
+  "careerMatches": [
+    {
+      "careerTitle": "Specific career title",
+      "matchPercentage": 85,
+      "matchReasoning": "Specific reasons based on student responses",
+      "sector": "healthcare/technology/infrastructure/etc",
+      "averageSalary": 65000,
+      "requiredEducation": "Specific education requirement",
+      "localJobMarket": {
+        "estimatedJobs": 45,
+        "averageLocalSalary": 62000,
+        "topEmployers": ["Local employer 1", "Local employer 2"],
+        "growthOutlook": "Growing/Stable/Declining"
+      }
+    }
+  ],
+  "academicPlan": {
+    "currentYear": {
+      "coreCourses": ["Specific course 1", "Specific course 2"],
+      "electiveCourses": ["Career-relevant elective 1", "Career-relevant elective 2"],
+      "extracurriculars": ["Relevant activity 1", "Relevant activity 2"],
+      "milestones": ["Specific milestone 1", "Specific milestone 2"]
+    },
+    "nextYear": {
+      "coreCourses": ["Advanced course 1", "Advanced course 2"],
+      "electiveCourses": ["Specialized elective 1", "Specialized elective 2"],
+      "extracurriculars": ["Leadership activity 1", "Skill-building activity 2"],
+      "milestones": ["Advanced milestone 1", "Advanced milestone 2"]
+    },
+    "postGraduation": {
+      "educationOptions": ["Specific program 1", "Alternative pathway 2"],
+      "timeline": "Realistic timeframe",
+      "estimatedCost": "Cost range"
+    }
+  },
+  "skillGaps": [
+    {
+      "skill": "Specific skill name",
+      "importance": "Critical/Important/Helpful",
+      "howToAcquire": "Concrete methods to develop this skill",
+      "timeline": "When to develop this skill"
+    }
+  ],
+  "actionPlan": [
+    {
+      "title": "Clear, actionable task",
+      "description": "Detailed explanation and rationale",
+      "priority": "high/medium/low",
+      "timeline": "Specific timeframe for completion",
+      "category": "academic/career/skill/experience"
+    }
+  ],
+  "parentGuidance": {
+    "summary": "Brief overview for parents",
+    "supportActions": ["How parents can help 1", "How parents can help 2"],
+    "keyRecommendations": ["Important point 1", "Important point 2"]
+  }
+}
+
+STOPPING CRITERIA:
+1. COMPLETENESS CHECK: Ensure all five JSON sections are populated with relevant, specific content
+2. PERSONALIZATION VERIFICATION: Confirm recommendations reference student's actual responses and interests
+3. CONTRADICTION HANDLING: Verify any conflicts between goals and constraints are explicitly addressed
+4. ACTIONABILITY TEST: Ensure all recommendations include specific, measurable next steps
+5. JSON VALIDATION: Confirm output is valid JSON with no syntax errors
+6. SPECIFICITY STANDARD: Replace all generic placeholders with actual career-specific information based on student responses
+
+CRITICAL: Return ONLY the JSON object. No additional text, explanations, or formatting outside the JSON structure.`;
+
+      // Send directly to AI
+      console.log('📤 Sending direct prompt to AI...');
+      const aiResponse = await CleanAIRecommendationService.callAI(directPrompt);
+      
+      // Parse AI response and structure it
+      const parsedResponse = this.parseDirectAIResponse(aiResponse, grade, zipCode);
+      
+      return parsedResponse;
+
+    } catch (error) {
+      console.error('❌ Direct AI approach failed:', error);
+      // Fallback to original method
+      return this.generateCounselorRecommendations(responses);
+    }
+  }
+
+  /**
+   * Parse the RTCROS-structured AI response into the expected format
+   */
+  private static parseDirectAIResponse(aiResponse: string, grade: string, zipCode: string): any {
+    try {
+      // Clean the response to extract JSON
+      let cleanResponse = aiResponse.trim();
+      
+      // Remove any markdown formatting
+      cleanResponse = cleanResponse.replace(/```json\s*/g, '').replace(/```\s*$/g, '');
+      
+      // Find the JSON object (starts with { and ends with })
+      const jsonStart = cleanResponse.indexOf('{');
+      const jsonEnd = cleanResponse.lastIndexOf('}') + 1;
+      
+      if (jsonStart !== -1 && jsonEnd > jsonStart) {
+        cleanResponse = cleanResponse.substring(jsonStart, jsonEnd);
+      }
+      
+      const parsed = JSON.parse(cleanResponse);
+      
+      // Helper function to ensure arrays
+      const ensureArray = (value: any, fallback: string[] = []): string[] => {
+        if (Array.isArray(value)) return value;
+        if (typeof value === 'string') return [value];
+        return fallback;
+      };
+      
+      // Transform RTCROS response to expected format
+      return {
+        studentProfile: {
+          grade: parseInt(grade),
+          location: zipCode,
+          careerReadiness: 'AI-Assessed via RTCROS Framework'
+        },
+        topJobMatches: (parsed.careerMatches || []).map((match: any) => ({
+          career: {
+            id: match.careerTitle?.toLowerCase().replace(/\s+/g, '-') || 'unknown',
+            title: match.careerTitle || 'Career Match',
+            description: match.matchReasoning || 'AI-generated career match',
+            sector: match.sector || 'general',
+            averageSalary: match.averageSalary || 50000,
+            requiredEducation: match.requiredEducation || 'High school diploma',
+            certifications: [],
+            growthOutlook: match.localJobMarket?.growthOutlook || 'Stable'
+          },
+          matchScore: match.matchPercentage || 75,
+          matchReasons: [match.matchReasoning || 'Based on assessment responses'],
+          localOpportunities: {
+            estimatedJobs: match.localJobMarket?.estimatedJobs || 25,
+            averageLocalSalary: match.localJobMarket?.averageLocalSalary || match.averageSalary || 50000,
+            topEmployers: ensureArray(match.localJobMarket?.topEmployers, ['Local employers']),
+            distanceFromStudent: 15
+          },
+          educationPath: {
+            highSchoolCourses: ensureArray(parsed.academicPlan?.currentYear?.coreCourses, ['Core academic courses']),
+            postSecondaryOptions: ensureArray(parsed.academicPlan?.postGraduation?.educationOptions, ['Post-secondary education']),
+            timeToCareer: parsed.academicPlan?.postGraduation?.timeline || '2-4 years',
+            estimatedCost: 25000
+          }
+        })),
+        aiRecommendations: {
+          recommendations: ensureArray(parsed.actionPlan?.map((action: any) => action.description), ['AI-generated recommendations']),
+          academicPlan: {
+            currentYear: [
+              ...ensureArray(parsed.academicPlan?.currentYear?.coreCourses, []),
+              ...ensureArray(parsed.academicPlan?.currentYear?.electiveCourses, []),
+              ...ensureArray(parsed.academicPlan?.currentYear?.extracurriculars, [])
+            ].filter(item => item), // Remove empty items
+            nextYear: [
+              ...ensureArray(parsed.academicPlan?.nextYear?.coreCourses, []),
+              ...ensureArray(parsed.academicPlan?.nextYear?.electiveCourses, []),
+              ...ensureArray(parsed.academicPlan?.nextYear?.extracurriculars, [])
+            ].filter(item => item),
+            longTerm: [
+              ...ensureArray(parsed.academicPlan?.postGraduation?.educationOptions, []),
+              'Complete high school requirements',
+              'Prepare for post-secondary education'
+            ].filter(item => item),
+            postGraduation: parsed.academicPlan?.postGraduation || {}
+          },
+          skillGaps: ensureArray(parsed.skillGaps, []),
+          rtcrosStructured: true
+        },
+        fourYearPlan: {
+          currentGrade: parseInt(grade),
+          academicPlan: {
+            [grade]: {
+              coreCourses: ensureArray(parsed.academicPlan?.currentYear?.coreCourses, ['Core academic courses']),
+              electiveCourses: ensureArray(parsed.academicPlan?.currentYear?.electiveCourses, ['Career-focused electives']),
+              extracurriculars: ensureArray(parsed.academicPlan?.currentYear?.extracurriculars, ['Relevant activities']),
+              milestones: ['Complete grade requirements', 'Explore career interests']
+            },
+            [parseInt(grade) + 1]: {
+              coreCourses: ensureArray(parsed.academicPlan?.nextYear?.coreCourses, ['Advanced core courses']),
+              electiveCourses: ensureArray(parsed.academicPlan?.nextYear?.electiveCourses, ['Specialized electives']),
+              extracurriculars: ensureArray(parsed.academicPlan?.nextYear?.extracurriculars, ['Leadership activities']),
+              milestones: ['Prepare for graduation', 'Finalize career plans']
+            }
+          },
+          careerPreparation: {
+            skillsToDevelope: (parsed.skillGaps || []).map((gap: any) => ({
+              skill: gap.skill || 'Skill development',
+              howToAcquire: gap.howToAcquire || 'Through practice and education',
+              timeline: gap.timeline || 'Ongoing'
+            })),
+            experienceOpportunities: (parsed.actionPlan || [])
+              .filter((action: any) => action.category === 'experience')
+              .map((action: any) => ({
+                activity: action.title || 'Experience opportunity',
+                when: action.timeline || 'As available',
+                benefit: action.description || 'Career development'
+              }))
+          },
+          postGraduationPath: {
+            educationOptions: (parsed.academicPlan?.postGraduation?.educationOptions || ['Post-secondary education']).map((option: any) => ({
+              option: typeof option === 'string' ? option : option.option || 'Education option',
+              duration: typeof option === 'object' ? option.duration || '2-4 years' : '2-4 years',
+              cost: typeof option === 'object' ? option.cost || '$20,000-$40,000' : '$20,000-$40,000',
+              location: typeof option === 'object' ? option.location || 'Local/Regional' : 'Local/Regional'
+            })),
+            careerEntry: {
+              targetPositions: ensureArray(parsed.careerMatches?.map((match: any) => `Entry-level ${match.careerTitle || 'position'}`), ['Entry-level positions in chosen career']),
+              expectedSalary: parsed.careerMatches?.[0]?.averageSalary ? `$${(parsed.careerMatches[0].averageSalary * 0.8).toLocaleString()} - $${parsed.careerMatches[0].averageSalary.toLocaleString()}` : '$45,000 - $55,000',
+              advancement: ensureArray(parsed.actionPlan?.filter((action: any) => action.category === 'career')?.map((action: any) => action.title), ['Gain experience', 'Pursue additional certifications', 'Advance to senior roles'])
+            }
+          }
+        },
+        parentSummary: {
+          overview: parsed.parentGuidance?.summary || 'AI-generated career guidance recommendations based on comprehensive assessment',
+          keyRecommendations: ensureArray(parsed.parentGuidance?.keyRecommendations, ['Encourage academic excellence', 'Support career exploration']),
+          supportActions: ensureArray(parsed.parentGuidance?.supportActions, ['Support student\'s career exploration', 'Help with educational planning']),
+          timelineHighlights: ensureArray(parsed.parentGuidance?.timelineHighlights, ['Focus on current grade requirements', 'Plan for post-secondary education'])
+        },
+        counselorNotes: {
+          assessmentInsights: [
+            `Student is in grade ${grade} and shows strong career potential`,
+            'Assessment responses indicate clear career interests and goals',
+            'AI analysis suggests good alignment with recommended career paths',
+            'Student demonstrates readiness for career-focused academic planning'
+          ],
+          recommendationRationale: [
+            'Career matches selected based on comprehensive AI analysis of student responses',
+            'Education pathways align with student interests and local opportunities',
+            'Recommendations consider both student preferences and market realities',
+            'AI-powered analysis ensures personalized and relevant guidance'
+          ],
+          followUpActions: [
+            'Schedule follow-up meeting to review progress on recommended action items',
+            'Monitor academic performance in career-relevant courses',
+            'Connect student with professionals in recommended career fields',
+            'Assist with scholarship and program application processes'
+          ],
+          parentMeetingTopics: [
+            'Review AI-generated career recommendations and rationale',
+            'Discuss 4-year academic plan and course selection strategy',
+            'Explore post-secondary education options and financial planning',
+            'Plan career exploration activities and work experience opportunities'
+          ]
+        },
+        directAIResponse: true,
+        rtcrosFramework: true
+      };
+    } catch (parseError) {
+      console.error('❌ Failed to parse RTCROS AI response:', parseError);
+      console.error('Raw AI Response:', aiResponse);
+      
+      // Enhanced fallback with RTCROS context
+      return {
+        studentProfile: {
+          grade: parseInt(grade),
+          location: zipCode,
+          careerReadiness: 'AI-Assessed (Fallback Mode)'
+        },
+        topJobMatches: [],
+        aiRecommendations: {
+          textResponse: aiResponse,
+          recommendations: ['AI provided detailed recommendations - see raw response'],
+          academicPlan: {
+            currentYear: ['Review AI recommendations for academic planning'],
+            nextYear: ['Continue following AI guidance'],
+            longTerm: ['Prepare for post-secondary education', 'Develop career-relevant skills'],
+            postGraduation: { textPlan: 'See AI recommendations' }
+          },
+          skillGaps: [],
+          rtcrosAttempted: true,
+          parseError: parseError instanceof Error ? parseError.message : String(parseError)
+        },
+        fourYearPlan: {
+          currentGrade: parseInt(grade),
+          academicPlan: {
+            [grade]: {
+              coreCourses: ['Review AI recommendations for core courses'],
+              electiveCourses: ['Follow AI guidance for electives'],
+              extracurriculars: ['Participate in recommended activities'],
+              milestones: ['Complete grade requirements']
+            }
+          },
+          careerPreparation: {
+            skillsToDevelope: [{
+              skill: 'Review AI recommendations',
+              howToAcquire: 'Follow detailed guidance provided',
+              timeline: 'Ongoing'
+            }],
+            experienceOpportunities: [{
+              activity: 'Career exploration',
+              when: 'Throughout high school',
+              benefit: 'Better career understanding'
+            }]
+          },
+          postGraduationPath: {
+            educationOptions: [{
+              option: 'See AI recommendations for education options',
+              duration: '2-4 years',
+              cost: 'Variable',
+              location: 'To be determined'
+            }],
+            careerEntry: {
+              targetPositions: ['Entry-level positions'],
+              expectedSalary: '$40,000 - $60,000',
+              advancement: ['Gain experience', 'Develop skills']
+            }
+          },
+          textPlan: aiResponse,
+          rtcrosStructured: false
+        },
+        parentSummary: {
+          overview: 'AI provided detailed career guidance recommendations - see raw response for complete analysis',
+          keyRecommendations: ['Review AI recommendations for key guidance points'],
+          supportActions: ['Support student\'s career exploration based on AI analysis'],
+          timelineHighlights: ['Follow AI-provided timeline recommendations']
+        },
+        counselorNotes: {
+          assessmentInsights: [
+            `Student is in grade ${grade} - AI analysis attempted`,
+            'Raw AI response contains detailed assessment insights',
+            'Fallback mode activated due to JSON parsing issues',
+            'Manual review of AI response recommended'
+          ],
+          recommendationRationale: [
+            'AI provided comprehensive analysis but JSON parsing failed',
+            'Raw response contains detailed reasoning for recommendations',
+            'Fallback structure ensures system stability',
+            'Manual interpretation of AI response may be needed'
+          ],
+          followUpActions: [
+            'Review raw AI response for detailed recommendations',
+            'Schedule follow-up meeting to discuss AI insights',
+            'Consider retaking assessment if needed',
+            'Monitor system for improved AI response parsing'
+          ],
+          parentMeetingTopics: [
+            'Review AI analysis and recommendations',
+            'Discuss career exploration based on AI insights',
+            'Plan next steps for career development',
+            'Address any questions about AI recommendations'
+          ]
+        },
+        directAIResponse: true,
+        rtcrosFramework: true,
+        rawAIResponse: aiResponse,
+        parseError: parseError instanceof Error ? parseError.message : String(parseError)
+      };
+    }
+  }
   static async generateCounselorRecommendations(
     responses: CounselorAssessmentResponse
   ): Promise<CounselorRecommendation> {
@@ -259,7 +653,7 @@ export class CounselorGuidanceService {
         // Convert responses to assessment answers format for AI service
         const assessmentAnswers = this.convertToAssessmentAnswers(responses);
         
-        const aiResult = await AIRecommendationService.generateRecommendations(
+        const aiResult = await CleanAIRecommendationService.generateRecommendations(
           studentProfile,
           assessmentAnswers,
           topMatches,

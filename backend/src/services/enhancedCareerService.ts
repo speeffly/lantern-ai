@@ -24,11 +24,11 @@ export class EnhancedCareerService {
     };
   }> {
     try {
-      console.log('🎯 Getting enhanced career matches with dynamic salary data...');
+      // console.log('🎯 Getting enhanced career matches with dynamic salary data...');
 
       // Step 1: Get initial career matches
       const initialMatches = CareerService.getCareerMatches(profile, zipCode);
-      console.log(`📊 Found ${initialMatches.length} initial career matches`);
+      // console.log(`📊 Found ${initialMatches.length} initial career matches`);
 
       // Step 2: Get dynamic salary data for the area
       const salaryData = await DynamicSalaryService.getLocalSalaryData(
@@ -43,10 +43,10 @@ export class EnhancedCareerService {
       // Step 4: Calculate insights
       const insights = this.calculateInsights(initialMatches, enhancedMatches, salaryData);
 
-      console.log(`✅ Enhanced career analysis complete for ${zipCode}`);
-      console.log(`   - ${insights.jobsAnalyzed} jobs analyzed`);
-      console.log(`   - ${insights.dynamicDataAvailable ? 'Dynamic' : 'Static'} salary data used`);
-      console.log(`   - Recommendation quality: ${insights.recommendationQuality}`);
+      // console.log(`✅ Enhanced career analysis complete for ${zipCode}`);
+      // console.log(`   - ${insights.jobsAnalyzed} jobs analyzed`);
+      // console.log(`   - ${insights.dynamicDataAvailable ? 'Dynamic' : 'Static'} salary data used`);
+      // console.log(`   - Recommendation quality: ${insights.recommendationQuality}`);
 
       return {
         careerMatches: enhancedMatches,
@@ -55,7 +55,7 @@ export class EnhancedCareerService {
       };
 
     } catch (error) {
-      console.error('❌ Enhanced career analysis failed:', error);
+      // console.error('❌ Enhanced career analysis failed:', error);
       
       // Fallback to basic career matches
       const basicMatches = CareerService.getCareerMatches(profile, zipCode);

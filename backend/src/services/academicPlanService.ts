@@ -1,5 +1,5 @@
 import { StudentProfile, AssessmentAnswer, CareerMatch } from '../types';
-import { AIRecommendationService } from './aiRecommendationService';
+import { CleanAIRecommendationService } from './cleanAIRecommendationService';
 import { RealJobProvider } from './realJobProvider';
 
 export interface FourYearPlan {
@@ -160,7 +160,7 @@ IMPORTANT: Return ONLY valid JSON. No additional text or explanations outside th
 
 Plan should start from Grade ${grade} and go through Grade 12, then include post-graduation planning. Be specific about course sequences, prerequisites, and timing. Consider both traditional and alternative education paths.`;
 
-      const aiResponse = await AIRecommendationService.callAI(prompt);
+      const aiResponse = await CleanAIRecommendationService.callAI(prompt);
       
       // Parse AI response using the improved JSON parsing from AIRecommendationService
       const cleanResponse = aiResponse

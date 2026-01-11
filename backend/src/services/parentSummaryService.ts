@@ -1,5 +1,5 @@
 import { StudentProfile, AssessmentAnswer, CareerMatch } from '../types';
-import { AIRecommendationService } from './aiRecommendationService';
+import { CleanAIRecommendationService } from './cleanAIRecommendationService';
 
 export interface ParentSummary {
   overview: {
@@ -47,7 +47,7 @@ export class ParentSummaryService {
     currentGrade?: number
   ): Promise<ParentSummary> {
     try {
-      console.log('👨‍👩‍👧‍👦 Generating parent summary...');
+      // console.log('👨‍👩‍👧‍👦 Generating parent summary...');
 
       const grade = currentGrade || 11;
       const topCareers = careerMatches.slice(0, 3);
@@ -117,7 +117,7 @@ IMPORTANT: Return ONLY valid JSON. No additional text or explanations outside th
 
 Focus on being supportive, realistic, and actionable. Help parents understand how to best support their child's career development journey.`;
 
-      const aiResponse = await AIRecommendationService.callAI(prompt);
+      const aiResponse = await CleanAIRecommendationService.callAI(prompt);
       
       // Parse AI response
       const cleanResponse = aiResponse
@@ -127,11 +127,11 @@ Focus on being supportive, realistic, and actionable. Help parents understand ho
       
       const parsed = JSON.parse(cleanResponse);
       
-      console.log('✅ Parent summary generated successfully');
+      // console.log('✅ Parent summary generated successfully');
       return parsed;
 
     } catch (error) {
-      console.error('❌ Parent summary generation failed:', error);
+      // console.error('❌ Parent summary generation failed:', error);
       return this.generateFallbackParentSummary(profile, careerMatches, currentGrade);
     }
   }

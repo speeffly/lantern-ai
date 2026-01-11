@@ -50,7 +50,7 @@ export class EmailVerificationService {
         });
       } else {
         // Fallback to console logging for development
-        console.log('⚠️ No email provider configured, using console logging');
+        // console.log('⚠️ No email provider configured, using console logging');
         this.transporter = nodemailer.createTransport({
           streamTransport: true,
           newline: 'unix',
@@ -182,16 +182,16 @@ The Lantern AI Team
       
       // Log email for development
       if (process.env.NODE_ENV === 'development') {
-        console.log('📧 Verification email sent:');
-        console.log('   To:', email);
-        console.log('   Token:', token);
-        console.log('   URL:', verificationUrl);
-        console.log('   Message ID:', info.messageId);
+        // console.log('📧 Verification email sent:');
+        // console.log('   To:', email);
+        // console.log('   Token:', token);
+        // console.log('   URL:', verificationUrl);
+        // console.log('   Message ID:', info.messageId);
       }
 
       return true;
     } catch (error) {
-      console.error('❌ Failed to send verification email:', error);
+      // console.error('❌ Failed to send verification email:', error);
       return false;
     }
   }
@@ -242,11 +242,11 @@ The Lantern AI Team
       `;
       await DatabaseServicePG.query(updateUserQuery, [tokenData.user_id]);
 
-      console.log('✅ Email verified successfully for user:', tokenData.user_id);
+      // console.log('✅ Email verified successfully for user:', tokenData.user_id);
       
       return { success: true, userId: tokenData.user_id };
     } catch (error) {
-      console.error('❌ Error verifying email token:', error);
+      // console.error('❌ Error verifying email token:', error);
       return { success: false, error: 'Failed to verify email' };
     }
   }
@@ -292,7 +292,7 @@ The Lantern AI Team
 
       return { success: true };
     } catch (error) {
-      console.error('❌ Error resending verification email:', error);
+      // console.error('❌ Error resending verification email:', error);
       return { success: false, error: 'Failed to resend verification email' };
     }
   }
@@ -307,7 +307,7 @@ The Lantern AI Team
       
       return result.rows.length > 0 && result.rows[0].email_verified;
     } catch (error) {
-      console.error('❌ Error checking email verification status:', error);
+      // console.error('❌ Error checking email verification status:', error);
       return false;
     }
   }

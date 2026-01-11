@@ -52,7 +52,7 @@ export class ImprovedCareerMatchingService {
   static async generateImprovedMatches(
     responses: ImprovedAssessmentResponse
   ): Promise<ImprovedCareerMatch[]> {
-    console.log('🎯 Generating improved career matches for path:', responses.pathTaken);
+    // console.log('🎯 Generating improved career matches for path:', responses.pathTaken);
     
     // Step 1: Filter careers by category selection
     const category = responses.responses.career_category || 
@@ -98,7 +98,7 @@ export class ImprovedCareerMatchingService {
       },
       'hard_hat_design': {
         sectors: ['infrastructure', 'creative'],
-        careers: ['Architect', 'Civil Engineer', 'Structural Engineer', 'CAD Technician', 'Urban Planner']
+        careers: ['Architect', 'Civil Engineer', 'Structural Engineer', 'Aerospace Engineer', 'Mechanical Engineer', 'Electrical Engineer', 'CAD Technician', 'Urban Planner']
       },
       'data_analysis': {
         sectors: ['business', 'finance', 'science'],
@@ -175,11 +175,11 @@ export class ImprovedCareerMatchingService {
    */
   private static scoreCareersBySubjects(careers: any[], subjectStrengths: any): any[] {
     const subjectCareerMapping = {
-      'math': ['Data Analyst', 'Financial Analyst', 'Accountant', 'Engineer', 'Statistician'],
-      'science': ['Registered Nurse', 'Medical Assistant', 'Research Scientist', 'Laboratory Technician', 'Environmental Scientist'],
+      'math': ['Data Analyst', 'Financial Analyst', 'Accountant', 'Aerospace Engineer', 'Civil Engineer', 'Mechanical Engineer', 'Electrical Engineer', 'Structural Engineer', 'Statistician'],
+      'science': ['Registered Nurse', 'Medical Assistant', 'Research Scientist', 'Laboratory Technician', 'Environmental Scientist', 'Aerospace Engineer', 'Mechanical Engineer', 'Electrical Engineer'],
       'english': ['Teacher', 'Writer', 'School Counselor', 'Corporate Trainer'],
       'art': ['Graphic Designer', 'Photographer', 'Art Director', 'Musician'],
-      'technology': ['Software Developer', 'Web Developer', 'IT Specialist', 'Cybersecurity Analyst'],
+      'technology': ['Software Developer', 'Web Developer', 'IT Specialist', 'Cybersecurity Analyst', 'Electrical Engineer'],
       'history': ['Teacher', 'Police Officer', 'School Counselor'],
       'physical_ed': ['Firefighter', 'EMT', 'Physical Therapist']
     };

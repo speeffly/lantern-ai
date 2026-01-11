@@ -31,12 +31,12 @@ export class FeedbackService {
    */
   static async submitFeedback(feedback: RecommendationFeedback): Promise<number> {
     try {
-      console.log('📝 Submitting recommendation feedback:', {
-        careerTitle: feedback.careerTitle,
-        feedbackType: feedback.feedbackType,
-        rating: feedback.rating,
-        isHelpful: feedback.isHelpful
-      });
+      // console.log('📝 Submitting recommendation feedback:', {
+      //   careerTitle: feedback.careerTitle,
+      //   feedbackType: feedback.feedbackType,
+      //   rating: feedback.rating,
+      //   isHelpful: feedback.isHelpful
+      // });
 
       const result = await DatabaseAdapter.run(`
         INSERT INTO recommendation_feedback (
@@ -58,14 +58,14 @@ export class FeedbackService {
       ]);
 
       const feedbackId = result.insertId || result.lastID;
-      console.log('✅ Feedback submitted successfully, ID:', feedbackId);
+      // console.log('✅ Feedback submitted successfully, ID:', feedbackId);
 
       // Process feedback for AI learning
       await this.processFeedbackForLearning(feedback, feedbackId);
 
       return feedbackId;
     } catch (error) {
-      console.error('❌ Error submitting feedback:', error);
+      // console.error('❌ Error submitting feedback:', error);
       throw error;
     }
   }
@@ -91,11 +91,11 @@ export class FeedbackService {
       query += ' ORDER BY created_at DESC';
 
       const feedback = await DatabaseAdapter.all<RecommendationFeedback>(query, params);
-      console.log(`📊 Retrieved ${feedback.length} feedback entries`);
+      // console.log(`📊 Retrieved ${feedback.length} feedback entries`);
 
       return feedback;
     } catch (error) {
-      console.error('❌ Error retrieving feedback:', error);
+      // console.error('❌ Error retrieving feedback:', error);
       throw error;
     }
   }
@@ -119,10 +119,10 @@ export class FeedbackService {
         ORDER BY total_feedback DESC
       `);
 
-      console.log(`📈 Generated feedback stats for ${stats.length} careers`);
+      // console.log(`📈 Generated feedback stats for ${stats.length} careers`);
       return stats;
     } catch (error) {
-      console.error('❌ Error generating feedback stats:', error);
+      // console.error('❌ Error generating feedback stats:', error);
       throw error;
     }
   }
@@ -174,9 +174,9 @@ export class FeedbackService {
         learningData.feedbackScore
       ]);
 
-      console.log('🧠 AI learning data created for feedback ID:', feedbackId);
+      // console.log('🧠 AI learning data created for feedback ID:', feedbackId);
     } catch (error) {
-      console.error('❌ Error processing feedback for learning:', error);
+      // console.error('❌ Error processing feedback for learning:', error);
       // Don't throw - feedback submission should still succeed
     }
   }
@@ -199,10 +199,10 @@ export class FeedbackService {
         ORDER BY avg_score ASC, feedback_count DESC
       `);
 
-      console.log(`🧠 Generated AI learning insights for ${insights.length} recommendations`);
+      // console.log(`🧠 Generated AI learning insights for ${insights.length} recommendations`);
       return insights;
     } catch (error) {
-      console.error('❌ Error generating AI learning insights:', error);
+      // console.error('❌ Error generating AI learning insights:', error);
       return [];
     }
   }
@@ -225,10 +225,10 @@ export class FeedbackService {
         ORDER BY feedback_date DESC
       `);
 
-      console.log(`📊 Generated feedback trends for last ${days} days`);
+      // console.log(`📊 Generated feedback trends for last ${days} days`);
       return trends;
     } catch (error) {
-      console.error('❌ Error generating feedback trends:', error);
+      // console.error('❌ Error generating feedback trends:', error);
       return [];
     }
   }
@@ -244,10 +244,10 @@ export class FeedbackService {
         ORDER BY created_at DESC
       `, [userId]);
 
-      console.log(`👤 Retrieved feedback history for user ${userId}: ${history.length} entries`);
+      // console.log(`👤 Retrieved feedback history for user ${userId}: ${history.length} entries`);
       return history;
     } catch (error) {
-      console.error('❌ Error retrieving user feedback history:', error);
+      // console.error('❌ Error retrieving user feedback history:', error);
       throw error;
     }
   }
@@ -271,10 +271,10 @@ export class FeedbackService {
         .map(item => item.improvement_notes)
         .filter(note => note && note.trim().length > 0);
 
-      console.log(`💡 Found ${suggestions.length} improvement suggestions for ${careerCode}`);
+      // console.log(`💡 Found ${suggestions.length} improvement suggestions for ${careerCode}`);
       return suggestions;
     } catch (error) {
-      console.error('❌ Error getting recommendation improvements:', error);
+      // console.error('❌ Error getting recommendation improvements:', error);
       return [];
     }
   }

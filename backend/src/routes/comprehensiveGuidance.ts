@@ -1,5 +1,5 @@
 import express from 'express';
-import { AIRecommendationService } from '../services/aiRecommendationService';
+import { CleanAIRecommendationService } from '../services/cleanAIRecommendationService';
 import { CareerMatchingService } from '../services/careerMatchingService';
 import { ParentSummaryService } from '../services/parentSummaryService';
 import { AcademicPlanService } from '../services/academicPlanService';
@@ -22,7 +22,7 @@ router.post('/complete', async (req, res) => {
 
     console.log('🎯 Generating complete career guidance package...');
 
-    const guidance = await AIRecommendationService.generateComprehensiveGuidance(
+    const guidance = await CleanAIRecommendationService.generateComprehensiveGuidance(
       profile,
       answers,
       careerMatches,
@@ -168,7 +168,7 @@ router.post('/counselor-recommendations', async (req, res) => {
       });
     }
 
-    const recommendations = await AIRecommendationService.generateRecommendations(
+    const recommendations = await CleanAIRecommendationService.generateRecommendations(
       profile,
       answers,
       careerMatches,

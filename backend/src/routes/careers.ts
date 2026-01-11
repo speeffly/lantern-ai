@@ -2,7 +2,7 @@ import express from 'express';
 import { CareerService } from '../services/careerService';
 import { SessionService } from '../services/sessionService';
 import { AssessmentServiceDB } from '../services/assessmentServiceDB';
-import { AIRecommendationService } from '../services/aiRecommendationService';
+import { CleanAIRecommendationService } from '../services/cleanAIRecommendationService';
 import { LocalJobMarketService } from '../services/localJobMarketService';
 import { CourseRecommendationService } from '../services/courseRecommendationService';
 import { ApiResponse, AssessmentAnswer, StudentProfile, EducationLevel } from '../types';
@@ -151,7 +151,7 @@ router.post('/matches', async (req, res) => {
 
     // Generate AI-powered recommendations
     console.log('🤖 Calling AI recommendation service...');
-    const aiRecommendations = await AIRecommendationService.generateRecommendations(
+    const aiRecommendations = await CleanAIRecommendationService.generateRecommendations(
       profileData,
       answers,
       matches,
@@ -502,7 +502,7 @@ router.post('/debug/ai-test', async (req, res) => {
     console.log('🎯 DEBUG: Found career matches:', matches.length);
     
     // Test AI service
-    const aiRecommendations = await AIRecommendationService.generateRecommendations(
+    const aiRecommendations = await CleanAIRecommendationService.generateRecommendations(
       mockProfile,
       mockAnswers,
       matches,
@@ -587,7 +587,7 @@ router.get('/debug/flow/:sessionId', async (req, res) => {
 
     // Step 5: Call AI service
     console.log('🤖 DEBUG STEP 5: Calling AI recommendation service');
-    const aiRecommendations = await AIRecommendationService.generateRecommendations(
+    const aiRecommendations = await CleanAIRecommendationService.generateRecommendations(
       profileData,
       answers,
       matches,

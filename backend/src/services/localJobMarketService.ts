@@ -56,7 +56,7 @@ export class LocalJobMarketService {
     careerMatches: CareerMatch[]
   ): Promise<LocalJobMarket> {
     try {
-      console.log(`🔍 Searching job market within ${this.MAX_RADIUS} miles of ZIP ${zipCode}`);
+      // console.log(`🔍 Searching job market within ${this.MAX_RADIUS} miles of ZIP ${zipCode}`);
 
       // In production, this would integrate with job APIs like:
       // - Indeed API
@@ -77,7 +77,7 @@ export class LocalJobMarketService {
         averageSalaries
       };
     } catch (error) {
-      console.error('❌ Local job market search failed:', error);
+      // console.error('❌ Local job market search failed:', error);
       return this.getFallbackJobMarket(zipCode, careerMatches);
     }
   }

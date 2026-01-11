@@ -10,7 +10,7 @@ export class DatabaseServicePG {
   static async initialize(): Promise<void> {
     if (this.isInitialized) return;
 
-    console.log('🔧 Starting PostgreSQL database initialization...');
+    // console.log('🔧 Starting PostgreSQL database initialization...');
     
     try {
       // Get database URL from environment
@@ -20,7 +20,7 @@ export class DatabaseServicePG {
         throw new Error('DATABASE_URL environment variable is required for PostgreSQL');
       }
 
-      console.log('🗄️ Connecting to PostgreSQL database...');
+      // console.log('🗄️ Connecting to PostgreSQL database...');
 
       // Create connection pool with better settings for Render
       this.pool = new Pool({
@@ -40,12 +40,12 @@ export class DatabaseServicePG {
       while (retries > 0 && !connected) {
         try {
           const client = await this.pool.connect();
-          console.log('✅ Connected to PostgreSQL database successfully');
+          // console.log('✅ Connected to PostgreSQL database successfully');
           client.release();
           connected = true;
         } catch (error) {
           retries--;
-          console.log(`⚠️ Connection attempt failed, ${retries} retries left...`);
+          // console.log(`⚠️ Connection attempt failed, ${retries} retries left...`);
           if (retries === 0) throw error;
           await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds before retry
         }
@@ -55,9 +55,9 @@ export class DatabaseServicePG {
       await this.createTablesGradually();
 
       this.isInitialized = true;
-      console.log('✅ PostgreSQL database initialized successfully');
+      // console.log('✅ PostgreSQL database initialized successfully');
     } catch (error) {
-      console.error('❌ PostgreSQL database initialization failed:', error);
+      // console.error('❌ PostgreSQL database initialization failed:', error);
       throw error;
     }
   }
@@ -67,7 +67,7 @@ export class DatabaseServicePG {
    */
   private static async createTablesGradually(): Promise<void> {
     try {
-      console.log('🔧 Creating PostgreSQL database tables gradually...');
+      // console.log('🔧 Creating PostgreSQL database tables gradually...');
       
       // Create tables in smaller groups to avoid connection reset
       const tableGroups = [
@@ -264,9 +264,9 @@ export class DatabaseServicePG {
       
       // Create tables group by group with delays
       for (let i = 0; i < tableGroups.length; i++) {
-        console.log(`🔧 Creating table group ${i + 1}/${tableGroups.length}...`);
+        // console.log(`🔧 Creating table group ${i + 1}/${tableGroups.length}...`);
         await this.query(tableGroups[i]);
-        console.log(`✅ Table group ${i + 1} created successfully`);
+        // console.log(`✅ Table group ${i + 1} created successfully`);
         
         // Small delay between groups to avoid overwhelming the connection
         if (i < tableGroups.length - 1) {
@@ -275,7 +275,7 @@ export class DatabaseServicePG {
       }
       
       // Create indexes separately
-      console.log('🔧 Creating database indexes...');
+      // console.log('🔧 Creating database indexes...');
       const indexes = [
         'CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);',
         'CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);',
@@ -289,9 +289,9 @@ export class DatabaseServicePG {
         await this.query(index);
       }
       
-      console.log('✅ PostgreSQL database tables and indexes created successfully');
+      // console.log('✅ PostgreSQL database tables and indexes created successfully');
     } catch (error) {
-      console.error('❌ Error creating PostgreSQL tables:', error);
+      // console.error('❌ Error creating PostgreSQL tables:', error);
       throw error;
     }
   }
@@ -309,9 +309,9 @@ export class DatabaseServicePG {
       const result = await client.query(text, params);
       return result;
     } catch (error) {
-      console.error('❌ PostgreSQL Query Error:', error);
-      console.error('❌ SQL Statement:', text);
-      console.error('❌ Parameters:', params);
+      // console.error('❌ PostgreSQL Query Error:', error);
+      // console.error('❌ SQL Statement:', text);
+      // console.error('❌ Parameters:', params);
       throw error;
     } finally {
       client.release();
@@ -376,7 +376,7 @@ export class DatabaseServicePG {
   static async close(): Promise<void> {
     if (this.pool) {
       await this.pool.end();
-      console.log('✅ PostgreSQL connection pool closed');
+      // console.log('✅ PostgreSQL connection pool closed');
       this.pool = null;
       this.isInitialized = false;
     }
@@ -414,7 +414,7 @@ export class DatabaseServicePG {
 
       return stats;
     } catch (error) {
-      console.error('❌ Error getting PostgreSQL database stats:', error);
+      // console.error('❌ Error getting PostgreSQL database stats:', error);
       return { error: 'Failed to get stats' };
     }
   }

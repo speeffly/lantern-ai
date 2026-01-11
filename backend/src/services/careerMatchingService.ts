@@ -1,5 +1,5 @@
 import { StudentProfile, AssessmentAnswer, CareerMatch } from '../types';
-import { AIRecommendationService } from './aiRecommendationService';
+import { CleanAIRecommendationService } from './cleanAIRecommendationService';
 
 export interface EnhancedCareerMatch extends CareerMatch {
   aiInsights: {
@@ -31,7 +31,7 @@ export class CareerMatchingService {
     baseMatches: CareerMatch[]
   ): Promise<EnhancedCareerMatch[]> {
     try {
-      console.log('🎯 Generating AI-enhanced career matches...');
+      //console.log('🎯 Generating AI-enhanced career matches...');
       
       // Get AI insights for top career matches
       const topMatches = baseMatches.slice(0, 5); // Top 5 matches
@@ -52,7 +52,7 @@ export class CareerMatchingService {
             skillGaps
           });
         } catch (error) {
-          console.error(`❌ Failed to get AI insights for ${match.career.title}:`, error);
+          //console.error(`❌ Failed to get AI insights for ${match.career.title}:`, error);
           // Fallback to basic insights
           enhancedMatches.push({
             ...match,
@@ -63,11 +63,11 @@ export class CareerMatchingService {
         }
       }
 
-      console.log(`✅ Generated AI insights for ${enhancedMatches.length} career matches`);
+      //console.log(`✅ Generated AI insights for ${enhancedMatches.length} career matches`);
       return enhancedMatches;
 
     } catch (error) {
-      console.error('❌ Career matching enhancement failed:', error);
+      //console.error('❌ Career matching enhancement failed:', error);
       // Return basic matches without AI enhancement
       return baseMatches.slice(0, 5).map(match => ({
         ...match,
@@ -126,8 +126,34 @@ IMPORTANT: Return ONLY valid JSON. No additional text or explanations outside th
 Make each skill specific to ${match.career.title} - avoid generic skills like "communication" unless they have career-specific context.`;
 
     try {
+      // 🔍 LOG AI CALL FOR SKILL GAPS GENERATION
+    /*  console.log('\n' + '='.repeat(80));
+      console.log('🤖 CALLING AI FOR SKILL GAPS GENERATION');
+      console.log('='.repeat(80));
+      console.log('🎯 Career:', match.career.title);
+      console.log('📏 Prompt Length:', prompt.length, 'characters');
+      console.log('📝 SKILL GAPS PROMPT:');
+      console.log('-'.repeat(40));
+      console.log(prompt);
+      console.log('-'.repeat(40));
+      console.log('🚀 SENDING TO AI...');
+      console.log('='.repeat(80) + '\n');*/
+      
       // Use the same AI service as the main recommendations
-      const aiResponse = await AIRecommendationService.callAI(prompt);
+      const aiResponse = await CleanAIRecommendationService.callAI(prompt);
+      
+      // 🔍 LOG AI RESPONSE FOR SKILL GAPS
+    /*  console.log('\n' + '='.repeat(80));
+      console.log('✅ AI RESPONSE FOR SKILL GAPS RECEIVED');
+      console.log('='.repeat(80));
+      console.log('🎯 Career:', match.career.title);
+      console.log('📏 Response Length:', aiResponse.length, 'characters');
+      console.log('📝 SKILL GAPS RESPONSE:');
+      console.log('-'.repeat(40));
+      console.log(aiResponse);
+      console.log('-'.repeat(40));
+      console.log('✅ END OF SKILL GAPS RESPONSE');
+      console.log('='.repeat(80) + '\n');*/
       
       // Parse the response
       const cleanedJson = this.cleanCareerPathwayJSON(aiResponse);
@@ -136,7 +162,7 @@ Make each skill specific to ${match.career.title} - avoid generic skills like "c
       return parsed.skillGaps || this.getBasicSkillGaps(match);
       
     } catch (error) {
-      console.error(`❌ Failed to generate AI skill gaps for ${match.career.title}:`, error);
+      //console.error(`❌ Failed to generate AI skill gaps for ${match.career.title}:`, error);
       return this.getBasicSkillGaps(match);
     }
   }
@@ -417,8 +443,34 @@ IMPORTANT: Return ONLY valid JSON. No additional text or explanations outside th
 Make each step specific to ${match.career.title} - avoid generic language. Reference the actual career title and sector throughout.`;
 
     try {
+      // 🔍 LOG AI CALL FOR CAREER PATHWAY GENERATION
+     /* console.log('\n' + '='.repeat(80));
+      console.log('🤖 CALLING AI FOR CAREER PATHWAY GENERATION');
+      console.log('='.repeat(80));
+      console.log('🎯 Career:', match.career.title);
+      console.log('📏 Prompt Length:', prompt.length, 'characters');
+      console.log('📝 CAREER PATHWAY PROMPT:');
+      console.log('-'.repeat(40));
+      console.log(prompt);
+      console.log('-'.repeat(40));
+      console.log('🚀 SENDING TO AI...');
+      console.log('='.repeat(80) + '\n');*/
+      
       // Use the same AI service as the main recommendations
-      const aiResponse = await AIRecommendationService.callAI(prompt);
+      const aiResponse = await CleanAIRecommendationService.callAI(prompt);
+      
+      // 🔍 LOG AI RESPONSE FOR CAREER PATHWAY
+     /* console.log('\n' + '='.repeat(80));
+      console.log('✅ AI RESPONSE FOR CAREER PATHWAY RECEIVED');
+      console.log('='.repeat(80));
+      console.log('🎯 Career:', match.career.title);
+      console.log('📏 Response Length:', aiResponse.length, 'characters');
+      console.log('📝 CAREER PATHWAY RESPONSE:');
+      console.log('-'.repeat(40));
+      console.log(aiResponse);
+      console.log('-'.repeat(40));
+      console.log('✅ END OF CAREER PATHWAY RESPONSE');
+      console.log('='.repeat(80) + '\n');*/
       
       // Parse the response
       const cleanedJson = this.cleanCareerPathwayJSON(aiResponse);
@@ -431,7 +483,7 @@ Make each step specific to ${match.career.title} - avoid generic language. Refer
       };
       
     } catch (error) {
-      console.error(`❌ Failed to generate AI career pathway for ${match.career.title}:`, error);
+      //console.error(`❌ Failed to generate AI career pathway for ${match.career.title}:`, error);
       return this.getBasicCareerPathway(match);
     }
   }
@@ -523,7 +575,34 @@ IMPORTANT: Return ONLY valid JSON. No additional text or explanations outside th
 
 CRITICAL: Reference the student's actual interests (${profile.interests?.join(', ')}) and assessment responses. Don't use generic language - be specific about why THIS student matches THIS career.`;
 
-    const aiResponse = await AIRecommendationService.callAI(prompt);
+    // 🔍 LOG AI CALL FOR CAREER INSIGHTS
+    /*console.log('\n' + '='.repeat(80));
+    console.log('🤖 CALLING AI FOR CAREER INSIGHTS GENERATION');
+    console.log('='.repeat(80));
+    console.log('🎯 Career:', match.career.title);
+    console.log('📊 Match Score:', match.matchScore + '%');
+    console.log('📏 Prompt Length:', prompt.length, 'characters');
+    console.log('📝 CAREER INSIGHTS PROMPT:');
+    console.log('-'.repeat(40));
+    console.log(prompt);
+    console.log('-'.repeat(40));
+    console.log('🚀 SENDING TO AI...');
+    console.log('='.repeat(80) + '\n');*/
+
+    const aiResponse = await CleanAIRecommendationService.callAI(prompt);
+    
+    // 🔍 LOG AI RESPONSE FOR CAREER INSIGHTS
+    /*console.log('\n' + '='.repeat(80));
+    console.log('✅ AI RESPONSE FOR CAREER INSIGHTS RECEIVED');
+    console.log('='.repeat(80));
+    console.log('🎯 Career:', match.career.title);
+    console.log('📏 Response Length:', aiResponse.length, 'characters');
+    console.log('📝 CAREER INSIGHTS RESPONSE:');
+    console.log('-'.repeat(40));
+    console.log(aiResponse);
+    console.log('-'.repeat(40));
+    console.log('✅ END OF CAREER INSIGHTS RESPONSE');
+    console.log('='.repeat(80) + '\n');*/
     
     try {
       // Clean and parse AI response
@@ -542,7 +621,7 @@ CRITICAL: Reference the student's actual interests (${profile.interests?.join(',
         nextSteps: parsed.nextSteps || ['Research the field', 'Talk to professionals', 'Explore education options']
       };
     } catch (parseError) {
-      console.error('Failed to parse career insights:', parseError);
+      //console.error('Failed to parse career insights:', parseError);
       return this.getBasicInsights(match, profile, answers);
     }
   }

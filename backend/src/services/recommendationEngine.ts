@@ -9,27 +9,27 @@ export class RecommendationEngine {
    * Generate comprehensive career recommendations
    */
   static generateRecommendations(profile: StudentProfile): RecommendationResult {
-    console.log('🎯 Starting recommendation generation for student profile');
+    // console.log('🎯 Starting recommendation generation for student profile');
     
     // Step 1: Compute cluster scores
     const clusterScores = this.computeClusterScores(profile);
-    console.log('📊 Cluster scores computed:', clusterScores.map(c => `${c.cluster_id}: ${c.score}`));
+    // console.log('📊 Cluster scores computed:', clusterScores.map(c => `${c.cluster_id}: ${c.score}`));
     
     // Step 2: Compute career scores
     const careerScores = this.computeCareerScores(profile, clusterScores);
-    console.log('🎯 Career scores computed for', careerScores.length, 'careers');
+    // console.log('🎯 Career scores computed for', careerScores.length, 'careers');
     
     // Step 3: Apply feasibility constraints
     const feasibleCareers = this.applyFeasibilityConstraints(profile, careerScores);
-    console.log('✅ Feasibility constraints applied, remaining:', feasibleCareers.length, 'careers');
+    // console.log('✅ Feasibility constraints applied, remaining:', feasibleCareers.length, 'careers');
     
     // Step 4: Categorize careers
     const categorizedCareers = this.categorizeCareers(feasibleCareers);
-    console.log('📂 Careers categorized:', {
-      best_fit: categorizedCareers.best_fit.length,
-      good_fit: categorizedCareers.good_fit.length,
-      stretch_options: categorizedCareers.stretch_options.length
-    });
+    // console.log('📂 Careers categorized:', {
+    //   best_fit: categorizedCareers.best_fit.length,
+    //   good_fit: categorizedCareers.good_fit.length,
+    //   stretch_options: categorizedCareers.stretch_options.length
+    // });
     
     // Step 5: Generate four-year plan
     const fourYearPlan = this.generateFourYearPlan(profile, categorizedCareers.best_fit[0]);
@@ -54,7 +54,7 @@ export class RecommendationEngine {
       generated_at: new Date().toISOString()
     };
     
-    console.log('✅ Recommendation generation complete');
+    // console.log('✅ Recommendation generation complete');
     return result;
   }
 
