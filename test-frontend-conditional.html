@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Conditional Questions</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .question { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .conditional { background-color: #f0f8ff; }
+        button { margin: 5px; padding: 10px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <h1>Conditional Questions Test</h1>
+    <p>This simulates the conditional logic from the frontend.</p>
+    
+    <div class="question">
+        <h3>Q1: Grade and ZIP Code</h3>
+        <input type="text" id="grade" placeholder="Grade (9-12)" />
+        <input type="text" id="zipCode" placeholder="ZIP Code" />
+    </div>
+    
+    <div class="question">
+        <h3>Q3: Do you know what career you want to pursue?</h3>
+        <button onclick="selectCareerKnowledge('Yes')">Yes</button>
+        <button onclick="selectCareerKnowledge('No')">No</button>
+        <div id="careerKnowledgeAnswer"></div>
+    </div>
+    
+    <div class="question conditional hidden" id="yesPath">
+        <h3>Q3a: Which career category interests you?</h3>
+        <button onclick="selectCategory('trade')">Trade</button>
+        <button onclick="selectCategory('engineering')">Engineering</button>
+        <button onclick="selectCategory('technology')">Technology</button>
+        <button onclick="selectCategory('healthcare')">Healthcare</button>
+        <div id="categoryAnswer"></div>
+    </div>
+    
+    <div class="question conditional hidden" id="tradeCareers">
+        <h3>Q3a1: Which trade career interests you?</h3>
+        <button onclick="selectSpecificCareer('electrician')">Electrician</button>
+        <button onclick="selectSpecificCareer('plumber')">Plumber</button>
+        <button onclick="selectSpecificCareer('carpenter')">Carpenter</button>
+        <button onclick="selectSpecificCareer('other')">Other (specify)</button>
+        <div id="tradeAnswer"></div>
+    </div>
+    
+    <div class="question conditional hidden" id="tradeOther">
+        <h3>Q3a1_other: Please specify what trade career interests you:</h3>
+        <textarea id="tradeOtherText" placeholder="Enter your trade career interest..."></textarea>
+    </div>
+    
+    <div class="question conditional hidden" id="noPath">
+        <h3>No Path Questions:</h3>
+        <div>
+            <h4>Q10: What traits best describe you?</h4>
+            <label><input type="checkbox" value="creative"> Creative and artistic</label><br>
+            <label><input type="checkbox" value="analytical"> Analytical and logical</label><br>
+            <label><input type="checkbox" value="compassionate"> Compassionate and caring</label><br>
+        </div>
+        <div>
+            <h4>Q8: What are your interests or hobbies?</h4>
+            <textarea placeholder="Describe your interests..."></textarea>
+        </div>
+        <div>
+            <h4>Q9: What work, volunteer, or hands-on experience do you have?</h4>
+            <textarea placeholder="Describe your experience..."></textarea>
+        </div>
+    </div>
+    
+    <div class="question">
+        <h3>Remaining Questions (always shown):</h3>
+        <p>Q4: Academic Performance Matrix</p>
+        <p>Q5: Education Willingness</p>
+        <p>Q14: Constraints</p>
+        <p>Q17: Support Confidence</p>
+        <p>Q19-20: Impact & Inspiration</p>
+    </div>
+
+    <script>
+        let selectedAnswers = {};
+        
+        function selectCareerKnowledge(answer) {
+            selectedAnswers['q3_career_knowledge'] = answer;
+            document.getElementById('careerKnowledgeAnswer').innerHTML = `<strong>Selected: ${answer}</strong>`;
+            
+            // Show/hide conditional paths
+            if (answer === 'Yes') {
+                document.getElementById('yesPath').classList.remove('hidden');
+                document.getElementById('noPath').classList.add('hidden');
+            } else if (answer === 'No') {
+                document.getElementById('noPath').classList.remove('hidden');
+                document.getElementById('yesPath').classList.add('hidden');
+                // Hide nested yes-path questions
+                document.getElementById('tradeCareers').classList.add('hidden');
+                document.getElementById('tradeOther').classList.add('hidden');
+            }
+        }
+        
+        function selectCategory(category) {
+            selectedAnswers['q3a_career_categories'] = category;
+            document.getElementById('categoryAnswer').innerHTML = `<strong>Selected: ${category}</strong>`;
+            
+            // Show specific career questions based on category
+            if (category === 'trade') {
+                document.getElementById('tradeCareers').classList.remove('hidden');
+            } else {
+                document.getElementById('tradeCareers').classList.add('hidden');
+                document.getElementById('tradeOther').classList.add('hidden');
+            }
+        }
+        
+        function selectSpecificCareer(career) {
+            selectedAnswers['q3a1_trade_careers'] = career;
+            document.getElementById('tradeAnswer').innerHTML = `<strong>Selected: ${career}</strong>`;
+            
+            // Show "other" text field if "other" is selected
+            if (career === 'other') {
+                document.getElementById('tradeOther').classList.remove('hidden');
+            } else {
+                document.getElementById('tradeOther').classList.add('hidden');
+            }
+        }
+        
+        // Log answers for debugging
+        setInterval(() => {
+            console.log('Current answers:', selectedAnswers);
+        }, 2000);
+    </script>
+</body>
+</html>

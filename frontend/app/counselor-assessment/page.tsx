@@ -13,6 +13,8 @@ interface CounselorQuestion {
   category: string;
   options?: string[];
   subjects?: string[];
+  rows?: string[];
+  columns?: string[];
   fields?: {
     [key: string]: {
       type: string;
@@ -28,6 +30,10 @@ interface CounselorQuestion {
   required?: boolean;
   hasOtherOption?: boolean;
   otherPlaceholder?: string;
+  // Conditional question properties
+  isConditional?: boolean;
+  conditionalParent?: string;
+  conditionalTrigger?: string;
 }
 
 interface CounselorAssessmentResponse {
@@ -54,6 +60,12 @@ interface CounselorAssessmentResponse {
     other?: string;
   };
   inspirationRoleModels?: string;
+  // Support for new questionnaire structure
+  constraints?: string[];
+  supportLevel?: string;
+  impactStatement?: string;
+  // Allow any additional properties for dynamic question responses
+  [key: string]: any;
 }
 
 export default function CounselorAssessmentPage() {
@@ -83,10 +95,99 @@ function CounselorAssessmentContent() {
   const [previousResults, setPreviousResults] = useState<any>(null);
   const [showPreviousResults, setShowPreviousResults] = useState(false);
   const [hasRestoredAnswers, setHasRestoredAnswers] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
   const ANSWER_STORAGE_KEY = 'counselorAssessmentAnswers';
   const RESULTS_STORAGE_KEY = 'counselorAssessmentResults';
   const ANSWER_STALE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
   const forceRetake = searchParams.get('retake') === 'true';
+
+  // Function to get the next visible question index
+  const getNextVisibleQuestionIndex = (currentIdx: number): number => {
+    const visibleQuestions = getVisibleQuestions();
+    
+    // Find the current question in the visible list
+    const currentQuestion = questions[currentIdx];
+    const currentVisibleIndex = visibleQuestions.findIndex(q => q.id === currentQuestion?.id);
+    
+    if (currentVisibleIndex === -1) {
+      // Current question is not visible, find the first visible question
+      return visibleQuestions.length > 0 ? questions.findIndex(q => q.id === visibleQuestions[0].id) : 0;
+    }
+    
+    // Return the next visible question index, or -1 if at the end
+    if (currentVisibleIndex < visibleQuestions.length - 1) {
+      const nextVisibleQuestion = visibleQuestions[currentVisibleIndex + 1];
+      return questions.findIndex(q => q.id === nextVisibleQuestion.id);
+    }
+    
+    return -1; // At the end
+  };
+
+  // Function to check if a question should be visible
+  const isQuestionVisible = (question: CounselorQuestion): boolean => {
+    // Always show non-conditional questions
+    if (!question.isConditional) {
+      console.log('✅ Showing non-conditional question:', question.id);
+      return true;
+    }
+    
+    // Skip separate "other" text questions since we handle them inline now
+    if (question.id.includes('_other')) {
+      console.log('⏭️ Skipping separate other question (handled inline):', question.id);
+      return false;
+    }
+    
+    // For conditional questions, check if the parent condition is met
+    const parentAnswer = selectedAnswers[question.conditionalParent!];
+    
+    // Handle different types of parent answers
+    let shouldShow = false;
+    
+    if (typeof parentAnswer === 'string') {
+      // Direct string comparison for single select questions
+      // Convert to lowercase for comparison to match backend expectations
+      const normalizedParentAnswer = parentAnswer.toLowerCase();
+      const normalizedTrigger = question.conditionalTrigger!.toLowerCase();
+      shouldShow = normalizedParentAnswer === normalizedTrigger;
+    } else if (typeof parentAnswer === 'object' && parentAnswer !== null) {
+      // Handle object answers (like combined questions or "other" selections)
+      if (question.conditionalParent === 'q3_career_knowledge') {
+        // For career knowledge question, parentAnswer should be a string
+        if (typeof parentAnswer === 'string') {
+          const normalizedParentAnswer = parentAnswer.toLowerCase();
+          const normalizedTrigger = question.conditionalTrigger!.toLowerCase();
+          shouldShow = normalizedParentAnswer === normalizedTrigger;
+        }
+      } else if (parentAnswer && typeof parentAnswer === 'object' && 'type' in parentAnswer && parentAnswer.type === 'other') {
+        // Don't show further conditionals for "other" selections since we handle them inline
+        shouldShow = false;
+      } else {
+        // For other object answers, might need different handling
+        shouldShow = parentAnswer[question.conditionalTrigger!] !== undefined;
+      }
+    }
+    
+    console.log('🔍 Checking conditional question:', {
+      questionId: question.id,
+      conditionalParent: question.conditionalParent,
+      conditionalTrigger: question.conditionalTrigger,
+      parentAnswer: parentAnswer,
+      parentAnswerType: typeof parentAnswer,
+      normalizedParentAnswer: typeof parentAnswer === 'string' ? parentAnswer.toLowerCase() : 'not-string',
+      normalizedTrigger: question.conditionalTrigger!.toLowerCase(),
+      shouldShow: shouldShow
+    });
+    
+    return shouldShow;
+  };
+
+  // Function to get visible questions based on conditional logic
+  const getVisibleQuestions = (): CounselorQuestion[] => {
+    const visible = questions.filter(isQuestionVisible);
+    
+    console.log('📊 Visible questions:', visible.map(q => ({ id: q.id, isConditional: q.isConditional })));
+    return visible;
+  };
 
   // Helper function to get user-specific storage key
   const getUserSpecificKey = (baseKey: string): string => {
@@ -139,6 +240,23 @@ function CounselorAssessmentContent() {
   useEffect(() => {
     checkForPreviousResults();
   }, []);
+
+  // Re-calculate visible questions when selectedAnswers change
+  useEffect(() => {
+    if (questions.length > 0) {
+      const visibleQuestions = getVisibleQuestions();
+      console.log('🔄 Recalculating visible questions due to answer change');
+      console.log('📊 Total questions:', questions.length);
+      console.log('📊 Visible questions:', visibleQuestions.length);
+      console.log('📊 Current index:', currentIndex);
+      
+      // If current index is beyond visible questions, adjust it
+      if (currentIndex >= visibleQuestions.length && visibleQuestions.length > 0) {
+        console.log('⚠️ Current index beyond visible questions, adjusting');
+        setCurrentIndex(visibleQuestions.length - 1);
+      }
+    }
+  }, [selectedAnswers, questions]);
 
   // Reapply stored answers once questions are loaded to avoid race conditions on first render
   useEffect(() => {
@@ -418,6 +536,7 @@ function CounselorAssessmentContent() {
         console.log('✅ API call successful');
         console.log('📊 Number of questions received:', data.data.questions?.length || 0);
         console.log('🔍 Questions structure:', data.data);
+        console.log('🔍 Conditional questions:', data.data.questions?.filter((q: any) => q.isConditional).map((q: any) => ({ id: q.id, conditionalParent: q.conditionalParent, conditionalTrigger: q.conditionalTrigger })));
         
         const storedAnswers = loadStoredAnswers();
         let initialSelectedAnswers = storedAnswers?.selectedAnswers || {};
@@ -529,14 +648,25 @@ function CounselorAssessmentContent() {
 
   const handleAnswerChange = (questionId: string, value: any) => {
     console.log('📝 Answer changed:', { questionId, value, isSkip: value?.inputMethod === 'skip' });
-    setSelectedAnswers(prev => ({
-      ...prev,
-      [questionId]: value
-    }));
+    setSelectedAnswers(prev => {
+      const newAnswers = {
+        ...prev,
+        [questionId]: value
+      };
+      console.log('📊 Updated selectedAnswers:', newAnswers);
+      return newAnswers;
+    });
   };
 
   const handleNext = () => {
-    const currentQuestion = questions[currentIndex];
+    const visibleQuestions = getVisibleQuestions();
+    const currentQuestion = visibleQuestions[currentIndex];
+    
+    if (!currentQuestion) {
+      console.error('❌ No current question found');
+      return;
+    }
+    
     const currentAnswer = selectedAnswers[currentQuestion.id];
 
     // Check if question is optional
@@ -602,6 +732,11 @@ function CounselorAssessmentContent() {
         alert('Please select at least one option');
         return;
       }
+    } else if (currentQuestion.type === 'multi_select') {
+      if (!isOptional && (!currentAnswer || currentAnswer.length === 0)) {
+        alert('Please select at least one option');
+        return;
+      }
     } else if (currentQuestion.type === 'multiple_choice_with_other') {
       const selectedOptions = currentAnswer?.selected || [];
       const otherText = currentAnswer?.other || '';
@@ -610,9 +745,9 @@ function CounselorAssessmentContent() {
         alert('Please select at least one trait or describe your own');
         return;
       }
-    } else if (currentQuestion.type === 'matrix_radio') {
+    } else if (currentQuestion.type === 'matrix_radio' || currentQuestion.type === 'matrix') {
       if (!isOptional) {
-        const subjects = currentQuestion.subjects || [];
+        const subjects = currentQuestion.subjects || currentQuestion.rows || [];
         const answeredSubjects = Object.keys(currentAnswer || {});
         
         if (answeredSubjects.length < subjects.length) {
@@ -621,7 +756,7 @@ function CounselorAssessmentContent() {
           return;
         }
       }
-    } else if (currentQuestion.type === 'free_text') {
+    } else if (currentQuestion.type === 'free_text' || currentQuestion.type === 'text_long') {
       // For free text questions, just check if they're required and have any content
       if (!isOptional && (!currentAnswer || currentAnswer.trim().length === 0)) {
         alert('Please provide an answer to this question.');
@@ -632,6 +767,14 @@ function CounselorAssessmentContent() {
         alert('Please select an answer');
         return;
       }
+      
+      // Special validation for "other" text entries
+      if (typeof currentAnswer === 'object' && currentAnswer?.type === 'other') {
+        if (!currentAnswer.text || currentAnswer.text.trim().length === 0) {
+          alert('Please specify your answer in the "Other" field');
+          return;
+        }
+      }
     }
 
     // Update responses based on question type
@@ -640,42 +783,54 @@ function CounselorAssessmentContent() {
     if (currentQuestion.id === 'q1_grade_zip') {
       newResponses.grade = parseInt(currentAnswer.grade);
       newResponses.zipCode = currentAnswer.zipCode;
-    } else if (currentQuestion.id === 'q2_work_environment') {
-      newResponses.workEnvironment = currentAnswer;
-    } else if (currentQuestion.id === 'q3_work_style') {
-      newResponses.handsOnPreference = currentAnswer;
-    } else if (currentQuestion.id === 'q4_thinking_style') {
-      newResponses.problemSolving = currentAnswer;
-    } else if (currentQuestion.id === 'q13_helping_importance') {
-      newResponses.helpingOthers = currentAnswer;
+    } else if (currentQuestion.id === 'q3_career_knowledge') {
+      // Store the career knowledge answer
+      newResponses[currentQuestion.id] = currentAnswer;
+    } else if (currentQuestion.id.startsWith('q3a_')) {
+      // Store career category selection
+      newResponses[currentQuestion.id] = currentAnswer;
+    } else if (currentQuestion.id === 'q4_academic_performance') {
+      // Store academic performance matrix
+      newResponses.academicPerformance = currentAnswer;
+    } else if (currentQuestion.id.includes('_careers')) {
+      // Store specific career selection - handle "other" format
+      if (typeof currentAnswer === 'object' && currentAnswer?.type === 'other') {
+        newResponses[currentQuestion.id] = currentAnswer.text;
+        newResponses[currentQuestion.id + '_other'] = currentAnswer.text;
+      } else {
+        newResponses[currentQuestion.id] = currentAnswer;
+      }
+    } else if (currentQuestion.id.includes('_other')) {
+      // Store other text responses
+      newResponses[currentQuestion.id] = currentAnswer;
+    } else if (currentQuestion.id === 'q4_academic_combined') {
+      newResponses.academicPerformance = currentAnswer;
     } else if (currentQuestion.id === 'q5_education_willingness') {
       newResponses.educationCommitment = currentAnswer;
-    } else if (currentQuestion.id === 'q11_income_importance') {
-      newResponses.incomeImportance = currentAnswer;
-    } else if (currentQuestion.id === 'q12_stability_importance') {
-      newResponses.jobSecurity = currentAnswer;
-    } else if (currentQuestion.id === 'q6_academic_interests') {
-      newResponses.subjectsStrengths = Array.isArray(currentAnswer) ? currentAnswer : [currentAnswer];
+    } else if (currentQuestion.id === 'q14_constraints') {
+      newResponses.constraints = Array.isArray(currentAnswer) ? currentAnswer : [currentAnswer];
+    } else if (currentQuestion.id === 'q17_support_confidence') {
+      newResponses.supportLevel = currentAnswer;
+    } else if (currentQuestion.id === 'q19_20_impact_inspiration') {
+      newResponses.impactStatement = currentAnswer;
+    } else if (currentQuestion.id === 'q10_traits') {
+      newResponses.personalTraits = currentAnswer;
     } else if (currentQuestion.id === 'q8_interests_text') {
       newResponses.interestsPassions = currentAnswer;
     } else if (currentQuestion.id === 'q9_experience_text') {
       newResponses.workExperience = currentAnswer;
-    } else if (currentQuestion.id === 'q7_academic_performance') {
-      newResponses.academicPerformance = currentAnswer;
-    } else if (currentQuestion.id === 'q19_impact_text') {
-      newResponses.legacyImpact = currentAnswer;
-    } else if (currentQuestion.id === 'q10_traits') {
-      newResponses.personalTraits = currentAnswer;
-    } else if (currentQuestion.id === 'q20_inspiration_text') {
-      newResponses.inspirationRoleModels = currentAnswer;
+    } else {
+      // Generic mapping for other questions
+      newResponses[currentQuestion.id] = currentAnswer;
     }
 
     setResponses(newResponses);
 
-    if (currentIndex < questions.length - 1) {
+    if (currentIndex < visibleQuestions.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
-      handleSubmit(newResponses);
+      // Show summary before final submission
+      setShowSummary(true);
     }
   };
 
@@ -781,7 +936,7 @@ function CounselorAssessmentContent() {
 
     if (question.type === 'combined' && question.fields) {
       return (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {Object.entries(question.fields).map(([fieldName, fieldConfig]) => {
             const fieldValue = currentAnswer?.[fieldName] || '';
             const isZipCode = fieldName === 'zipCode';
@@ -805,10 +960,10 @@ function CounselorAssessmentContent() {
             
             return (
               <div key={fieldName}>
-                <label className="block text-sm font-medium text-gray-700 mb-2 capitalize">
+                <label className="block text-sm font-medium text-gray-700 mb-1 capitalize">
                   {fieldName.replace(/([A-Z])/g, ' $1').trim()}
                   {isZipCode && (
-                    <span className="text-xs text-gray-500 ml-2">(5 digits)</span>
+                    <span className="text-xs text-gray-500 ml-1">(5 digits)</span>
                   )}
                 </label>
                 {fieldConfig.type === 'select' ? (
@@ -818,7 +973,7 @@ function CounselorAssessmentContent() {
                       ...currentAnswer,
                       [fieldName]: e.target.value
                     })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
                     required={fieldConfig.required}
                   >
                     <option value="">Select {fieldName}</option>
@@ -847,7 +1002,7 @@ function CounselorAssessmentContent() {
                       }}
                       placeholder={fieldConfig.placeholder}
                       maxLength={fieldConfig.maxLength}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 transition-colors ${
+                      className={`w-full px-3 py-2 border rounded-md focus:ring-1 transition-colors text-sm ${
                         showZipError 
                           ? 'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50' 
                           : showZipSuccess
@@ -859,29 +1014,29 @@ function CounselorAssessmentContent() {
                     {isZipCode && (
                       <div className="mt-1">
                         {showZipError && zipValidation && (
-                          <p className="text-sm text-red-600 flex items-center">
+                          <p className="text-xs text-red-600 flex items-center">
                             <span className="mr-1">❌</span>
                             {zipValidation.error || 'Invalid ZIP code'}
                           </p>
                         )}
                         {showZipSuccess && zipValidation && (
-                          <p className="text-sm text-green-600 flex items-center">
+                          <p className="text-xs text-green-600 flex items-center">
                             <span className="mr-1">✅</span>
                             Valid ZIP code{zipValidation.region && zipValidation.state ? ` - ${zipValidation.region}, ${zipValidation.state}` : ''}
                           </p>
                         )}
                         {fieldValue.length > 0 && fieldValue.length < 5 && (
-                          <p className="text-sm text-gray-500">
+                          <p className="text-xs text-gray-500">
                             Enter {5 - fieldValue.length} more digit{5 - fieldValue.length !== 1 ? 's' : ''}
                           </p>
                         )}
                         {fieldValue.length === 0 && (
-                          <p className="text-sm text-gray-500">
+                          <p className="text-xs text-gray-500">
                             Enter your 5-digit ZIP code (e.g., 12345)
                           </p>
                         )}
                         {validationError && (
-                          <p className="text-sm text-orange-600 flex items-center">
+                          <p className="text-xs text-orange-600 flex items-center">
                             <span className="mr-1">⚠️</span>
                             {validationError}
                           </p>
@@ -897,31 +1052,77 @@ function CounselorAssessmentContent() {
       );
     }
 
-    if (question.type === 'single_choice') {
+    if (question.type === 'single_choice' || question.type === 'single_select') {
       return (
-        <div className="space-y-3">
-          {question.options?.map((option, index) => (
-            <button
-              key={index}
-              onClick={() => handleAnswerChange(question.id, option)}
-              className={`w-full text-left px-6 py-4 rounded-lg border-2 transition-all ${
-                currentAnswer === option
-                  ? 'border-blue-600 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              {option}
-            </button>
-          ))}
+        <div className="space-y-2">
+          {question.options?.map((option, index) => {
+            // Check if this is an "Other" option that should be a text entry
+            const optionText = typeof option === 'string' ? option : String(option);
+            const isOtherOption = optionText.toLowerCase().includes('other');
+            
+            if (isOtherOption) {
+              // Render as text input instead of radio button
+              return (
+                <div key={index} className="border border-gray-200 rounded-md p-3 hover:border-gray-300 transition-colors">
+                  <label className="flex items-center space-x-3">
+                    <input
+                      type="radio"
+                      name={question.id}
+                      value="other"
+                      checked={currentAnswer === 'other' || (typeof currentAnswer === 'object' && currentAnswer?.type === 'other')}
+                      onChange={() => {
+                        // Set the answer to indicate "other" was selected
+                        handleAnswerChange(question.id, { type: 'other', text: '' });
+                      }}
+                      className="w-4 h-4 text-blue-600"
+                    />
+                    <div className="flex-1">
+                      <span className="text-gray-700 font-medium text-sm">Other:</span>
+                      <input
+                        type="text"
+                        placeholder="Please specify..."
+                        value={typeof currentAnswer === 'object' && currentAnswer?.type === 'other' ? currentAnswer.text : ''}
+                        onChange={(e) => {
+                          handleAnswerChange(question.id, { type: 'other', text: e.target.value });
+                        }}
+                        onFocus={() => {
+                          // Auto-select the radio button when text field is focused
+                          if (currentAnswer !== 'other' && !(typeof currentAnswer === 'object' && currentAnswer?.type === 'other')) {
+                            handleAnswerChange(question.id, { type: 'other', text: '' });
+                          }
+                        }}
+                        className="ml-2 flex-1 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                  </label>
+                </div>
+              );
+            } else {
+              // Regular radio button option
+              return (
+                <button
+                  key={index}
+                  onClick={() => handleAnswerChange(question.id, option)}
+                  className={`w-full text-left px-4 py-3 rounded-md border transition-all text-sm ${
+                    currentAnswer === option
+                      ? 'border-blue-600 bg-blue-50 text-blue-900'
+                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  {option}
+                </button>
+              );
+            }
+          })}
         </div>
       );
     }
 
     if (question.type === 'multiple_choice') {
       return (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {question.options?.map((option, index) => (
-            <label key={index} className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50">
+            <label key={index} className="flex items-center space-x-3 p-3 border rounded-md hover:bg-gray-50 cursor-pointer">
               <input
                 type="checkbox"
                 checked={Array.isArray(currentAnswer) ? currentAnswer.includes(option) : false}
@@ -935,7 +1136,32 @@ function CounselorAssessmentContent() {
                 }}
                 className="w-4 h-4 text-blue-600"
               />
-              <span>{option}</span>
+              <span className="text-sm">{option}</span>
+            </label>
+          ))}
+        </div>
+      );
+    }
+
+    if (question.type === 'multi_select') {
+      return (
+        <div className="space-y-2">
+          {question.options?.map((option, index) => (
+            <label key={index} className="flex items-center space-x-3 p-3 border rounded-md hover:bg-gray-50 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={Array.isArray(currentAnswer) ? currentAnswer.includes(option) : false}
+                onChange={(e) => {
+                  const currentArray = Array.isArray(currentAnswer) ? currentAnswer : [];
+                  if (e.target.checked) {
+                    handleAnswerChange(question.id, [...currentArray, option]);
+                  } else {
+                    handleAnswerChange(question.id, currentArray.filter(item => item !== option));
+                  }
+                }}
+                className="w-4 h-4 text-blue-600"
+              />
+              <span className="text-sm">{option}</span>
             </label>
           ))}
         </div>
@@ -1163,7 +1389,7 @@ function CounselorAssessmentContent() {
       );
     }
 
-    if (question.type === 'free_text') {
+    if (question.type === 'free_text' || question.type === 'text_long') {
       const currentLength = (currentAnswer || '').length;
       const maxLength = question.maxLength || 500;
       const hasContent = currentLength > 0;
@@ -1174,30 +1400,28 @@ function CounselorAssessmentContent() {
             value={currentAnswer || ''}
             onChange={(e) => handleAnswerChange(question.id, e.target.value)}
             placeholder={question.placeholder}
-            rows={6}
+            rows={4}
             maxLength={maxLength}
-            className={`w-full px-4 py-3 border-2 rounded-lg resize-none transition-colors ${
+            className={`w-full px-3 py-2 border rounded-md resize-none transition-colors text-sm ${
               hasContent 
                 ? 'border-green-300 focus:border-green-500' 
                 : 'border-gray-300 focus:border-blue-500'
             }`}
           />
-          <div className="flex justify-between items-center mt-2">
-            <div className={`text-sm font-medium ${
+          <div className="flex justify-between items-center mt-1">
+            <div className={`text-xs ${
               currentLength === 0 
                 ? 'text-gray-500'
                 : 'text-green-600'
             }`}>
               {currentLength === 0 && (
-                <span>
-                  💡 Please share your thoughts about this question
-                </span>
+                <span>Required field</span>
               )}
               {hasContent && (
-                <span>✅ Great! You can proceed to the next question</span>
+                <span>✓ Complete</span>
               )}
             </div>
-            <div className={`text-sm ${
+            <div className={`text-xs ${
               currentLength > maxLength * 0.9 ? 'text-red-500' : 'text-gray-500'
             }`}>
               {currentLength} / {maxLength}
@@ -1207,29 +1431,33 @@ function CounselorAssessmentContent() {
       );
     }
 
-    if (question.type === 'matrix_radio') {
+    if (question.type === 'matrix_radio' || question.type === 'matrix') {
       const currentAnswer = selectedAnswers[question.id] || {};
       
       return (
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
+            <table className="w-full">
               <thead>
-                <tr>
-                  <th className="text-left p-2 border-b font-medium text-gray-700">Subject</th>
-                  {question.options?.map((option) => (
-                    <th key={option} className="text-center p-2 border-b font-medium text-gray-700 min-w-[80px]">
-                      <div className="text-xs">{option}</div>
+                <tr className="bg-gray-50">
+                  <th className="text-left p-3 font-medium text-gray-700 text-sm min-w-[200px]">
+                    Subject
+                  </th>
+                  {(question.columns || question.options)?.map((option) => (
+                    <th key={option} className="text-center p-3 font-medium text-gray-700 min-w-[80px]">
+                      <div className="text-xs leading-tight">{option}</div>
                     </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {question.subjects?.map((subject) => (
-                  <tr key={subject} className="border-b">
-                    <td className="p-2 font-medium text-gray-800 text-sm">{subject}</td>
-                    {question.options?.map((option) => (
-                      <td key={option} className="text-center p-2">
+                {(question.rows || question.subjects)?.map((subject, index) => (
+                  <tr key={subject} className={index % 2 === 0 ? "bg-white" : "bg-gray-25 hover:bg-gray-50"}>
+                    <td className="p-3 font-medium text-gray-800 text-sm">
+                      {subject}
+                    </td>
+                    {(question.columns || question.options)?.map((option) => (
+                      <td key={option} className="text-center p-3">
                         <input
                           type="radio"
                           name={`${question.id}_${subject}`}
@@ -1241,7 +1469,7 @@ function CounselorAssessmentContent() {
                               [subject]: e.target.value
                             });
                           }}
-                          className="text-blue-600"
+                          className="text-blue-600 w-4 h-4"
                         />
                       </td>
                     ))}
@@ -1250,8 +1478,8 @@ function CounselorAssessmentContent() {
               </tbody>
             </table>
           </div>
-          <div className="text-sm text-gray-600 mt-2">
-            💡 Rate your performance in each subject. Select one option per row.
+          <div className="text-xs text-gray-600 mt-2">
+            Rate your performance in each subject. Select one option per row.
           </div>
         </div>
       );
@@ -1265,6 +1493,218 @@ function CounselorAssessmentContent() {
         <pre className="text-xs text-gray-500 mt-2">
           {JSON.stringify(question, null, 2)}
         </pre>
+      </div>
+    );
+  };
+
+  // Function to render the summary slide
+  const renderSummarySlide = () => {
+    const visibleQuestions = getVisibleQuestions();
+    
+    // Organize responses by category
+    const summaryData = {
+      'Basic Information': [] as Array<{question: string, answer: string}>,
+      'Career Interests': [] as Array<{question: string, answer: string}>,
+      'Academic Performance': [] as Array<{question: string, answer: string}>,
+      'Education & Support': [] as Array<{question: string, answer: string}>,
+      'Personal Traits & Experience': [] as Array<{question: string, answer: string}>,
+      'Constraints & Goals': [] as Array<{question: string, answer: string}>
+    };
+
+    visibleQuestions.forEach(question => {
+      const answer = selectedAnswers[question.id];
+      if (!answer) return;
+
+      let formattedAnswer = '';
+      let category = 'Basic Information';
+
+      // Format answer based on question type and determine category
+      if (question.id === 'q1_grade_zip') {
+        formattedAnswer = `Grade ${answer.grade}, ZIP Code ${answer.zipCode}`;
+        category = 'Basic Information';
+      } else if (question.id === 'q3_career_knowledge') {
+        formattedAnswer = answer;
+        category = 'Career Interests';
+      } else if (question.id.startsWith('q3a')) {
+        if (typeof answer === 'object' && answer.type === 'other') {
+          formattedAnswer = `Other: ${answer.text}`;
+        } else {
+          formattedAnswer = answer;
+        }
+        category = 'Career Interests';
+      } else if (question.id === 'q4_academic_performance') {
+        const subjects = Object.keys(answer);
+        formattedAnswer = `${subjects.length} subjects rated`;
+        category = 'Academic Performance';
+      } else if (question.id === 'q5_education_willingness') {
+        formattedAnswer = answer;
+        category = 'Education & Support';
+      } else if (question.id === 'q17_support_confidence') {
+        formattedAnswer = answer;
+        category = 'Education & Support';
+      } else if (question.id === 'q10_traits') {
+        formattedAnswer = Array.isArray(answer) ? answer.join(', ') : answer;
+        category = 'Personal Traits & Experience';
+      } else if (question.id === 'q8_interests_text' || question.id === 'q9_experience_text') {
+        formattedAnswer = answer.length > 100 ? answer.substring(0, 100) + '...' : answer;
+        category = 'Personal Traits & Experience';
+      } else if (question.id === 'q14_constraints') {
+        formattedAnswer = Array.isArray(answer) ? answer.join(', ') : answer;
+        category = 'Constraints & Goals';
+      } else if (question.id === 'q19_20_impact_inspiration') {
+        formattedAnswer = answer.length > 100 ? answer.substring(0, 100) + '...' : answer;
+        category = 'Constraints & Goals';
+      } else {
+        // Generic handling
+        if (Array.isArray(answer)) {
+          formattedAnswer = answer.join(', ');
+        } else if (typeof answer === 'object') {
+          formattedAnswer = JSON.stringify(answer);
+        } else {
+          formattedAnswer = String(answer);
+        }
+        category = 'Basic Information';
+      }
+
+      summaryData[category as keyof typeof summaryData].push({
+        question: question.text,
+        answer: formattedAnswer
+      });
+    });
+
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header title="Enhanced Career Assessment" />
+        <div className="py-8 px-4">
+          <div className="max-w-3xl mx-auto">
+            {/* Progress Bar */}
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-medium text-gray-700">
+                  Assessment Summary
+                </span>
+                <span className="text-sm text-gray-500">
+                  100% Complete
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="bg-green-600 h-2 rounded-full w-full"></div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="mb-6">
+                <span className="inline-block px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full mb-3">
+                  REVIEW
+                </span>
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                  Review Your Responses
+                </h2>
+                <p className="text-gray-600 text-sm">
+                  Please review your responses below. You can edit any answer by clicking the "Edit" button.
+                </p>
+              </div>
+
+              {/* Summary Content */}
+              <div className="space-y-6">
+                {Object.entries(summaryData).map(([category, responses]) => {
+                  if (responses.length === 0) return null;
+                  
+                  return (
+                    <div key={category} className="border-b border-gray-100 pb-6 last:border-b-0">
+                      <h3 className="text-lg font-medium text-gray-900 mb-4">
+                        {category}
+                      </h3>
+                      <div className="space-y-3">
+                        {responses.map((item, index) => (
+                          <div key={index} className="bg-gray-50 rounded-md p-4">
+                            <div className="flex justify-between items-start mb-2">
+                              <p className="text-sm font-medium text-gray-700 flex-1 mr-3">
+                                {item.question}
+                              </p>
+                              <button
+                                onClick={() => {
+                                  // Find the question and go back to it
+                                  const questionIndex = visibleQuestions.findIndex(q => q.text === item.question);
+                                  if (questionIndex !== -1) {
+                                    setCurrentIndex(questionIndex);
+                                    setShowSummary(false);
+                                  }
+                                }}
+                                className="text-xs text-blue-600 hover:text-blue-800 font-medium whitespace-nowrap px-2 py-1 bg-blue-50 rounded hover:bg-blue-100 transition-colors"
+                              >
+                                Edit
+                              </button>
+                            </div>
+                            <p className="text-sm text-gray-600">
+                              {item.answer}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="mt-8 flex justify-between">
+                <button
+                  onClick={() => setShowSummary(false)}
+                  disabled={isSubmitting}
+                  className="px-4 py-2 text-gray-600 disabled:opacity-50 hover:text-gray-800 transition-colors text-sm"
+                >
+                  ← Back
+                </button>
+                <button
+                  onClick={() => {
+                    // Update responses and submit
+                    const finalResponses = { ...responses };
+                    
+                    // Ensure all response mappings are up to date
+                    visibleQuestions.forEach(question => {
+                      const currentAnswer = selectedAnswers[question.id];
+                      if (!currentAnswer) return;
+
+                      if (question.id === 'q1_grade_zip') {
+                        finalResponses.grade = parseInt(currentAnswer.grade);
+                        finalResponses.zipCode = currentAnswer.zipCode;
+                      } else if (question.id === 'q3_career_knowledge') {
+                        finalResponses[question.id] = currentAnswer;
+                      } else if (question.id.startsWith('q3a_')) {
+                        finalResponses[question.id] = currentAnswer;
+                      } else if (question.id === 'q4_academic_performance') {
+                        finalResponses.academicPerformance = currentAnswer;
+                      } else if (question.id === 'q5_education_willingness') {
+                        finalResponses.educationCommitment = currentAnswer;
+                      } else if (question.id === 'q14_constraints') {
+                        finalResponses.constraints = Array.isArray(currentAnswer) ? currentAnswer : [currentAnswer];
+                      } else if (question.id === 'q17_support_confidence') {
+                        finalResponses.supportLevel = currentAnswer;
+                      } else if (question.id === 'q19_20_impact_inspiration') {
+                        finalResponses.impactStatement = currentAnswer;
+                      } else if (question.id === 'q10_traits') {
+                        finalResponses.personalTraits = currentAnswer;
+                      } else if (question.id === 'q8_interests_text') {
+                        finalResponses.interestsPassions = currentAnswer;
+                      } else if (question.id === 'q9_experience_text') {
+                        finalResponses.workExperience = currentAnswer;
+                      } else {
+                        finalResponses[question.id] = currentAnswer;
+                      }
+                    });
+
+                    handleSubmit(finalResponses);
+                  }}
+                  disabled={isSubmitting}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 text-sm"
+                >
+                  {isSubmitting ? 'Generating Results...' : 'Generate Results'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   };
@@ -1499,48 +1939,16 @@ function CounselorAssessmentContent() {
     );
   }
 
-  const currentQuestion = questions[currentIndex];
+  // Show summary slide if requested
+  if (showSummary) {
+    return renderSummarySlide();
+  }
 
-  // Function to handle direct navigation to a question
-  const navigateToQuestion = (questionIndex: number) => {
-    if (questionIndex >= 0 && questionIndex < questions.length) {
-      setCurrentIndex(questionIndex);
-    }
-  };
-
-  // Function to get the status of a question (completed, current, or upcoming)
-  const getQuestionStatus = (questionIndex: number) => {
-    if (questionIndex < currentIndex) {
-      // Check if this question has been answered
-      const question = questions[questionIndex];
-      const answer = selectedAnswers[question.id];
-      
-      if (question.type === 'combined') {
-        return answer?.grade && answer?.zipCode ? 'completed' : 'incomplete';
-      } else if (question.type === 'free_text') {
-        return answer && answer.trim().length > 0 ? 'completed' : 'incomplete';
-      } else if (question.type === 'multiple_choice') {
-        return answer && Array.isArray(answer) && answer.length > 0 ? 'completed' : 'incomplete';
-      } else if (question.type === 'multiple_choice_with_other') {
-        const selected = answer?.selected || [];
-        const other = answer?.other || '';
-        return (selected.length > 0 || other.trim().length > 0) ? 'completed' : 'incomplete';
-      } else if (question.type === 'matrix_radio') {
-        const subjects = question.subjects || [];
-        const answeredSubjects = Object.keys(answer || {});
-        return answeredSubjects.length >= subjects.length ? 'completed' : 'incomplete';
-      } else {
-        return answer ? 'completed' : 'incomplete';
-      }
-    } else if (questionIndex === currentIndex) {
-      return 'current';
-    } else {
-      return 'upcoming';
-    }
-  };
+  const visibleQuestions = getVisibleQuestions();
+  const currentQuestion = visibleQuestions[currentIndex];
 
   // Safeguard: if currentIndex is out of bounds, reset it
-  if (questions.length > 0 && (currentIndex < 0 || currentIndex >= questions.length)) {
+  if (visibleQuestions.length > 0 && (currentIndex < 0 || currentIndex >= visibleQuestions.length)) {
     console.log('⚠️ currentIndex out of bounds, resetting to 0');
     setCurrentIndex(0);
     return (
@@ -1570,7 +1978,7 @@ function CounselorAssessmentContent() {
             <div className="bg-red-50 border border-red-200 rounded-lg p-6">
               <h2 className="text-xl font-semibold text-red-600 mb-4">Error: No Question Found</h2>
               <p className="text-red-600 mb-4">
-                Question index {currentIndex} not found. Total questions: {questions.length}
+                Question index {currentIndex} not found. Total visible questions: {visibleQuestions.length}
               </p>
               <div className="mb-4">
                 <button
@@ -1823,99 +2231,48 @@ function CounselorAssessmentContent() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header title="Enhanced Career Assessment" />
-      <div className="py-12 px-4">
-        <div className="max-w-4xl mx-auto">
+      <div className="py-8 px-4">
+        <div className="max-w-3xl mx-auto">
           {/* Test Profile Button */}
-          <div className="mb-6 text-center">
+          {/* Progress Bar */}
+          <div className="mb-6">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm font-medium text-gray-700">
+                Question {currentIndex + 1} of {visibleQuestions.length}
+              </span>
+              <span className="text-sm text-gray-500">
+                {Math.round(((currentIndex + 1) / visibleQuestions.length) * 100)}% Complete
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-out"
+                style={{ width: `${((currentIndex + 1) / visibleQuestions.length) * 100}%` }}
+              ></div>
+            </div>
+          </div>
+
+          {/* Test Profile Button */}
+          <div className="mb-4 text-center">
             <button
               onClick={() => router.push('/test-profiles')}
-              className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors"
+              className="inline-flex items-center px-3 py-2 bg-purple-600 text-white rounded-md text-sm font-medium hover:bg-purple-700 transition-colors"
             >
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
               </svg>
-              Test Profile
+              🧪 Test Profiles
             </button>
-            <p className="text-sm text-gray-500 mt-1">
-              Try the assessment with pre-filled sample profiles
-            </p>
-          </div>
-          
-          <div className="mb-8">
-            {/* Circle Navigation */}
-            <div className="flex flex-wrap justify-center gap-2 mb-4">
-              {questions.map((question, index) => {
-                const status = getQuestionStatus(index);
-                const isClickable = index <= currentIndex || status === 'completed';
-                
-                return (
-                  <button
-                    key={question.id}
-                    onClick={() => isClickable ? navigateToQuestion(index) : null}
-                    disabled={!isClickable}
-                    className={`
-                      w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-200
-                      ${status === 'completed' 
-                        ? 'bg-green-500 text-white hover:bg-green-600 cursor-pointer' 
-                        : status === 'current'
-                        ? 'bg-blue-600 text-white ring-2 ring-blue-300 cursor-pointer'
-                        : status === 'incomplete'
-                        ? 'bg-yellow-500 text-white hover:bg-yellow-600 cursor-pointer'
-                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      }
-                      ${isClickable ? 'hover:scale-110' : ''}
-                    `}
-                    title={`Question ${index + 1}: ${question.text.substring(0, 50)}${question.text.length > 50 ? '...' : ''}`}
-                  >
-                    {index + 1}
-                  </button>
-                );
-              })}
-            </div>
-            
-            {/* Progress Text */}
-            <div className="text-center text-sm text-gray-600">
-              <span>Question {currentIndex + 1} of {questions.length}</span>
-              <span className="mx-2">•</span>
-              <span>{Math.round(((currentIndex + 1) / questions.length) * 100)}% Complete</span>
-            </div>
-            
-            {/* Navigation Hint */}
-            <div className="text-center text-xs text-gray-500 mt-1">
-              Click any circle to jump to that question
-            </div>
-            
-            {/* Legend */}
-            <div className="flex justify-center gap-6 mt-3 text-xs text-gray-500">
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                <span>Completed</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 rounded-full bg-blue-600"></div>
-                <span>Current</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                <span>Incomplete</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 rounded-full bg-gray-200"></div>
-                <span>Upcoming</span>
-              </div>
-            </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <div className="mb-6">
-              <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full mb-4">
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="mb-4">
+              <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full mb-3">
                 {currentQuestion.category.replace(/_/g, ' ').toUpperCase()}
               </span>
-              <h2 className="text-2xl font-semibold">
+              <h2 className="text-xl font-semibold text-gray-900">
                 {currentQuestion.text}
-                {currentQuestion.required === false && (
-                  <span className="text-lg text-gray-500 font-normal ml-2">(Optional)</span>
-                )}
+                <span className="text-red-500 ml-1">*</span>
               </h2>
             </div>
             
@@ -1940,19 +2297,19 @@ function CounselorAssessmentContent() {
               }
             })()}
 
-            <div className="mt-8 flex justify-between">
+            <div className="mt-6 flex justify-between">
               <button
-                onClick={() => navigateToQuestion(Math.max(0, currentIndex - 1))}
+                onClick={() => setCurrentIndex(Math.max(0, currentIndex - 1))}
                 disabled={currentIndex === 0}
-                className="px-6 py-2 text-gray-600 disabled:opacity-50 hover:text-gray-800 transition-colors"
+                className="px-4 py-2 text-gray-600 disabled:opacity-50 hover:text-gray-800 transition-colors text-sm"
               >
                 ← Back
               </button>
               <button
                 onClick={handleNext}
-                className="px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                className="px-6 py-2 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 transition-colors text-sm"
               >
-                {currentIndex === questions.length - 1 ? 'Generate My Career Plan' : 'Next →'}
+                {currentIndex === visibleQuestions.length - 1 ? 'Summary →' : 'Next →'}
               </button>
             </div>
           </div>
