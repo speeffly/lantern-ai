@@ -260,19 +260,10 @@ function CounselorAssessmentContent() {
 
   // Reapply stored answers once questions are loaded to avoid race conditions on first render
   useEffect(() => {
+    // DISABLED: Auto-loading of stored answers
+    // This ensures each assessment session starts fresh
     if (!hasRestoredAnswers && !isLoading && questions.length > 0) {
-      const storedAnswers = loadStoredAnswers();
-      if (storedAnswers) {
-        console.log('✅ Reapplying stored answers after questions loaded');
-        setSelectedAnswers(prev => ({
-          ...storedAnswers.selectedAnswers,
-          ...prev
-        }));
-        setResponses(prev => ({
-          ...storedAnswers.responses,
-          ...prev
-        }));
-      }
+      console.log('🚫 Auto-loading of stored answers is disabled - starting fresh assessment');
       setHasRestoredAnswers(true);
     }
   }, [hasRestoredAnswers, isLoading, questions.length]);
@@ -341,31 +332,10 @@ function CounselorAssessmentContent() {
   };
 
   const saveStoredAnswers = (finalResponses: CounselorAssessmentResponse) => {
-    try {
-      const sanitizedResponses = serializeWithoutFiles(finalResponses);
-      const sanitizedSelectedAnswers = serializeWithoutFiles(selectedAnswers);
-      if (!sanitizedResponses || !sanitizedSelectedAnswers) return;
-
-      const storedUser = localStorage.getItem('user');
-      const user = storedUser ? JSON.parse(storedUser) : null;
-      const userSpecificKey = getUserSpecificKey(ANSWER_STORAGE_KEY);
-
-      const dataToStore = {
-        timestamp: new Date().toISOString(),
-        userEmail: user?.email || null,
-        responses: sanitizedResponses,
-        selectedAnswers: sanitizedSelectedAnswers
-      };
-
-      localStorage.setItem(userSpecificKey, JSON.stringify(dataToStore));
-      
-      // Clear old non-user-specific data for cleanup
-      localStorage.removeItem(ANSWER_STORAGE_KEY);
-      
-      console.log('💾 Saved assessment answers with user-specific key:', userSpecificKey);
-    } catch (error) {
-      console.error('❌ Error saving assessment answers for retake:', error);
-    }
+    // DISABLED: Saving answers to localStorage
+    // Each assessment session now starts fresh without persistence
+    console.log('🚫 Answer saving is disabled - assessment will not persist between sessions');
+    return;
   };
 
   const checkForPreviousResults = async () => {
@@ -493,8 +463,8 @@ function CounselorAssessmentContent() {
     setSelectedAnswers({});
     setHasRestoredAnswers(false);
     setIsLoading(true);
-    // Clear user-specific assessment data
-    clearCurrentUserAssessmentData();
+    // DISABLED: Clearing assessment data - no longer needed since we don't save
+    console.log('🆕 Starting fresh assessment (no data to clear)');
     fetchQuestions();
   };
 
@@ -538,9 +508,9 @@ function CounselorAssessmentContent() {
         console.log('🔍 Questions structure:', data.data);
         console.log('🔍 Conditional questions:', data.data.questions?.filter((q: any) => q.isConditional).map((q: any) => ({ id: q.id, conditionalParent: q.conditionalParent, conditionalTrigger: q.conditionalTrigger })));
         
-        const storedAnswers = loadStoredAnswers();
-        let initialSelectedAnswers = storedAnswers?.selectedAnswers || {};
-        let initialResponses = storedAnswers?.responses || {};
+        const storedAnswers = null; // DISABLED: Always start fresh
+        let initialSelectedAnswers = {};
+        let initialResponses = {};
 
         // Handle prefilled data for authenticated users
         if (data.data.prefilledData) {
@@ -550,13 +520,11 @@ function CounselorAssessmentContent() {
             ...data.data.prefilledData
           }));
           initialResponses = {
-            ...initialResponses,
-            grade: initialResponses.grade || data.data.prefilledData.grade,
-            zipCode: initialResponses.zipCode || data.data.prefilledData.zipCode
+            grade: data.data.prefilledData.grade,
+            zipCode: data.data.prefilledData.zipCode
           };
-          if (!initialSelectedAnswers.q1_grade_zip && (data.data.prefilledData.grade || data.data.prefilledData.zipCode)) {
+          if (data.data.prefilledData.grade || data.data.prefilledData.zipCode) {
             initialSelectedAnswers = {
-              ...initialSelectedAnswers,
               q1_grade_zip: {
                 ...(data.data.prefilledData.grade ? { grade: data.data.prefilledData.grade } : {}),
                 ...(data.data.prefilledData.zipCode ? { zipCode: data.data.prefilledData.zipCode } : {})
@@ -570,6 +538,7 @@ function CounselorAssessmentContent() {
           }
         }
         
+        // DISABLED: Auto-loading of stored answers for fresh sessions
         // Show authentication status
         if (data.data.isAuthenticated) {
           console.log(`✅ User authenticated as: ${data.data.userRole}`);
@@ -585,14 +554,8 @@ function CounselorAssessmentContent() {
           console.log('📋 First question:', sortedQuestions[0]);
           setQuestions(sortedQuestions);
           setCurrentIndex(0); // Reset to first question
-          if (Object.keys(initialSelectedAnswers).length > 0) {
-            console.log('✅ Restoring previous answers for retake');
-            setSelectedAnswers(initialSelectedAnswers);
-            setResponses(prev => ({
-              ...prev,
-              ...initialResponses
-            }));
-          }
+          // DISABLED: Auto-loading stored answers - each session starts fresh
+          console.log('🆕 Starting fresh assessment session');
           setIsLoading(false);
           console.log('✅ Questions loaded successfully');
         } else {
