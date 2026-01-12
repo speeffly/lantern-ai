@@ -133,6 +133,531 @@ export interface CounselorRecommendation {
 
 export class CounselorGuidanceService {
   /**
+   * Generate 3 career matches for undecided students based on their assessment responses
+   * This helps students who are unsure about their career path by providing focused options
+   */
+  static async generateUndecidedCareerMatches(responses: any): Promise<any> {
+    try {
+      console.log('🤔 Generating career matches for undecided student...');
+      console.log('📋 Input responses:', Object.keys(responses));
+      
+      // Extract basic info
+      const grade = responses.basic_info?.grade || responses.grade;
+      const zipCode = responses.basic_info?.zipCode || responses.zipCode;
+
+      console.log(`👤 Student: Grade ${grade}, ZIP ${zipCode}`);
+
+      // Create RTCROS-structured prompt specifically for undecided students
+      const undecidedPrompt = `ROLE:
+You are a Senior Career Counselor AI specializing in helping undecided high school students discover their career paths through personalized analysis of their interests, traits, and experiences.
+
+TASK:
+Analyze this undecided student's assessment responses and provide exactly 3 carefully selected career matches that align with their interests, personality traits, and experiences. Each career should represent a different pathway to help them explore diverse options.
+
+CONTEXT:
+- Platform: Lantern AI career guidance system for high school students
+- Student: Grade ${grade} student in ZIP code ${zipCode}
+- Assessment Type: Undecided path - student needs help discovering career interests
+- Output Usage: Help student choose from 3 focused career options
+- Geographic Focus: Local job market analysis for ZIP ${zipCode}
+
+STUDENT ASSESSMENT RESPONSES:
+${Object.entries(responses)
+  .filter(([key]) => !['grade', 'zipCode', 'basic_info'].includes(key))
+  .map(([questionId, answer]) => {
+    const cleanAnswer = typeof answer === 'object' ? JSON.stringify(answer) : answer;
+    return `${questionId}: ${cleanAnswer}`;
+  })
+  .join('\n')}
+
+REASONING FRAMEWORK:
+1. DIVERSITY PRINCIPLE: Select 3 careers from different sectors/pathways to give student variety
+2. INTEREST ALIGNMENT: Match careers to student's stated interests, hobbies, and experiences
+3. TRAIT COMPATIBILITY: Ensure careers align with student's personality traits and work preferences
+4. REALISTIC PATHWAYS: Consider student's education commitment and support system
+5. LOCAL RELEVANCE: Factor in ZIP code ${zipCode} job market opportunities
+6. GROWTH POTENTIAL: Include careers with good advancement opportunities for young professionals
+
+OUTPUT REQUIREMENTS:
+Generate a structured JSON response with exactly 3 career matches:
+
+{
+  "careerMatches": [
+    {
+      "careerTitle": "Specific career title",
+      "sector": "healthcare/technology/infrastructure/business/education/etc",
+      "matchPercentage": 85,
+      "whyThisCareer": "Detailed explanation of why this career matches the student's interests, traits, and experiences",
+      "averageSalary": 65000,
+      "requiredEducation": "Specific education requirement",
+      "localJobMarket": {
+        "estimatedJobs": 45,
+        "averageLocalSalary": 62000,
+        "topEmployers": ["Local employer 1", "Local employer 2"],
+        "growthOutlook": "Growing/Stable/Declining"
+      },
+      "dayInTheLife": "Description of what a typical day looks like in this career",
+      "careerProgression": "How someone advances in this career over time",
+      "skillsNeeded": ["Skill 1", "Skill 2", "Skill 3"],
+      "highSchoolPrep": ["Course 1", "Course 2", "Activity 1"]
+    }
+  ],
+  "selectionRationale": "Brief explanation of why these 3 specific careers were chosen for this student",
+  "nextSteps": [
+    "Specific action item 1",
+    "Specific action item 2", 
+    "Specific action item 3"
+  ],
+  "parentGuidance": {
+    "summary": "Brief overview for parents about these career recommendations",
+    "supportActions": ["How parents can help 1", "How parents can help 2"],
+    "keyRecommendations": ["Important point 1", "Important point 2"]
+  }
+}
+
+STOPPING CRITERIA:
+1. EXACTLY 3 CAREERS: Must provide exactly 3 different career options
+2. SECTOR DIVERSITY: Ensure the 3 careers span different sectors/industries
+3. DETAILED EXPLANATIONS: Each career must have comprehensive "whyThisCareer" explanation
+4. ACTIONABLE GUIDANCE: Include specific next steps and high school preparation
+5. JSON VALIDATION: Confirm output is valid JSON with no syntax errors
+6. PERSONALIZATION: All recommendations must reference specific student responses
+
+CRITICAL: Return ONLY the JSON object. No additional text, explanations, or formatting outside the JSON structure.`;
+
+      // Send to AI
+      console.log('📤 Sending undecided student prompt to AI...');
+      const aiResponse = await CleanAIRecommendationService.callAI(undecidedPrompt);
+      
+      // Parse AI response
+      const parsedResponse = this.parseUndecidedAIResponse(aiResponse, grade, zipCode);
+      
+      console.log('✅ Undecided career matching completed');
+      console.log('📊 Result summary:');
+      console.log('   - Career matches:', parsedResponse.topJobMatches?.length || 0);
+      console.log('   - Undecided path flag:', parsedResponse.undecidedPath);
+      console.log('   - Has selection rationale:', !!parsedResponse.selectionRationale);
+      
+      return parsedResponse;
+
+    } catch (error) {
+      console.error('❌ Undecided career matching failed:', error);
+      // Fallback to basic career matching
+      return this.generateDirectCounselorRecommendations(responses);
+    }
+  }
+
+  /**
+   * Parse the AI response for undecided students into the expected format
+   */
+  private static parseUndecidedAIResponse(aiResponse: string, grade: string, zipCode: string): any {
+    try {
+      // Clean the response to extract JSON
+      let cleanResponse = aiResponse.trim();
+      
+      // Remove any markdown formatting
+      cleanResponse = cleanResponse.replace(/```json\s*/g, '').replace(/```\s*$/g, '');
+      
+      // Find the JSON object
+      const jsonStart = cleanResponse.indexOf('{');
+      const jsonEnd = cleanResponse.lastIndexOf('}') + 1;
+      
+      if (jsonStart !== -1 && jsonEnd > jsonStart) {
+        cleanResponse = cleanResponse.substring(jsonStart, jsonEnd);
+      }
+      
+      const parsed = JSON.parse(cleanResponse);
+      
+      // Helper function to ensure arrays
+      const ensureArray = (value: any, fallback: string[] = []): string[] => {
+        if (Array.isArray(value)) return value;
+        if (typeof value === 'string') return [value];
+        return fallback;
+      };
+      
+      // Transform to expected format with exactly 3 career matches
+      const careerMatches = (parsed.careerMatches || []).slice(0, 3).map((match: any, index: number) => ({
+        career: {
+          id: match.careerTitle?.toLowerCase().replace(/\s+/g, '-') || `career-${index + 1}`,
+          title: match.careerTitle || `Career Option ${index + 1}`,
+          description: match.whyThisCareer || 'AI-generated career match based on your assessment',
+          sector: match.sector || 'general',
+          averageSalary: match.averageSalary || 50000,
+          requiredEducation: match.requiredEducation || 'High school diploma',
+          certifications: [],
+          growthOutlook: match.localJobMarket?.growthOutlook || 'Stable'
+        },
+        matchScore: match.matchPercentage || 75,
+        matchReasons: [match.whyThisCareer || 'Based on your assessment responses'],
+        localOpportunities: {
+          estimatedJobs: match.localJobMarket?.estimatedJobs || 25,
+          averageLocalSalary: match.localJobMarket?.averageLocalSalary || match.averageSalary || 50000,
+          topEmployers: ensureArray(match.localJobMarket?.topEmployers, ['Local employers']),
+          distanceFromStudent: 15
+        },
+        educationPath: {
+          highSchoolCourses: ensureArray(match.highSchoolPrep, ['Core academic courses']),
+          postSecondaryOptions: [match.requiredEducation || 'Post-secondary education'],
+          timeToCareer: '2-4 years after high school',
+          estimatedCost: 25000
+        },
+        careerDetails: {
+          dayInTheLife: match.dayInTheLife || 'Engaging work in your chosen field',
+          careerProgression: match.careerProgression || 'Opportunities for advancement and growth',
+          skillsNeeded: ensureArray(match.skillsNeeded, ['Professional skills', 'Communication', 'Problem-solving'])
+        }
+      }));
+
+      console.log('🎯 Created career matches for undecided student:');
+      console.log('   - Number of matches:', careerMatches.length);
+      careerMatches.forEach((match: any, index: number) => {
+        console.log(`   ${index + 1}. ${match.career.title} (${match.career.sector})`);
+      });
+
+      return {
+        studentProfile: {
+          grade: parseInt(grade),
+          location: zipCode,
+          careerReadiness: 'Exploring Options',
+          pathType: 'undecided'
+        },
+        topJobMatches: careerMatches,
+        selectionRationale: parsed.selectionRationale || 'These careers were selected based on your interests and assessment responses',
+        nextSteps: ensureArray(parsed.nextSteps, [
+          'Research each career option in detail',
+          'Talk to professionals in these fields',
+          'Consider job shadowing opportunities'
+        ]),
+        parentSummary: {
+          overview: parsed.parentGuidance?.summary || 'Your student has been presented with 3 diverse career options based on their assessment responses',
+          keyRecommendations: ensureArray(parsed.parentGuidance?.keyRecommendations, [
+            'Support exploration of all 3 career options',
+            'Help arrange informational interviews or job shadowing'
+          ]),
+          supportActions: ensureArray(parsed.parentGuidance?.supportActions, [
+            'Encourage research into each career path',
+            'Support relevant extracurricular activities'
+          ]),
+          timelineHighlights: [
+            `Grade ${grade}: Explore the 3 recommended career options`,
+            'Research education requirements for each path',
+            'Make final career decision by senior year'
+          ]
+        },
+        counselorNotes: {
+          assessmentInsights: [
+            `Student is in grade ${grade} and took the undecided assessment path`,
+            'Provided 3 diverse career options to help with decision-making',
+            'Student responses indicate need for career exploration guidance',
+            'Recommendations span multiple sectors for comprehensive choice'
+          ],
+          recommendationRationale: [
+            'Selected 3 careers from different sectors to provide variety',
+            'Each career aligns with different aspects of student interests',
+            'Recommendations consider local job market opportunities',
+            'Education pathways match student\'s stated commitment level'
+          ],
+          followUpActions: [
+            'Schedule follow-up meeting to discuss student\'s career preferences',
+            'Arrange informational interviews with professionals in each field',
+            'Monitor student\'s research progress on each career option',
+            'Help student make final career selection within 3 months'
+          ],
+          parentMeetingTopics: [
+            'Review the 3 career options and selection rationale',
+            'Discuss how to support student\'s career exploration',
+            'Plan next steps for career decision-making process',
+            'Address any questions about education requirements'
+          ]
+        },
+        fourYearPlan: {
+          currentGrade: parseInt(grade),
+          academicPlan: {
+            [grade]: {
+              coreCourses: ['English', 'Mathematics', 'Science', 'Social Studies'],
+              electiveCourses: ['Explore electives related to your 3 career options'],
+              extracurriculars: ['Join clubs that align with your career interests'],
+              milestones: ['Research the 3 career options thoroughly', 'Begin narrowing down preferences']
+            },
+            [Math.min(parseInt(grade) + 1, 12)]: {
+              coreCourses: ['Advanced English', 'Advanced Mathematics', 'Advanced Science'],
+              electiveCourses: ['Take courses specific to your chosen career path'],
+              extracurriculars: ['Leadership roles in relevant organizations'],
+              milestones: ['Make final career decision', 'Plan post-secondary education']
+            }
+          },
+          careerPreparation: {
+            skillsToDevelope: [
+              {
+                skill: 'Research and Analysis',
+                howToAcquire: 'Practice researching careers, conduct informational interviews',
+                timeline: 'Throughout high school'
+              },
+              {
+                skill: 'Decision Making',
+                howToAcquire: 'Weigh pros and cons of each career option, seek guidance',
+                timeline: 'Junior and Senior year'
+              },
+              {
+                skill: 'Adaptability',
+                howToAcquire: 'Stay open to new opportunities, develop multiple interests',
+                timeline: 'Ongoing'
+              }
+            ],
+            experienceOpportunities: [
+              {
+                activity: 'Job shadowing in each of the 3 career fields',
+                when: 'Junior year',
+                benefit: 'Real-world exposure to different career paths'
+              },
+              {
+                activity: 'Volunteer work related to career interests',
+                when: 'Throughout high school',
+                benefit: 'Build experience and confirm interests'
+              },
+              {
+                activity: 'Informational interviews with professionals',
+                when: 'Junior and Senior year',
+                benefit: 'Gain insights into career realities'
+              }
+            ],
+            networkingSteps: [
+              {
+                action: 'Connect with professionals in all 3 career fields',
+                timeline: 'Junior year',
+                purpose: 'Learn about different career paths and opportunities'
+              },
+              {
+                action: 'Join student organizations related to career interests',
+                timeline: 'Throughout high school',
+                purpose: 'Meet like-minded peers and mentors'
+              }
+            ]
+          },
+          postGraduationPath: {
+            immediateSteps: [
+              'Complete high school with strong academic performance',
+              'Make final career decision based on exploration',
+              'Apply to appropriate post-secondary programs',
+              'Secure funding for chosen education path'
+            ],
+            educationOptions: [
+              {
+                option: 'Community College (flexible start)',
+                duration: '2 years',
+                cost: '$6,000-12,000',
+                location: 'Local options available'
+              },
+              {
+                option: 'Four-year University',
+                duration: '4 years',
+                cost: '$20,000-50,000',
+                location: 'In-state and out-of-state options'
+              },
+              {
+                option: 'Trade/Technical School',
+                duration: '6 months - 2 years',
+                cost: '$5,000-20,000',
+                location: 'Regional programs'
+              }
+            ],
+            careerEntry: {
+              targetPositions: ['Entry-level positions in chosen career field'],
+              expectedSalary: '$35,000 - $55,000 (varies by chosen career)',
+              advancement: ['Gain experience', 'Pursue additional certifications', 'Advance to specialized roles']
+            }
+          }
+        },
+        undecidedPath: true,
+        rtcrosFramework: true
+      };
+    } catch (parseError) {
+      console.error('❌ Failed to parse undecided AI response:', parseError);
+      
+      // Enhanced fallback for undecided students
+      return {
+        studentProfile: {
+          grade: parseInt(grade),
+          location: zipCode,
+          careerReadiness: 'Exploring Options',
+          pathType: 'undecided'
+        },
+        topJobMatches: [
+          {
+            career: {
+              id: 'healthcare-option',
+              title: 'Healthcare Professional',
+              description: 'Help people and make a difference in healthcare',
+              sector: 'healthcare',
+              averageSalary: 55000,
+              requiredEducation: 'Associate degree or certification'
+            },
+            matchScore: 80,
+            matchReasons: ['Based on your interest in helping others'],
+            localOpportunities: {
+              estimatedJobs: 30,
+              averageLocalSalary: 55000,
+              topEmployers: ['Local Hospital', 'Health Clinic'],
+              distanceFromStudent: 15
+            },
+            educationPath: {
+              highSchoolCourses: ['Biology', 'Chemistry', 'Health Sciences'],
+              postSecondaryOptions: ['Community College Health Program'],
+              timeToCareer: '2-3 years',
+              estimatedCost: 20000
+            }
+          },
+          {
+            career: {
+              id: 'technology-option',
+              title: 'Technology Specialist',
+              description: 'Work with computers and solve technical problems',
+              sector: 'technology',
+              averageSalary: 60000,
+              requiredEducation: 'Certificate or associate degree'
+            },
+            matchScore: 75,
+            matchReasons: ['Based on your problem-solving interests'],
+            localOpportunities: {
+              estimatedJobs: 25,
+              averageLocalSalary: 60000,
+              topEmployers: ['Local IT Company', 'Government IT'],
+              distanceFromStudent: 20
+            },
+            educationPath: {
+              highSchoolCourses: ['Computer Science', 'Mathematics'],
+              postSecondaryOptions: ['Technical College IT Program'],
+              timeToCareer: '1-2 years',
+              estimatedCost: 15000
+            }
+          },
+          {
+            career: {
+              id: 'business-option',
+              title: 'Business Professional',
+              description: 'Work in business operations and customer service',
+              sector: 'business',
+              averageSalary: 45000,
+              requiredEducation: 'High school diploma plus training'
+            },
+            matchScore: 70,
+            matchReasons: ['Based on your communication skills'],
+            localOpportunities: {
+              estimatedJobs: 40,
+              averageLocalSalary: 45000,
+              topEmployers: ['Local Businesses', 'Regional Companies'],
+              distanceFromStudent: 10
+            },
+            educationPath: {
+              highSchoolCourses: ['Business', 'Communication', 'Mathematics'],
+              postSecondaryOptions: ['Business Certificate Program'],
+              timeToCareer: '6 months - 1 year',
+              estimatedCost: 10000
+            }
+          }
+        ],
+        selectionRationale: 'These 3 careers represent different pathways - healthcare (helping others), technology (problem-solving), and business (communication) - to help you explore your options.',
+        nextSteps: [
+          'Research each career option online',
+          'Talk to people working in these fields',
+          'Consider which type of work environment appeals to you most'
+        ],
+        parentSummary: {
+          overview: 'Your student has been provided with 3 diverse career options to help them decide on their future path',
+          keyRecommendations: [
+            'Support exploration of all 3 career options',
+            'Help arrange conversations with professionals in each field'
+          ],
+          supportActions: [
+            'Encourage research and exploration',
+            'Support relevant coursework and activities'
+          ],
+          timelineHighlights: [
+            `Grade ${grade}: Explore the 3 career options`,
+            'Make career decision by end of junior year',
+            'Plan education path based on chosen career'
+          ]
+        },
+        counselorNotes: {
+          assessmentInsights: [
+            `Undecided student in grade ${grade} provided with 3 career options`,
+            'Fallback recommendations due to AI parsing issues',
+            'Student needs structured career exploration support'
+          ],
+          recommendationRationale: [
+            'Provided diverse career options across different sectors',
+            'Recommendations based on common student interests and local opportunities'
+          ],
+          followUpActions: [
+            'Schedule career exploration meeting',
+            'Help student research each option',
+            'Support decision-making process'
+          ],
+          parentMeetingTopics: [
+            'Review career exploration process',
+            'Discuss support strategies',
+            'Plan next steps for career decision'
+          ]
+        },
+        fourYearPlan: {
+          currentGrade: parseInt(grade),
+          academicPlan: {
+            [grade]: {
+              coreCourses: ['English', 'Mathematics', 'Science', 'Social Studies'],
+              electiveCourses: ['Career exploration electives'],
+              extracurriculars: ['Clubs related to career interests'],
+              milestones: ['Research career options', 'Explore interests']
+            }
+          },
+          careerPreparation: {
+            skillsToDevelope: [
+              {
+                skill: 'Career Research',
+                howToAcquire: 'Use online resources, talk to professionals',
+                timeline: 'Throughout high school'
+              }
+            ],
+            experienceOpportunities: [
+              {
+                activity: 'Job shadowing',
+                when: 'Junior year',
+                benefit: 'Real-world career exposure'
+              }
+            ],
+            networkingSteps: [
+              {
+                action: 'Connect with career professionals',
+                timeline: 'Junior year',
+                purpose: 'Learn about career paths'
+              }
+            ]
+          },
+          postGraduationPath: {
+            immediateSteps: ['Complete high school', 'Choose career path', 'Apply to programs'],
+            educationOptions: [
+              {
+                option: 'Community College',
+                duration: '2 years',
+                cost: '$10,000',
+                location: 'Local'
+              }
+            ],
+            careerEntry: {
+              targetPositions: ['Entry-level positions'],
+              expectedSalary: '$35,000 - $50,000',
+              advancement: ['Gain experience', 'Develop skills']
+            }
+          }
+        },
+        undecidedPath: true,
+        fallbackMode: true,
+        rawAIResponse: aiResponse,
+        parseError: parseError instanceof Error ? parseError.message : String(parseError)
+      };
+    }
+  }
+
+  /**
    * Generate counselor recommendations directly from raw responses (NEW SIMPLIFIED APPROACH)
    * Bypasses the complex mapping logic and sends responses directly to AI
    */
@@ -592,7 +1117,7 @@ CRITICAL: Return ONLY the JSON object. No additional text, explanations, or form
         .slice(0, 15);
 
       console.log('\n🎯 TOP CAREER MATCHES (after filtering):');
-      topMatches.slice(0, 5).forEach((match, index) => {
+      topMatches.slice(0, 5).forEach((match: any, index: number) => {
         console.log(`   ${index + 1}. ${match.career.title} (${match.matchScore}% match)`);
         console.log(`      - Sector: ${match.career.sector}`);
         console.log(`      - Average Salary: $${match.career.averageSalary.toLocaleString()}`);

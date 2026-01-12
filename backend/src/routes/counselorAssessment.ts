@@ -381,8 +381,31 @@ router.post('/submit', upload.single('transcriptFile'), async (req, res) => {
     console.log('📋 END OF RESPONSES OBJECT DETAILS');
     console.log('='.repeat(80));
 
-    // Generate comprehensive counselor recommendations using DIRECT approach
-    const counselorRecommendation = await CounselorGuidanceService.generateDirectCounselorRecommendations(responses);
+    // Detect if student is on undecided path
+    const isUndecidedPath = detectUndecidedPath(responses);
+    console.log(`🤔 Student path detected: ${isUndecidedPath ? 'UNDECIDED' : 'DECIDED'}`);
+    console.log('🔍 Detection details:');
+    console.log('   - work_preference_main:', responses.work_preference_main);
+    console.log('   - Has undecided questions:', Object.keys(responses).filter(key => key.startsWith('undecided_')));
+    console.log('   - Total response keys:', Object.keys(responses).length);
+
+    // Force undecided path for testing if requested
+    const forceUndecided = req.query.forceUndecided === 'true';
+    const finalUndecidedPath = forceUndecided || isUndecidedPath;
+    
+    if (forceUndecided) {
+      console.log('🧪 FORCING UNDECIDED PATH FOR TESTING');
+    }
+
+    // Generate appropriate recommendations based on path
+    let counselorRecommendation;
+    if (finalUndecidedPath) {
+      console.log('🎯 Using specialized undecided career matching (3 options)...');
+      counselorRecommendation = await CounselorGuidanceService.generateUndecidedCareerMatches(responses);
+    } else {
+      console.log('📊 Using comprehensive career recommendations...');
+      counselorRecommendation = await CounselorGuidanceService.generateDirectCounselorRecommendations(responses);
+    }
 
     // Save assessment session to database if user is logged in
     let assessmentSessionId = null;
@@ -566,5 +589,86 @@ router.get('/history', authenticateToken, async (req, res) => {
     } as ApiResponse);
   }
 });
+
+/**
+ * Helper function to detect if student is on undecided career path
+ * Based on assessment responses and question patterns
+ */
+function detectUndecidedPath(responses: any): boolean {
+  // Primary check: Look for "unable_to_decide" in work preference (new assessment format)
+  const workPreference = responses.work_preference_main || responses.q2_work_preference;
+  if (workPreference === 'unable_to_decide') {
+    console.log('🤔 Detected undecided path: Work preference is "unable_to_decide"');
+    return true;
+  }
+  
+  // Secondary check: Look for "No" answer to career knowledge question (old assessment format)
+  const careerKnowledge = responses.q3_career_knowledge;
+  if (careerKnowledge === 'no' || careerKnowledge === 'No') {
+    console.log('🤔 Detected undecided path: Career knowledge is "No"');
+    return true;
+  }
+  
+  // Check for undecided-specific question responses
+  const undecidedQuestions = [
+    'undecided_interests_hobbies',
+    'undecided_work_experience', 
+    'undecided_personal_traits',
+    'undecided_career_constraints',
+    'undecided_education_support',
+    'undecided_impact_and_inspiration'
+  ];
+  
+  // If any undecided-specific questions are answered, student is on undecided path
+  const hasUndecidedQuestions = undecidedQuestions.some(questionId => 
+    responses[questionId] !== undefined && responses[questionId] !== null && responses[questionId] !== ''
+  );
+  
+  if (hasUndecidedQuestions) {
+    console.log('🤔 Detected undecided path: Found undecided-specific questions');
+    return true;
+  }
+  
+  // Check for work preference indicating uncertainty (legacy support)
+  if (workPreference && (
+    workPreference.includes('unsure') || 
+    workPreference.includes('not sure') ||
+    workPreference.includes('undecided')
+  )) {
+    console.log('🤔 Detected undecided path: Work preference indicates uncertainty');
+    return true;
+  }
+  
+  // Check for education commitment uncertainty
+  const educationCommitment = responses.education_commitment || responses.q6_education_commitment;
+  if (educationCommitment && (
+    educationCommitment.includes('unsure') ||
+    educationCommitment.includes('not sure') ||
+    educationCommitment === 'unsure'
+  )) {
+    console.log('🤔 Detected undecided path: Education commitment shows uncertainty');
+    return true;
+  }
+  
+  // Check for minimal responses indicating lack of direction
+  const responseCount = Object.keys(responses).filter(key => 
+    responses[key] !== undefined && 
+    responses[key] !== null && 
+    responses[key] !== '' &&
+    !['grade', 'zipCode', 'basic_info', 'q1_grade_zip'].includes(key)
+  ).length;
+  
+  if (responseCount <= 3) {
+    console.log('🤔 Detected undecided path: Very few responses provided');
+    return true;
+  }
+  
+  console.log('✅ Detected decided path: Student has clear preferences');
+  console.log('   Work preference:', workPreference);
+  console.log('   Career knowledge:', careerKnowledge);
+  console.log('   Response count:', responseCount);
+  console.log('   Has undecided questions:', hasUndecidedQuestions);
+  return false;
+}
 
 export default router;

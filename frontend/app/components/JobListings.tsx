@@ -37,21 +37,9 @@ export default function JobListings({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  console.log('🔧 JobListings component rendered with props:', {
-    careerTitle,
-    zipCode,
-    keywords,
-    limit,
-    showTitle
-  });
-
   useEffect(() => {
-    console.log('🔧 JobListings useEffect triggered:', { zipCode, careerTitle, keywords, limit });
     if (zipCode) {
-      console.log('✅ ZIP code exists, calling fetchJobs');
       fetchJobs();
-    } else {
-      console.log('❌ No ZIP code, skipping fetchJobs');
     }
   }, [careerTitle, zipCode, keywords, limit]);
 
@@ -65,26 +53,20 @@ export default function JobListings({
       // Priority: keywords > careerTitle
       if (keywords && keywords.trim()) {
         url += `&keywords=${encodeURIComponent(keywords.trim())}`;
-        console.log('🔍 Searching with keywords:', keywords.trim());
       } else if (careerTitle) {
         url += `&career=${encodeURIComponent(careerTitle)}`;
-        console.log('🎯 Searching with career:', careerTitle);
       }
-
-      console.log('📡 Job search URL:', url);
 
       const response = await fetch(url);
       const data = await response.json();
 
       if (data.success) {
-        console.log('✅ Jobs found:', data.data.length);
         setJobs(data.data);
       } else {
-        console.log('❌ Job search failed:', data.error);
         setError('Failed to load job listings');
       }
     } catch (error) {
-      console.error('❌ Error fetching jobs:', error);
+      console.error('Error fetching jobs:', error);
       setError('Failed to connect to job service');
     } finally {
       setIsLoading(false);

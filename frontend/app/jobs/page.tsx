@@ -20,35 +20,16 @@ export default function JobsPage() {
   }, []);
 
   const handleSearch = () => {
-    console.log('🔍 Search button clicked:', { zipCode, searchKeywords, selectedCareer });
-    
     // Validate ZIP code format
     const zipCodeRegex = /^\d{5}$/;
     if (!zipCodeRegex.test(zipCode)) {
-      console.log('❌ Invalid ZIP code:', zipCode);
       alert('Please enter a valid 5-digit ZIP code (e.g., 12345)');
       return;
     }
     
-    console.log('✅ ZIP code valid, proceeding with search');
-    
     if (zipCode) {
       localStorage.setItem('zipCode', zipCode);
       setShowResults(true);
-      console.log('✅ Search results enabled, showResults set to true');
-      console.log('🔧 Current state after search:', {
-        showResults: true,
-        zipCode,
-        searchKeywords,
-        selectedCareer
-      });
-      console.log('🔧 JobListings will be rendered with:', {
-        careerTitle: selectedCareer || undefined,
-        zipCode: zipCode,
-        keywords: searchKeywords || undefined,
-        limit: 20,
-        showTitle: false
-      });
     }
   };
 
@@ -149,7 +130,6 @@ export default function JobsPage() {
               {(searchKeywords || selectedCareer) && (
                 <button
                   onClick={() => {
-                    console.log('🧹 Clearing search filters');
                     setSearchKeywords('');
                     setSelectedCareer('');
                     if (zipCode && zipCode.length === 5) {
@@ -187,13 +167,10 @@ export default function JobsPage() {
                 <button
                   key={career}
                   onClick={() => {
-                    console.log('🎯 Career selected:', career);
                     setSelectedCareer(career);
                     if (zipCode && zipCode.length === 5) {
                       setShowResults(true);
-                      console.log('✅ Showing results for career:', career);
                     } else {
-                      console.log('⚠️ Need valid ZIP code to show results');
                       alert('Please enter a valid 5-digit ZIP code first');
                     }
                   }}
@@ -203,18 +180,6 @@ export default function JobsPage() {
                   <div className="text-xs text-gray-500 mt-1">Click to search</div>
                 </button>
               ))}
-            </div>
-          </div>
-
-          {/* Debug Section - Remove in production */}
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-8">
-            <h3 className="font-semibold text-yellow-800 mb-2">Debug Info:</h3>
-            <div className="text-sm text-yellow-700 space-y-1">
-              <div><strong>showResults:</strong> {showResults.toString()}</div>
-              <div><strong>zipCode:</strong> "{zipCode}"</div>
-              <div><strong>searchKeywords:</strong> "{searchKeywords}"</div>
-              <div><strong>selectedCareer:</strong> "{selectedCareer}"</div>
-              <div><strong>Should render JobListings:</strong> {(showResults && zipCode).toString()}</div>
             </div>
           </div>
 
