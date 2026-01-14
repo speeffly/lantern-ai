@@ -447,6 +447,21 @@ router.post('/submit', upload.single('transcriptFile'), async (req, res) => {
 
         await AssessmentServiceDB.saveAnswers(session.session_token, answersToSave);
 
+        // Update student profile with grade and zipCode if user is authenticated
+        if (userId && userProfile && userProfile.role === 'student') {
+          try {
+            const { UserService } = await import('../services/userService');
+            await UserService.updateStudentProfile(parseInt(userId), {
+              grade: parseInt(grade),
+              zipCode: zipCode
+            });
+            console.log(`✅ Updated student profile with grade ${grade} and zipCode ${zipCode}`);
+          } catch (profileError) {
+            console.error('⚠️  Failed to update student profile:', profileError);
+            // Don't fail the assessment if profile update fails
+          }
+        }
+
         // Complete the session
         await AssessmentServiceDB.completeSession(session.session_token, responses.zipCode || '');
 
