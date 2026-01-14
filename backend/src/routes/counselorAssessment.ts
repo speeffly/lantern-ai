@@ -468,7 +468,7 @@ router.post('/submit', upload.single('transcriptFile'), async (req, res) => {
         await AssessmentServiceDB.completeSession(session.session_token, responses.zipCode || '');
         console.log(`✅ Marked session as completed`);
 
-        // Save career recommendations to database
+        // Save career recommendations to database (including FULL recommendations object)
         await CareerPlanService.saveCareerRecommendations(
           session.id,
           parseInt(userId),
@@ -498,8 +498,10 @@ router.post('/submit', upload.single('transcriptFile'), async (req, res) => {
           })),
           counselorRecommendation.aiRecommendations, // AI recommendations
           counselorRecommendation.topJobMatches.map((job: any) => job.localOpportunities), // local job market
-          counselorRecommendation.careerRoadmap // academic plan
+          counselorRecommendation.careerRoadmap, // academic plan
+          counselorRecommendation // FULL recommendations object (includes parentSummary, counselorNotes, etc.)
         );
+        console.log('✅ Saved career recommendations: 7');
 
         // Create action plan
         const topCareer = counselorRecommendation.topJobMatches[0];
@@ -584,10 +586,28 @@ router.get('/results/:sessionId', authenticateToken, async (req, res) => {
       } as ApiResponse);
     }
 
-    // Get career recommendations
+    // Get career recommendations (which now includes full_recommendations)
     const recommendations = await CareerPlanService.getUserCareerRecommendations(userId);
     
-    // Get action plans
+    // Find the recommendation for this session
+    const sessionRecommendation = recommendations.find((rec: any) => rec.session_id === parseInt(sessionId));
+    
+    // If we have ai_recommendations, use that (it has everything)
+    if (sessionRecommendation && sessionRecommendation.ai_recommendations) {
+      console.log('✅ Returning full recommendations from database');
+      res.json({
+        success: true,
+        data: {
+          session,
+          recommendations: sessionRecommendation.ai_recommendations,
+          actionPlans: [] // Can be populated if needed
+        },
+        message: 'Assessment results retrieved successfully'
+      } as ApiResponse);
+      return;
+    }
+    
+    // Fallback: Get action plans if full_recommendations not available
     const actionPlans = await CareerPlanService.getUserActionPlans(userId);
 
     res.json({

@@ -158,6 +158,7 @@ export class DatabaseServicePG {
             user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
             career_matches TEXT NOT NULL,
             ai_recommendations TEXT,
+            full_recommendations TEXT,
             local_job_market TEXT,
             academic_plan TEXT,
             generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

@@ -66,21 +66,23 @@ export class CareerPlanService {
     careerMatches: CareerMatch[],
     aiRecommendations?: AIRecommendations,
     localJobMarket?: any,
-    academicPlan?: any
+    academicPlan?: any,
+    fullRecommendations?: any
   ): Promise<CareerRecommendationRecord> {
     try {
       const result = await DatabaseAdapter.run(`
         INSERT INTO career_recommendations (
           session_id, user_id, career_matches, ai_recommendations, 
-          local_job_market, academic_plan
-        ) VALUES (?, ?, ?, ?, ?, ?)
+          local_job_market, academic_plan, full_recommendations
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
       `, [
         sessionId,
         userId,
         JSON.stringify(careerMatches),
         aiRecommendations ? JSON.stringify(aiRecommendations) : null,
         localJobMarket ? JSON.stringify(localJobMarket) : null,
-        academicPlan ? JSON.stringify(academicPlan) : null
+        academicPlan ? JSON.stringify(academicPlan) : null,
+        fullRecommendations ? JSON.stringify(fullRecommendations) : null
       ]);
 
       const recommendationId = result.lastID;
@@ -119,7 +121,8 @@ export class CareerPlanService {
         career_matches: JSON.parse(record.career_matches),
         ai_recommendations: record.ai_recommendations ? JSON.parse(record.ai_recommendations) : null,
         local_job_market: record.local_job_market ? JSON.parse(record.local_job_market) : null,
-        academic_plan: record.academic_plan ? JSON.parse(record.academic_plan) : null
+        academic_plan: record.academic_plan ? JSON.parse(record.academic_plan) : null,
+        full_recommendations: record.full_recommendations ? JSON.parse(record.full_recommendations) : null
       };
     } catch (error) {
       console.error('❌ Error getting career recommendation:', error);
@@ -143,7 +146,8 @@ export class CareerPlanService {
         career_matches: JSON.parse(record.career_matches),
         ai_recommendations: record.ai_recommendations ? JSON.parse(record.ai_recommendations) : null,
         local_job_market: record.local_job_market ? JSON.parse(record.local_job_market) : null,
-        academic_plan: record.academic_plan ? JSON.parse(record.academic_plan) : null
+        academic_plan: record.academic_plan ? JSON.parse(record.academic_plan) : null,
+        full_recommendations: record.full_recommendations ? JSON.parse(record.full_recommendations) : null
       }));
     } catch (error) {
       console.error('❌ Error getting user career recommendations:', error);
