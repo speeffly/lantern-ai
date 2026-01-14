@@ -808,7 +808,21 @@ function CounselorAssessmentContent() {
     try {
       const sessionId = localStorage.getItem('sessionId');
       const token = localStorage.getItem('token');
-      const userId = localStorage.getItem('userId');
+      
+      // Extract userId from stored user object
+      let userId: number | null = null;
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          const user = JSON.parse(storedUser);
+          userId = user.id || user.userId || null;
+          console.log('👤 Extracted userId from user object:', userId);
+        } catch (error) {
+          console.error('Error parsing user data:', error);
+        }
+      } else {
+        console.log('⚠️ No user data found in localStorage - submitting as anonymous');
+      }
 
       // Check if there's a file to upload
       const hasFile = finalResponses.academicPerformance?.transcriptFile;
@@ -819,7 +833,9 @@ function CounselorAssessmentContent() {
         // Use FormData for file upload
         const formData = new FormData();
         formData.append('sessionId', sessionId || '');
-        formData.append('userId', userId || '');
+        if (userId) {
+          formData.append('userId', userId.toString());
+        }
         formData.append('responses', JSON.stringify({
           ...finalResponses,
           academicPerformance: {
@@ -852,7 +868,7 @@ function CounselorAssessmentContent() {
           body: JSON.stringify({ 
             sessionId, 
             responses: finalResponses,
-            userId: userId ? parseInt(userId) : null
+            userId: userId
           })
         });
       }

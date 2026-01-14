@@ -4,6 +4,7 @@ import { UserService } from '../services/userService';
 import { AssessmentServiceDB } from '../services/assessmentServiceDB';
 import { CareerPlanService } from '../services/careerPlanService';
 import { RelationshipService } from '../services/relationshipService';
+import { DatabaseAdapter } from '../services/databaseAdapter';
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
@@ -89,11 +90,28 @@ router.get('/child/:childId/progress', async (req, res) => {
 
     // Get assessment status
     const assessmentSessions = await AssessmentServiceDB.getUserSessions(childId);
+    console.log(`📊 Child ${childId} assessment sessions:`, assessmentSessions.length);
+    
+    // Debug: Check if there are ANY assessment sessions in the database
+    const allSessions = await DatabaseAdapter.all<any>(`
+      SELECT id, user_id, status, started_at, completed_at 
+      FROM assessment_sessions 
+      ORDER BY started_at DESC 
+      LIMIT 10
+    `);
+    console.log(`📊 All recent assessment sessions in DB:`, allSessions);
+    
+    console.log(`📊 Sessions data for child ${childId}:`, JSON.stringify(assessmentSessions, null, 2));
+    
     const completedSessions = assessmentSessions.filter(s => 
       s.status === 'completed' || s.completed_at
     );
+    console.log(`✅ Completed sessions:`, completedSessions.length);
+    
     const hasCompletedAssessment = completedSessions.length > 0;
     const lastSession = completedSessions[0];
+    
+    console.log(`📋 Assessment completed:`, hasCompletedAssessment);
 
     // Get career recommendations if assessment is completed
     let careerMatches: any[] = [];

@@ -123,9 +123,86 @@ export default function CounselorResultsPage() {
     return `${baseKey}_anonymous`;
   };
 
-  const loadResults = () => {
+  const loadResults = async () => {
     try {
-      // Try user-specific key first
+      const token = localStorage.getItem('token');
+      
+      // If user is logged in, try to load from database first
+      if (token) {
+        console.log('🔐 User is logged in, attempting to load from database...');
+        
+        try {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/counselor-assessment/history`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.data && data.data.length > 0) {
+              // Get the most recent completed session
+              const latestSession = data.data.find((s: any) => s.status === 'completed');
+              
+              if (latestSession) {
+                console.log('✅ Found completed assessment in database, loading full results...');
+                
+                // Fetch the full results for this session
+                const resultsResponse = await fetch(
+                  `${process.env.NEXT_PUBLIC_API_URL}/api/counselor-assessment/results/${latestSession.id}`,
+                  {
+                    headers: {
+                      'Authorization': `Bearer ${token}`
+                    }
+                  }
+                );
+
+                if (resultsResponse.ok) {
+                  const resultsData = await resultsResponse.json();
+                  if (resultsData.success && resultsData.data.recommendations) {
+                    console.log('✅ Loaded results from database successfully');
+                    
+                    // Format the data to match the expected structure
+                    const formattedResults = {
+                      recommendations: resultsData.data.recommendations,
+                      summary: {
+                        totalJobMatches: resultsData.data.recommendations.topJobMatches?.length || 0,
+                        topCareer: resultsData.data.recommendations.topJobMatches?.[0]?.career.title,
+                        averageSalary: resultsData.data.recommendations.topJobMatches?.[0]?.localOpportunities.averageLocalSalary,
+                        educationPath: resultsData.data.recommendations.topJobMatches?.[0]?.educationPath.timeToCareer,
+                        careerReadiness: resultsData.data.recommendations.studentProfile?.careerReadiness
+                      },
+                      timestamp: latestSession.completed_at,
+                      source: 'database'
+                    };
+                    
+                    setResults(formattedResults);
+                    setIsLoading(false);
+                    
+                    // Also save to localStorage as cache
+                    const userSpecificKey = getUserSpecificKey('counselorAssessmentResults');
+                    const storedUser = localStorage.getItem('user');
+                    const user = storedUser ? JSON.parse(storedUser) : null;
+                    localStorage.setItem(userSpecificKey, JSON.stringify({
+                      ...formattedResults,
+                      userEmail: user?.email
+                    }));
+                    
+                    return;
+                  }
+                }
+              }
+            }
+          }
+          
+          console.log('⚠️ No completed assessment found in database, checking localStorage...');
+        } catch (dbError) {
+          console.error('⚠️ Database load failed, falling back to localStorage:', dbError);
+        }
+      }
+      
+      // Fallback to localStorage (for anonymous users or if database load fails)
+      console.log('📦 Loading from localStorage...');
       const userSpecificKey = getUserSpecificKey('counselorAssessmentResults');
       let storedResults = localStorage.getItem(userSpecificKey);
       
@@ -177,11 +254,14 @@ export default function CounselorResultsPage() {
           }
         }
         
-        console.log('✅ Results loaded successfully for current user');
-        setResults(data);
+        console.log('✅ Results loaded from localStorage');
+        setResults({
+          ...data,
+          source: 'localStorage'
+        });
         setIsLoading(false);
       } else {
-        console.log('❌ No stored results found, redirecting to assessment');
+        console.log('❌ No stored results found anywhere, redirecting to assessment');
         alert('Please complete the Enhanced Assessment first to see your results.');
         router.push('/counselor-assessment');
       }

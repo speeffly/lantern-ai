@@ -18,14 +18,70 @@ interface Parent {
   }[];
 }
 
+interface ChildProgress {
+  assessmentCompleted: boolean;
+  completedSessions: number;
+  lastCompletedDate?: string;
+  careerMatches?: Array<{
+    id: string;
+    title: string;
+    matchScore: number;
+    sector: string;
+  }>;
+}
+
 export default function ParentDashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<Parent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [childrenProgress, setChildrenProgress] = useState<{ [key: string]: ChildProgress }>({});
 
   useEffect(() => {
     checkAuth();
   }, []);
+
+  useEffect(() => {
+    if (user?.children && user.children.length > 0) {
+      fetchChildrenProgress();
+    }
+  }, [user]);
+
+  const fetchChildrenProgress = async () => {
+    const token = localStorage.getItem('token');
+    if (!token || !user?.children) return;
+
+    const progressData: { [key: string]: ChildProgress } = {};
+
+    // Fetch progress for each child
+    for (const child of user.children) {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/parent/child/${child.studentId}/progress`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            progressData[child.studentId] = {
+              assessmentCompleted: data.data.assessmentCompleted,
+              completedSessions: data.data.completedSessions,
+              lastCompletedDate: data.data.lastActivity,
+              careerMatches: data.data.careerMatches || []
+            };
+          }
+        }
+      } catch (error) {
+        console.error(`Error fetching progress for child ${child.studentId}:`, error);
+      }
+    }
+
+    setChildrenProgress(progressData);
+  };
 
   const checkAuth = async () => {
     const token = localStorage.getItem('token');
@@ -116,41 +172,56 @@ export default function ParentDashboardPage() {
           <div className="mb-8">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">Your Children</h3>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {user.children.map((child, index) => (
-                <div key={index} className="bg-white rounded-lg shadow p-6">
-                  <div className="flex items-center mb-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-blue-600 font-semibold">
-                        {child.firstName.charAt(0)}{child.lastName.charAt(0)}
-                      </span>
+              {user.children.map((child, index) => {
+                const progress = childrenProgress[child.studentId];
+                const assessmentStatus = progress?.assessmentCompleted 
+                  ? `Completed ${progress.lastCompletedDate || ''}` 
+                  : 'Not started';
+                const careerMatchesCount = progress?.careerMatches?.length || 0;
+                const careerMatchesText = careerMatchesCount > 0
+                  ? `${careerMatchesCount} match${careerMatchesCount !== 1 ? 'es' : ''} found` 
+                  : 'None yet';
+                
+                return (
+                  <div key={index} className="bg-white rounded-lg shadow p-6">
+                    <div className="flex items-center mb-3">
+                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        <span className="text-blue-600 font-semibold">
+                          {child.firstName.charAt(0)}{child.lastName.charAt(0)}
+                        </span>
+                      </div>
+                      <div className="ml-3">
+                        <h4 className="font-semibold text-gray-900">
+                          {child.firstName} {child.lastName}
+                        </h4>
+                        {child.grade && (
+                          <p className="text-sm text-gray-500">{child.grade}th Grade</p>
+                        )}
+                      </div>
                     </div>
-                    <div className="ml-3">
-                      <h4 className="font-semibold text-gray-900">
-                        {child.firstName} {child.lastName}
-                      </h4>
-                      {child.grade && (
-                        <p className="text-sm text-gray-500">{child.grade}th Grade</p>
-                      )}
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">Assessment:</span>
+                        <span className={progress?.assessmentCompleted ? 'text-green-600 font-medium' : 'text-gray-400'}>
+                          {assessmentStatus}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">Career matches:</span>
+                        <span className={careerMatchesCount > 0 ? 'text-blue-600 font-medium' : 'text-gray-400'}>
+                          {careerMatchesText}
+                        </span>
+                      </div>
                     </div>
+                    <button 
+                      onClick={() => router.push(`/parent/child-progress?childId=${child.studentId}`)}
+                      className="mt-4 w-full text-blue-600 hover:text-blue-500 text-sm font-medium"
+                    >
+                      View Progress →
+                    </button>
                   </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">Assessment:</span>
-                      <span className="text-gray-400">Not started</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">Career matches:</span>
-                      <span className="text-gray-400">None yet</span>
-                    </div>
-                  </div>
-                  <button 
-                    onClick={() => router.push(`/parent/child-progress?childId=${child.studentId}`)}
-                    className="mt-4 w-full text-blue-600 hover:text-blue-500 text-sm font-medium"
-                  >
-                    View Progress →
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
