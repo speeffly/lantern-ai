@@ -74,6 +74,21 @@ export default function ParentDashboardPage() {
               careerMatches: data.data.careerMatches || []
             };
           }
+        } else if (response.status === 401) {
+          // Token is invalid or expired, need to re-authenticate
+          const errorData = await response.json();
+          console.error('Authentication error:', errorData);
+          
+          if (errorData.code === 'INVALID_TOKEN') {
+            // Clear invalid token and redirect to login
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            alert('Your session has expired. Please log in again.');
+            router.push('/login');
+            return;
+          }
+        } else {
+          console.error(`Failed to fetch progress for child ${child.studentId}:`, response.status);
         }
       } catch (error) {
         console.error(`Error fetching progress for child ${child.studentId}:`, error);

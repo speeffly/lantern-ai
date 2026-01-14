@@ -7,7 +7,7 @@ import { RelationshipService } from '../services/relationshipService';
 import { DatabaseAdapter } from '../services/databaseAdapter';
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET || 'lantern-ai-secret-key'; // Match AuthServiceDB default
 
 interface AuthRequest extends express.Request {
   userId?: number;
@@ -24,13 +24,28 @@ function authenticateParent(req: AuthRequest): { parentId: number; childId: numb
     throw new Error('No token provided');
   }
 
-  const decoded = jwt.verify(token, JWT_SECRET) as any;
+  let decoded: any;
+  try {
+    decoded = jwt.verify(token, JWT_SECRET);
+  } catch (error: any) {
+    console.error('❌ JWT verification failed:', error.message);
+    if (error.name === 'JsonWebTokenError') {
+      throw new Error('Invalid token. Please log in again.');
+    } else if (error.name === 'TokenExpiredError') {
+      throw new Error('Token expired. Please log in again.');
+    }
+    throw new Error('Token verification failed');
+  }
   
   // Handle both token formats: { userId, role } and { user: { id, role } }
-  const userId = decoded.userId || decoded.user?.id;
+  const userId = decoded.userId || decoded.user?.id || decoded.id;
   const userRole = decoded.role || decoded.user?.role;
   
-  console.log('🔍 Parent auth - Decoded token:', { userId, role: userRole, fullDecoded: decoded });
+  console.log('🔍 Parent auth - Decoded token:', { userId, role: userRole });
+  
+  if (!userId) {
+    throw new Error('Invalid token: missing user ID');
+  }
   
   if (userRole !== 'parent') {
     console.log('❌ Parent auth failed - User role is:', userRole);
@@ -153,16 +168,35 @@ router.get('/child/:childId/progress', async (req, res) => {
   } catch (error: any) {
     console.error('❌ Error fetching child progress:', error);
     
-    if (error.message === 'No token provided' || error.message.includes('Access denied')) {
+    // Provide specific error messages for different error types
+    if (error.message === 'No token provided') {
       return res.status(401).json({
         success: false,
-        error: error.message
+        error: 'Authentication required. Please log in.',
+        code: 'NO_TOKEN'
+      });
+    }
+    
+    if (error.message.includes('Invalid token') || error.message.includes('Token expired')) {
+      return res.status(401).json({
+        success: false,
+        error: error.message,
+        code: 'INVALID_TOKEN'
+      });
+    }
+    
+    if (error.message.includes('Access denied')) {
+      return res.status(403).json({
+        success: false,
+        error: error.message,
+        code: 'ACCESS_DENIED'
       });
     }
 
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch child progress'
+      error: 'Failed to fetch child progress',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
