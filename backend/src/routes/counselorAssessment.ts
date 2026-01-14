@@ -592,14 +592,14 @@ router.get('/results/:sessionId', authenticateToken, async (req, res) => {
     // Find the recommendation for this session
     const sessionRecommendation = recommendations.find((rec: any) => rec.session_id === parseInt(sessionId));
     
-    // If we have ai_recommendations, use that (it has everything)
-    if (sessionRecommendation && sessionRecommendation.ai_recommendations) {
+    // If we have full_recommendations, use that (it has the complete assessment results)
+    if (sessionRecommendation && sessionRecommendation.full_recommendations) {
       console.log('✅ Returning full recommendations from database');
       res.json({
         success: true,
         data: {
           session,
-          recommendations: sessionRecommendation.ai_recommendations,
+          recommendations: sessionRecommendation.full_recommendations,
           actionPlans: [] // Can be populated if needed
         },
         message: 'Assessment results retrieved successfully'

@@ -7,6 +7,7 @@ export interface CareerRecommendationRecord {
   user_id?: number;
   career_matches: CareerMatch[];
   ai_recommendations?: AIRecommendations;
+  full_recommendations?: any; // Complete recommendations object from assessment
   local_job_market?: any;
   academic_plan?: any;
   generated_at: string;
