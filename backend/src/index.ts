@@ -21,6 +21,7 @@ import testAIRoutes from './routes/testAI';
 import dynamicSalaryRoutes from './routes/dynamicSalary';
 import counselorRoutes from './routes/counselor';
 import studentRoutes from './routes/student';
+import parentRoutes from './routes/parent';
 import { DatabaseAdapter } from './services/databaseAdapter';
 
 // Load environment variables
@@ -227,6 +228,7 @@ app.use('/api/assessment/v2', improvedAssessmentRoutes); // Improved assessment 
 app.use('/api/comprehensive-guidance', comprehensiveGuidanceRoutes); // Complete career guidance package
 app.use('/api/dynamic-salary', dynamicSalaryRoutes); // Dynamic salary calculation from real job data
 app.use('/api/counselor', counselorRoutes); // Counselor functionality for student management
+app.use('/api/parent', parentRoutes); // Parent functionality for viewing child progress
 app.use('/api/student', studentRoutes); // Student functionality for assignments and progress
 app.use('/api/debug', debugRoutes); // Environment and configuration debugging
 app.use('/api/test', testAIRoutes); // AI recommendation testing

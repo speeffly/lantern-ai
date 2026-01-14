@@ -143,7 +143,10 @@ export default function ParentDashboardPage() {
                       <span className="text-gray-400">None yet</span>
                     </div>
                   </div>
-                  <button className="mt-4 w-full text-blue-600 hover:text-blue-500 text-sm font-medium">
+                  <button 
+                    onClick={() => router.push(`/parent/child-progress?childId=${child.studentId}`)}
+                    className="mt-4 w-full text-blue-600 hover:text-blue-500 text-sm font-medium"
+                  >
                     View Progress →
                   </button>
                 </div>
