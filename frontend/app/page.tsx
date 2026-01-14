@@ -79,8 +79,8 @@ export default function Home() {
                     <h4 className="text-xl font-semibold text-gray-900 mb-2">Career Assessment</h4>
                     <p className="text-gray-700 text-sm mb-4">Professional-grade career guidance powered by AI</p>
                     <ul className="text-sm text-gray-600 mb-6 space-y-2">
-                      <li>• 15 comprehensive questions</li>
-                      <li>• Detailed 4-year action plan</li>
+                      <li>• 8-10 comprehensive questions</li>
+                      <li>• Detailed Career Roadmap</li>
                       <li>• Personalized career matches</li>
                       <li>• Local job opportunities</li>
                       <li>• Parent sharing features</li>
