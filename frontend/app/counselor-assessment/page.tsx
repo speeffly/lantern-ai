@@ -11,7 +11,7 @@ interface CounselorQuestion {
   text: string;
   type: string;
   category: string;
-  options?: string[];
+  options?: (string | { key: string; label: string })[];
   subjects?: string[];
   rows?: string[];
   columns?: string[];
@@ -1019,8 +1019,10 @@ function CounselorAssessmentContent() {
       return (
         <div className="space-y-2">
           {question.options?.map((option, index) => {
-            // Check if this is an "Other" option that should be a text entry
-            const optionText = typeof option === 'string' ? option : String(option);
+            // Handle both string options (legacy) and object options (new format with key/label)
+            const optionKey = typeof option === 'object' && option !== null && 'key' in option ? option.key : option;
+            const optionLabel = typeof option === 'object' && option !== null && 'label' in option ? option.label : option;
+            const optionText = typeof optionLabel === 'string' ? optionLabel : String(optionLabel);
             const isOtherOption = optionText.toLowerCase().includes('other');
             
             if (isOtherOption) {
@@ -1061,18 +1063,18 @@ function CounselorAssessmentContent() {
                 </div>
               );
             } else {
-              // Regular radio button option
+              // Regular radio button option - use key for storage, label for display
               return (
                 <button
                   key={index}
-                  onClick={() => handleAnswerChange(question.id, option)}
+                  onClick={() => handleAnswerChange(question.id, optionKey)}
                   className={`w-full text-left px-4 py-3 rounded-md border transition-all text-sm ${
-                    currentAnswer === option
+                    currentAnswer === optionKey
                       ? 'border-blue-600 bg-blue-50 text-blue-900'
                       : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                   }`}
                 >
-                  {option}
+                  {optionLabel}
                 </button>
               );
             }
@@ -1084,24 +1086,30 @@ function CounselorAssessmentContent() {
     if (question.type === 'multiple_choice') {
       return (
         <div className="space-y-2">
-          {question.options?.map((option, index) => (
-            <label key={index} className="flex items-center space-x-3 p-3 border rounded-md hover:bg-gray-50 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={Array.isArray(currentAnswer) ? currentAnswer.includes(option) : false}
-                onChange={(e) => {
-                  const currentArray = Array.isArray(currentAnswer) ? currentAnswer : [];
-                  if (e.target.checked) {
-                    handleAnswerChange(question.id, [...currentArray, option]);
-                  } else {
-                    handleAnswerChange(question.id, currentArray.filter(item => item !== option));
-                  }
-                }}
-                className="w-4 h-4 text-blue-600"
-              />
-              <span className="text-sm">{option}</span>
-            </label>
-          ))}
+          {question.options?.map((option, index) => {
+            // Handle both string options (legacy) and object options (new format with key/label)
+            const optionKey = typeof option === 'object' && option !== null && 'key' in option ? option.key : option;
+            const optionLabel = typeof option === 'object' && option !== null && 'label' in option ? option.label : option;
+            
+            return (
+              <label key={index} className="flex items-center space-x-3 p-3 border rounded-md hover:bg-gray-50 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={Array.isArray(currentAnswer) ? currentAnswer.includes(optionKey) : false}
+                  onChange={(e) => {
+                    const currentArray = Array.isArray(currentAnswer) ? currentAnswer : [];
+                    if (e.target.checked) {
+                      handleAnswerChange(question.id, [...currentArray, optionKey]);
+                    } else {
+                      handleAnswerChange(question.id, currentArray.filter(item => item !== optionKey));
+                    }
+                  }}
+                  className="w-4 h-4 text-blue-600"
+                />
+                <span className="text-sm">{optionLabel}</span>
+              </label>
+            );
+          })}
         </div>
       );
     }
@@ -1109,24 +1117,30 @@ function CounselorAssessmentContent() {
     if (question.type === 'multi_select') {
       return (
         <div className="space-y-2">
-          {question.options?.map((option, index) => (
-            <label key={index} className="flex items-center space-x-3 p-3 border rounded-md hover:bg-gray-50 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={Array.isArray(currentAnswer) ? currentAnswer.includes(option) : false}
-                onChange={(e) => {
-                  const currentArray = Array.isArray(currentAnswer) ? currentAnswer : [];
-                  if (e.target.checked) {
-                    handleAnswerChange(question.id, [...currentArray, option]);
-                  } else {
-                    handleAnswerChange(question.id, currentArray.filter(item => item !== option));
-                  }
-                }}
-                className="w-4 h-4 text-blue-600"
-              />
-              <span className="text-sm">{option}</span>
-            </label>
-          ))}
+          {question.options?.map((option, index) => {
+            // Handle both string options (legacy) and object options (new format with key/label)
+            const optionKey = typeof option === 'object' && option !== null && 'key' in option ? option.key : option;
+            const optionLabel = typeof option === 'object' && option !== null && 'label' in option ? option.label : option;
+            
+            return (
+              <label key={index} className="flex items-center space-x-3 p-3 border rounded-md hover:bg-gray-50 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={Array.isArray(currentAnswer) ? currentAnswer.includes(optionKey) : false}
+                  onChange={(e) => {
+                    const currentArray = Array.isArray(currentAnswer) ? currentAnswer : [];
+                    if (e.target.checked) {
+                      handleAnswerChange(question.id, [...currentArray, optionKey]);
+                    } else {
+                      handleAnswerChange(question.id, currentArray.filter(item => item !== optionKey));
+                    }
+                  }}
+                  className="w-4 h-4 text-blue-600"
+                />
+                <span className="text-sm">{optionLabel}</span>
+              </label>
+            );
+          })}
         </div>
       );
     }
@@ -1140,26 +1154,32 @@ function CounselorAssessmentContent() {
         <div className="space-y-4">
           {/* Predefined options */}
           <div className="space-y-3">
-            {question.options?.map((option, index) => (
-              <label key={index} className="flex items-center space-x-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={selectedOptions.includes(option)}
-                  onChange={(e) => {
-                    const newSelected = e.target.checked
-                      ? [...selectedOptions, option]
-                      : selectedOptions.filter((item: string) => item !== option);
-                    
-                    handleAnswerChange(question.id, {
-                      ...currentAnswer,
-                      selected: newSelected
-                    });
-                  }}
-                  className="w-4 h-4 text-blue-600"
-                />
-                <span>{option}</span>
-              </label>
-            ))}
+            {question.options?.map((option, index) => {
+              // Handle both string options (legacy) and object options (new format with key/label)
+              const optionKey = typeof option === 'object' && option !== null && 'key' in option ? option.key : option;
+              const optionLabel = typeof option === 'object' && option !== null && 'label' in option ? option.label : option;
+              
+              return (
+                <label key={index} className="flex items-center space-x-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={selectedOptions.includes(optionKey)}
+                    onChange={(e) => {
+                      const newSelected = e.target.checked
+                        ? [...selectedOptions, optionKey]
+                        : selectedOptions.filter((item: string) => item !== optionKey);
+                      
+                      handleAnswerChange(question.id, {
+                        ...currentAnswer,
+                        selected: newSelected
+                      });
+                    }}
+                    className="w-4 h-4 text-blue-600"
+                  />
+                  <span>{optionLabel}</span>
+                </label>
+              );
+            })}
           </div>
 
           {/* Other option */}
@@ -1406,11 +1426,18 @@ function CounselorAssessmentContent() {
                   <th className="text-left p-3 font-medium text-gray-700 text-sm min-w-[200px]">
                     Subject
                   </th>
-                  {(question.columns || question.options)?.map((option) => (
-                    <th key={option} className="text-center p-3 font-medium text-gray-700 min-w-[80px]">
-                      <div className="text-xs leading-tight">{option}</div>
-                    </th>
-                  ))}
+                  {(question.columns || question.options)?.map((option, index) => {
+                    // For matrix questions, options should be strings (rating scales)
+                    // But handle both formats for safety
+                    const optionKey = typeof option === 'object' && option !== null && 'key' in option ? option.key : option;
+                    const optionLabel = typeof option === 'object' && option !== null && 'label' in option ? option.label : option;
+                    
+                    return (
+                      <th key={typeof optionKey === 'string' ? optionKey : index} className="text-center p-3 font-medium text-gray-700 min-w-[80px]">
+                        <div className="text-xs leading-tight">{optionLabel}</div>
+                      </th>
+                    );
+                  })}
                 </tr>
               </thead>
               <tbody>
@@ -1419,23 +1446,28 @@ function CounselorAssessmentContent() {
                     <td className="p-3 font-medium text-gray-800 text-sm">
                       {subject}
                     </td>
-                    {(question.columns || question.options)?.map((option) => (
-                      <td key={option} className="text-center p-3">
-                        <input
-                          type="radio"
-                          name={`${question.id}_${subject}`}
-                          value={option}
-                          checked={currentAnswer[subject] === option}
-                          onChange={(e) => {
-                            handleAnswerChange(question.id, {
-                              ...currentAnswer,
-                              [subject]: e.target.value
-                            });
-                          }}
-                          className="text-blue-600 w-4 h-4"
-                        />
-                      </td>
-                    ))}
+                    {(question.columns || question.options)?.map((option, optIndex) => {
+                      const optionKey = typeof option === 'object' && option !== null && 'key' in option ? option.key : option;
+                      const optionValue = typeof optionKey === 'string' ? optionKey : String(optionKey);
+                      
+                      return (
+                        <td key={typeof optionKey === 'string' ? optionKey : optIndex} className="text-center p-3">
+                          <input
+                            type="radio"
+                            name={`${question.id}_${subject}`}
+                            value={optionValue}
+                            checked={currentAnswer[subject] === optionValue}
+                            onChange={(e) => {
+                              handleAnswerChange(question.id, {
+                                ...currentAnswer,
+                                [subject]: e.target.value
+                              });
+                            }}
+                            className="text-blue-600 w-4 h-4"
+                          />
+                        </td>
+                      );
+                    })}
                   </tr>
                 ))}
               </tbody>

@@ -79,7 +79,13 @@ router.get('/questions', async (req, res) => {
                   condQ.type === 'text' ? 'free_text' : condQ.type,
             category: 'assessment',
             required: condQ.required,
-            options: condQ.type === 'matrix' ? condQ.columns : (condQ.options?.map((opt: any) => typeof opt === 'string' ? opt : opt.label) || []),
+            options: condQ.type === 'matrix' ? condQ.columns : (condQ.options?.map((opt: any) => {
+              if (typeof opt === 'string') {
+                return { key: opt, label: opt };
+              } else {
+                return { key: opt.key, label: opt.label };
+              }
+            }) || []),
             subjects: condQ.type === 'matrix' ? condQ.rows : undefined,
             rows: condQ.rows || [],
             columns: condQ.columns || [],
@@ -107,7 +113,13 @@ router.get('/questions', async (req, res) => {
                 conditionalQuestions.type,
           category: 'assessment',
           required: conditionalQuestions.required,
-          options: conditionalQuestions.options?.map((opt: any) => typeof opt === 'string' ? opt : opt.label) || [],
+          options: conditionalQuestions.options?.map((opt: any) => {
+            if (typeof opt === 'string') {
+              return { key: opt, label: opt };
+            } else {
+              return { key: opt.key, label: opt.label };
+            }
+          }) || [],
           placeholder: conditionalQuestions.placeholder,
           minLength: conditionalQuestions.minLength,
           maxLength: conditionalQuestions.maxLength,
@@ -134,7 +146,13 @@ router.get('/questions', async (req, res) => {
                       nestedQ.type,
                 category: 'assessment',
                 required: nestedQ.required,
-                options: nestedQ.options?.map((opt: any) => typeof opt === 'string' ? opt : opt.label) || [],
+                options: nestedQ.options?.map((opt: any) => {
+                  if (typeof opt === 'string') {
+                    return { key: opt, label: opt };
+                  } else {
+                    return { key: opt.key, label: opt.label };
+                  }
+                }) || [],
                 hasOtherOption: false,
                 otherPlaceholder: '',
                 isConditional: true,
@@ -201,7 +219,13 @@ router.get('/questions', async (req, res) => {
               q.type === 'text' ? 'free_text' : q.type,
         category: 'assessment',
         required: q.required,
-        options: q.type === 'matrix' ? q.columns : (q.options?.map((opt: any) => typeof opt === 'string' ? opt : opt.label) || []),
+        options: q.type === 'matrix' ? q.columns : (q.options?.map((opt: any) => {
+          if (typeof opt === 'string') {
+            return { key: opt, label: opt };
+          } else {
+            return { key: opt.key, label: opt.label };
+          }
+        }) || []),
         subjects: q.type === 'matrix' ? q.rows : undefined,
         rows: q.rows || [],
         columns: q.columns || [],
