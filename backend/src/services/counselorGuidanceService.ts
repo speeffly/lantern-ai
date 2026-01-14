@@ -182,11 +182,14 @@ REASONING FRAMEWORK:
 2. INTEREST ALIGNMENT: Match careers to student's stated interests, hobbies, and experiences
 3. TRAIT COMPATIBILITY: Ensure careers align with student's personality traits and work preferences
 4. REALISTIC PATHWAYS: Consider student's education commitment and support system
-5. LOCAL RELEVANCE: Factor in ZIP code ${zipCode} job market opportunities
+5. LOCAL RELEVANCE: Factor in ZIP code ${zipCode} job market opportunities - provide REAL employer names that hire for these careers in or near this ZIP code
 6. GROWTH POTENTIAL: Include careers with good advancement opportunities for young professionals
+7. EMPLOYER SPECIFICITY: Research and provide actual company/organization names that hire for each career in the ZIP ${zipCode} area (e.g., specific hospitals, tech companies, school districts, construction firms, etc.)
+8. EMPLOYER REALISM: Suggest employers that would realistically appear in job search results (like Adzuna, Indeed, LinkedIn) for this career and location - use actual company names, not generic placeholders
 
 OUTPUT REQUIREMENTS:
-Generate a structured JSON response with exactly 3 career matches:
+Generate a structured JSON response with exactly 3 career matches.
+IMPORTANT: For topEmployers, provide actual company/organization names that hire for each career in the ZIP ${zipCode} area. Research real employers that would appear in job search platforms like Adzuna, Indeed, or LinkedIn - do NOT use generic placeholders like "Local employer 1". Examples: "Memorial Hospital", "Amazon Fulfillment Center", "Starbucks", "Target", "Local School District", etc.
 
 {
   "careerMatches": [
@@ -200,7 +203,7 @@ Generate a structured JSON response with exactly 3 career matches:
       "localJobMarket": {
         "estimatedJobs": 45,
         "averageLocalSalary": 62000,
-        "topEmployers": ["Local employer 1", "Local employer 2"],
+        "topEmployers": ["Specific local employer name 1", "Specific local employer name 2", "Specific local employer name 3"],
         "growthOutlook": "Growing/Stable/Declining"
       },
       "dayInTheLife": "Description of what a typical day looks like in this career",
@@ -1501,6 +1504,7 @@ CONTEXT:
 - Student: Grade ${grade} student in ZIP code ${zipCode}
 - Assessment Type: Comprehensive career assessment
 - Output Usage: Provide detailed career matches and action plans
+- Geographic Focus: Provide REAL employer names that hire for these careers in or near ZIP code ${zipCode}
 
 STUDENT ASSESSMENT RESPONSES:
 ${Object.entries(responses)
@@ -1512,7 +1516,8 @@ ${Object.entries(responses)
   .join('\n')}
 
 OUTPUT REQUIREMENTS:
-Generate a structured JSON response with 5-8 career matches:
+Generate a structured JSON response with 5-8 career matches.
+IMPORTANT: For topEmployers, provide actual company/organization names that hire for each career in the ZIP ${zipCode} area (e.g., specific hospitals, tech companies, school districts, construction firms, retail chains, etc.). Use real employer names that would appear in job search platforms like Adzuna, Indeed, or LinkedIn. Examples: "Kaiser Permanente", "Microsoft", "Home Depot", "Local Public Schools", etc. Do NOT use generic placeholders.
 
 {
   "careerMatches": [
@@ -1526,7 +1531,7 @@ Generate a structured JSON response with 5-8 career matches:
       "localJobMarket": {
         "estimatedJobs": 45,
         "averageLocalSalary": 62000,
-        "topEmployers": ["Employer 1", "Employer 2"],
+        "topEmployers": ["Specific local employer name 1", "Specific local employer name 2", "Specific local employer name 3"],
         "growthOutlook": "Growing/Stable/Declining"
       },
       "skillsNeeded": ["Skill 1", "Skill 2", "Skill 3"],

@@ -137,13 +137,9 @@ export default function UndecidedCareerOptions({
                 </div>
               </div>
               
-              <h3 className="text-xl font-bold text-gray-900 mb-2">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">
                 Option {index + 1}: {option.career.title}
               </h3>
-              
-              <p className="text-gray-600 text-sm mb-4">
-                {option.career.description}
-              </p>
 
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
