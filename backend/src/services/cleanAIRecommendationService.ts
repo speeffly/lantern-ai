@@ -240,14 +240,39 @@ Return ONLY the JSON response - no additional text or explanations.`;
    * Call AI service (OpenAI or Gemini) - Public method for external use
    */
   static async callAI(context: string): Promise<string> {
+    console.log('\n' + '='.repeat(80));
+    console.log('🤖 CLEAN AI SERVICE - callAI() START');
+    console.log('='.repeat(80));
+    
     const aiProvider = (process.env.AI_PROVIDER || 'openai').toLowerCase();
+    const useRealAI = process.env.USE_REAL_AI === 'true';
+    
+    console.log('📋 AI Configuration:');
+    console.log('   - USE_REAL_AI:', useRealAI);
+    console.log('   - AI_PROVIDER:', aiProvider);
+    console.log('   - OPENAI_API_KEY exists:', !!process.env.OPENAI_API_KEY);
+    console.log('   - OPENAI_API_KEY length:', process.env.OPENAI_API_KEY?.length || 0);
+    console.log('   - OPENAI_API_KEY preview:', process.env.OPENAI_API_KEY?.substring(0, 10) + '...');
+    console.log('   - GEMINI_API_KEY exists:', !!process.env.GEMINI_API_KEY);
+    console.log('   - Context length:', context.length, 'characters');
+    
+    if (!useRealAI) {
+      console.log('⚠️  USE_REAL_AI is false - would normally throw error');
+      throw new Error('Real AI is disabled (USE_REAL_AI=false)');
+    }
     
     if (aiProvider === 'gemini' && process.env.GEMINI_API_KEY) {
+      console.log('🔵 Using Gemini AI provider');
       return this.callGemini(context);
     } else if (process.env.OPENAI_API_KEY) {
+      console.log('🟢 Using OpenAI provider');
       return this.callOpenAI(context);
     } else {
-      throw new Error('No AI provider configured');
+      console.error('❌ No AI provider configured!');
+      console.error('   - aiProvider:', aiProvider);
+      console.error('   - OPENAI_API_KEY exists:', !!process.env.OPENAI_API_KEY);
+      console.error('   - GEMINI_API_KEY exists:', !!process.env.GEMINI_API_KEY);
+      throw new Error('No AI provider configured - missing API keys');
     }
   }
 
@@ -288,11 +313,16 @@ CRITICAL RULES:
    * Call OpenAI API with RTCROS framework
    */
   private static async callOpenAI(context: string): Promise<string> {
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY!,
-    });
+    console.log('\n🟢 CALLING OPENAI API...');
+    console.log('   - API Key exists:', !!process.env.OPENAI_API_KEY);
+    console.log('   - API Key preview:', process.env.OPENAI_API_KEY?.substring(0, 15) + '...');
+    
+    try {
+      const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY!,
+      });
 
-    const systemPrompt = `RTCROS SYSTEM CONFIGURATION
+      const systemPrompt = `RTCROS SYSTEM CONFIGURATION
 
 ROLE: You are a Senior Career Counselor AI with expertise in high school career guidance and pathway planning.
 
@@ -313,17 +343,51 @@ CRITICAL RULES:
 4. Provide actionable, concrete steps and timelines
 5. Return ONLY valid JSON - no additional text`;
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: context }
-      ],
-      max_tokens: 2000,
-      temperature: 0.3,
-    });
+      console.log('   - System prompt length:', systemPrompt.length);
+      console.log('   - User context length:', context.length);
+      console.log('   - Calling OpenAI chat.completions.create...');
 
-    return completion.choices[0]?.message?.content || '';
+      const completion = await openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: context }
+        ],
+        max_tokens: 2000,
+        temperature: 0.3,
+      });
+
+      const response = completion.choices[0]?.message?.content || '';
+      
+      console.log('✅ OPENAI RESPONSE RECEIVED');
+      console.log('   - Response length:', response.length);
+      console.log('   - Response preview:', response.substring(0, 100) + '...');
+      console.log('   - Model used:', completion.model);
+      console.log('   - Tokens used:', completion.usage?.total_tokens || 'unknown');
+      console.log('='.repeat(80));
+      console.log('🤖 CLEAN AI SERVICE - callAI() SUCCESS');
+      console.log('='.repeat(80) + '\n');
+
+      return response;
+      
+    } catch (error) {
+      console.error('\n' + '='.repeat(80));
+      console.error('❌ OPENAI API CALL FAILED');
+      console.error('='.repeat(80));
+      console.error('   - Error type:', error instanceof Error ? error.constructor.name : typeof error);
+      console.error('   - Error message:', error instanceof Error ? error.message : String(error));
+      
+      if (error instanceof Error && 'response' in error) {
+        const apiError = error as any;
+        console.error('   - API Status:', apiError.response?.status);
+        console.error('   - API Error:', apiError.response?.data);
+      }
+      
+      console.error('   - Full error:', error);
+      console.error('='.repeat(80) + '\n');
+      
+      throw error;
+    }
   }
 
   /**

@@ -79,7 +79,12 @@ const hasAIError = (recommendations: CounselorRecommendation): boolean => {
 };
 
 const hasAIRecommendations = (recommendations: CounselorRecommendation): boolean => {
-  return !!(recommendations.aiRecommendations && !hasAIError(recommendations));
+  // Check if aiRecommendations exists AND has the aiProcessed flag set to true
+  return !!(
+    recommendations.aiRecommendations && 
+    (recommendations.aiRecommendations as any)?.aiProcessed === true &&
+    !hasAIError(recommendations)
+  );
 };
 
 export default function CounselorResultsPage() {

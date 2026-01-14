@@ -138,6 +138,9 @@ export class CounselorGuidanceService {
    */
   static async generateUndecidedCareerMatches(responses: any): Promise<any> {
     try {
+      console.log('\n' + '='.repeat(80));
+      console.log('🎯 UNDECIDED CAREER MATCHING - START');
+      console.log('='.repeat(80));
       console.log('🤔 Generating career matches for undecided student...');
       console.log('📋 Input responses:', Object.keys(responses));
       
@@ -146,6 +149,7 @@ export class CounselorGuidanceService {
       const zipCode = responses.basic_info?.zipCode || responses.zipCode;
 
       console.log(`👤 Student: Grade ${grade}, ZIP ${zipCode}`);
+      console.log('📊 Total response keys:', Object.keys(responses).length);
 
       // Create RTCROS-structured prompt specifically for undecided students
       const undecidedPrompt = `ROLE:
@@ -226,10 +230,18 @@ STOPPING CRITERIA:
 CRITICAL: Return ONLY the JSON object. No additional text, explanations, or formatting outside the JSON structure.`;
 
       // Send to AI
-      console.log('📤 Sending undecided student prompt to AI...');
+      console.log('\n📤 CALLING AI SERVICE...');
+      console.log('   - Prompt length:', undecidedPrompt.length, 'characters');
+      console.log('   - About to call CleanAIRecommendationService.callAI()');
+      
       const aiResponse = await CleanAIRecommendationService.callAI(undecidedPrompt);
       
+      console.log('✅ AI RESPONSE RECEIVED');
+      console.log('   - Response length:', aiResponse?.length || 0, 'characters');
+      console.log('   - Response preview:', aiResponse?.substring(0, 100) + '...');
+      
       // Parse AI response
+      console.log('\n🔍 PARSING AI RESPONSE...');
       const parsedResponse = this.parseUndecidedAIResponse(aiResponse, grade, zipCode);
       
       console.log('✅ Undecided career matching completed');
@@ -237,12 +249,26 @@ CRITICAL: Return ONLY the JSON object. No additional text, explanations, or form
       console.log('   - Career matches:', parsedResponse.topJobMatches?.length || 0);
       console.log('   - Undecided path flag:', parsedResponse.undecidedPath);
       console.log('   - Has selection rationale:', !!parsedResponse.selectionRationale);
+      console.log('   - Has aiRecommendations:', !!parsedResponse.aiRecommendations);
+      console.log('   - aiProcessed flag:', parsedResponse.aiRecommendations?.aiProcessed);
+      console.log('='.repeat(80));
+      console.log('🎯 UNDECIDED CAREER MATCHING - SUCCESS');
+      console.log('='.repeat(80) + '\n');
       
       return parsedResponse;
 
     } catch (error) {
-      console.error('❌ Undecided career matching failed:', error);
+      console.error('\n' + '='.repeat(80));
+      console.error('❌ UNDECIDED CAREER MATCHING - FAILED');
+      console.error('='.repeat(80));
+      console.error('❌ Error details:', error);
+      console.error('   - Error type:', error instanceof Error ? error.constructor.name : typeof error);
+      console.error('   - Error message:', error instanceof Error ? error.message : String(error));
+      console.error('   - Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+      console.error('='.repeat(80) + '\n');
+      
       // Fallback to basic career matching
+      console.log('🔄 FALLING BACK to generateDirectCounselorRecommendations...');
       return this.generateDirectCounselorRecommendations(responses);
     }
   }
@@ -331,6 +357,14 @@ CRITICAL: Return ONLY the JSON object. No additional text, explanations, or form
         parentSummary: this.generateDynamicParentSummary(careerMatches, parseInt(grade), zipCode),
         counselorNotes: this.generateDynamicCounselorNotes(careerMatches, parseInt(grade), {}),
         careerRoadmap: this.generateDynamicCareerRoadmap(parseInt(grade), careerMatches),
+        aiRecommendations: {
+          academicPlan: parsed.careerPathway || {},
+          localJobs: [],
+          careerPathway: parsed.careerPathway || {},
+          skillGaps: parsed.skillGaps || [],
+          actionItems: parsed.nextSteps || [],
+          aiProcessed: true // Flag to indicate real AI was used
+        },
         undecidedPath: true,
         rtcrosFramework: true
       };
@@ -440,6 +474,7 @@ CRITICAL: Return ONLY the JSON object. No additional text, explanations, or form
           { career: { title: 'Technology Specialist', sector: 'technology' } },
           { career: { title: 'Business Professional', sector: 'business' } }
         ]),
+        // DO NOT include aiRecommendations in fallback - this causes frontend to think AI was used
         undecidedPath: true,
         fallbackMode: true,
         rawAIResponse: aiResponse,
@@ -850,13 +885,194 @@ CRITICAL: Return ONLY the JSON object. No additional text, explanations, or form
   }
 
   /**
-   * Fallback method for direct counselor recommendations
+   * Generate counselor recommendations for decided students (with AI)
+   * This is for students who have a clear career direction
    */
   static async generateDirectCounselorRecommendations(responses: any): Promise<any> {
-    // This is a simplified fallback implementation
+    console.log('\n' + '='.repeat(80));
+    console.log('🎯 DIRECT COUNSELOR RECOMMENDATIONS - START');
+    console.log('='.repeat(80));
+    console.log('📊 Generating recommendations for decided student...');
+    
     const grade = responses.basic_info?.grade || responses.grade || 11;
     const zipCode = responses.basic_info?.zipCode || responses.zipCode || '12345';
+    
+    console.log(`👤 Student: Grade ${grade}, ZIP ${zipCode}`);
+    console.log('📊 Total response keys:', Object.keys(responses).length);
 
+    try {
+      // Create AI prompt for decided students
+      const decidedPrompt = `ROLE:
+You are a Senior Career Counselor AI specializing in high school career guidance and personalized pathway planning.
+
+TASK:
+Analyze this student's assessment responses and provide personalized career recommendations with detailed pathways. The student has completed a comprehensive career assessment.
+
+CONTEXT:
+- Platform: Lantern AI career guidance system for high school students
+- Student: Grade ${grade} student in ZIP code ${zipCode}
+- Assessment Type: Comprehensive career assessment
+- Output Usage: Provide detailed career matches and action plans
+
+STUDENT ASSESSMENT RESPONSES:
+${Object.entries(responses)
+  .filter(([key]) => !['grade', 'zipCode', 'basic_info'].includes(key))
+  .map(([questionId, answer]) => {
+    const cleanAnswer = typeof answer === 'object' ? JSON.stringify(answer) : answer;
+    return `${questionId}: ${cleanAnswer}`;
+  })
+  .join('\n')}
+
+OUTPUT REQUIREMENTS:
+Generate a structured JSON response with 5-8 career matches:
+
+{
+  "careerMatches": [
+    {
+      "careerTitle": "Specific career title",
+      "sector": "healthcare/technology/infrastructure/business/education/etc",
+      "matchPercentage": 85,
+      "whyThisCareer": "Detailed explanation",
+      "averageSalary": 65000,
+      "requiredEducation": "Specific education requirement",
+      "localJobMarket": {
+        "estimatedJobs": 45,
+        "averageLocalSalary": 62000,
+        "topEmployers": ["Employer 1", "Employer 2"],
+        "growthOutlook": "Growing/Stable/Declining"
+      },
+      "skillsNeeded": ["Skill 1", "Skill 2", "Skill 3"],
+      "highSchoolPrep": ["Course 1", "Course 2"]
+    }
+  ],
+  "careerPathway": {
+    "steps": ["Step 1", "Step 2", "Step 3"],
+    "timeline": "4-6 years",
+    "requirements": ["Requirement 1", "Requirement 2"]
+  },
+  "skillGaps": [
+    {
+      "skill": "Skill name",
+      "importance": "Critical/Important/Helpful",
+      "howToAcquire": "How to develop this skill"
+    }
+  ],
+  "nextSteps": ["Action 1", "Action 2", "Action 3"]
+}
+
+CRITICAL: Return ONLY the JSON object. No additional text.`;
+
+      console.log('\n📤 CALLING AI SERVICE...');
+      console.log('   - Prompt length:', decidedPrompt.length, 'characters');
+      
+      const aiResponse = await CleanAIRecommendationService.callAI(decidedPrompt);
+      
+      console.log('✅ AI RESPONSE RECEIVED');
+      console.log('   - Response length:', aiResponse?.length || 0, 'characters');
+      
+      // Parse AI response
+      console.log('\n🔍 PARSING AI RESPONSE...');
+      const parsedResponse = this.parseDecidedAIResponse(aiResponse, grade, zipCode);
+      
+      console.log('✅ Direct counselor recommendations completed');
+      console.log('📊 Result summary:');
+      console.log('   - Career matches:', parsedResponse.topJobMatches?.length || 0);
+      console.log('   - Has aiRecommendations:', !!parsedResponse.aiRecommendations);
+      console.log('   - aiProcessed flag:', parsedResponse.aiRecommendations?.aiProcessed);
+      console.log('='.repeat(80));
+      console.log('🎯 DIRECT COUNSELOR RECOMMENDATIONS - SUCCESS');
+      console.log('='.repeat(80) + '\n');
+      
+      return parsedResponse;
+
+    } catch (error) {
+      console.error('\n' + '='.repeat(80));
+      console.error('❌ DIRECT COUNSELOR RECOMMENDATIONS - FAILED');
+      console.error('='.repeat(80));
+      console.error('❌ Error details:', error);
+      console.error('   - Error type:', error instanceof Error ? error.constructor.name : typeof error);
+      console.error('   - Error message:', error instanceof Error ? error.message : String(error));
+      console.error('='.repeat(80) + '\n');
+      
+      // Return basic fallback
+      console.log('🔄 USING BASIC FALLBACK (no AI)...');
+      return this.generateBasicFallback(grade, zipCode);
+    }
+  }
+
+  /**
+   * Parse AI response for decided students
+   */
+  private static parseDecidedAIResponse(aiResponse: string, grade: string, zipCode: string): any {
+    try {
+      let cleanResponse = aiResponse.trim();
+      cleanResponse = cleanResponse.replace(/```json\s*/g, '').replace(/```\s*$/g, '');
+      
+      const jsonStart = cleanResponse.indexOf('{');
+      const jsonEnd = cleanResponse.lastIndexOf('}') + 1;
+      
+      if (jsonStart !== -1 && jsonEnd > jsonStart) {
+        cleanResponse = cleanResponse.substring(jsonStart, jsonEnd);
+      }
+      
+      const parsed = JSON.parse(cleanResponse);
+      
+      const careerMatches = (parsed.careerMatches || []).map((match: any, index: number) => ({
+        career: {
+          id: match.careerTitle?.toLowerCase().replace(/\s+/g, '-') || `career-${index + 1}`,
+          title: match.careerTitle || `Career Option ${index + 1}`,
+          description: match.whyThisCareer || 'AI-generated career match',
+          sector: match.sector || 'general',
+          averageSalary: match.averageSalary || 50000,
+          requiredEducation: match.requiredEducation || 'High school diploma',
+          certifications: [],
+          growthOutlook: match.localJobMarket?.growthOutlook || 'Stable'
+        },
+        matchScore: match.matchPercentage || 75,
+        matchReasons: [match.whyThisCareer || 'Based on your assessment'],
+        localOpportunities: {
+          estimatedJobs: match.localJobMarket?.estimatedJobs || 25,
+          averageLocalSalary: match.localJobMarket?.averageLocalSalary || match.averageSalary || 50000,
+          topEmployers: Array.isArray(match.localJobMarket?.topEmployers) ? match.localJobMarket.topEmployers : ['Local employers'],
+          distanceFromStudent: 15
+        },
+        educationPath: {
+          highSchoolCourses: Array.isArray(match.highSchoolPrep) ? match.highSchoolPrep : ['Core courses'],
+          postSecondaryOptions: [match.requiredEducation || 'Post-secondary education'],
+          timeToCareer: '2-4 years',
+          estimatedCost: 25000
+        }
+      }));
+
+      return {
+        studentProfile: {
+          grade: parseInt(grade),
+          location: zipCode,
+          careerReadiness: 'Developing'
+        },
+        topJobMatches: careerMatches,
+        parentSummary: this.generateDynamicParentSummary(careerMatches, parseInt(grade), zipCode),
+        counselorNotes: this.generateDynamicCounselorNotes(careerMatches, parseInt(grade), {}),
+        careerRoadmap: this.generateDynamicCareerRoadmap(parseInt(grade), careerMatches),
+        aiRecommendations: {
+          academicPlan: parsed.careerPathway || {},
+          localJobs: [],
+          careerPathway: parsed.careerPathway || {},
+          skillGaps: parsed.skillGaps || [],
+          actionItems: parsed.nextSteps || [],
+          aiProcessed: true // Flag to indicate real AI was used
+        }
+      };
+    } catch (parseError) {
+      console.error('❌ Failed to parse decided AI response:', parseError);
+      return this.generateBasicFallback(grade, zipCode);
+    }
+  }
+
+  /**
+   * Basic fallback when AI completely fails
+   */
+  private static generateBasicFallback(grade: string, zipCode: string): any {
     return {
       studentProfile: {
         grade: parseInt(grade),
@@ -894,6 +1110,7 @@ CRITICAL: Return ONLY the JSON object. No additional text, explanations, or form
       careerRoadmap: this.generateDynamicCareerRoadmap(parseInt(grade), [
         { career: { title: 'General Career Path', sector: 'general' } }
       ]),
+      // DO NOT include aiRecommendations in fallback - this causes frontend to think AI was used
       parentSummary: {
         overview: 'Your child is exploring various career options.',
         keyRecommendations: ['Support career exploration', 'Maintain strong academics'],
@@ -905,7 +1122,8 @@ CRITICAL: Return ONLY the JSON object. No additional text, explanations, or form
         recommendationRationale: ['Providing general guidance for career exploration'],
         followUpActions: ['Continue career exploration', 'Monitor academic progress'],
         parentMeetingTopics: ['Discuss career interests', 'Plan next steps']
-      }
+      },
+      fallbackMode: true // Flag to indicate this is fallback, not real AI
     };
   }
 }
