@@ -188,7 +188,7 @@ GET  /api/counselor-assessment/history      - Get user's assessment history
 ### **Student Workflow**
 1. **Access Assessment**: Visit homepage and click "Enhanced Assessment"
 2. **Complete Questions**: Answer 10 comprehensive questions (10-15 minutes)
-3. **Review Results**: Explore career matches, 4-year plan, and recommendations
+3. **Review Results**: Explore career matches, career roadmap, and recommendations
 4. **Share with Parents**: Use one-click sharing to send summary to parents
 5. **Save Progress**: Create account to save results and track progress over time
 
@@ -252,7 +252,7 @@ GET  /api/counselor-assessment/history      - Get user's assessment history
 
 ### **Innovation Factors**
 1. **Counselor-Centric Design**: Built specifically for professional guidance use
-2. **4-Year Planning**: Comprehensive approach beyond simple career matching
+2. **Career Roadmap Planning**: Comprehensive approach beyond simple career matching
 3. **Multi-Stakeholder System**: Serves students, counselors, and parents simultaneously
 4. **Rural Focus**: Specifically designed for rural student challenges and opportunities
 

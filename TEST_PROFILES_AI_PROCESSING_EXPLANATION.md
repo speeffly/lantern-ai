@@ -130,7 +130,7 @@ When you select the "Software Engineer" test profile:
 2. **Career Matching**: Matches against 80+ careers in database
 3. **Local Analysis**: Analyzes Austin, TX job market for tech roles
 4. **Salary Research**: Gets current salary data for software roles in Austin
-5. **Pathway Creation**: Generates 4-year plan for computer science education
+5. **Pathway Creation**: Generates career roadmap for computer science education
 6. **Action Items**: Creates specific steps for coding skill development
 
 ### Dynamic Results:

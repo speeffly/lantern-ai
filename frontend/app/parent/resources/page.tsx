@@ -275,7 +275,7 @@ export default function ParentResourcesPage() {
               <ul className="text-blue-700 text-sm space-y-1">
                 <li>• Schedule meeting with school counselor</li>
                 <li>• Prepare questions using our checklist</li>
-                <li>• Discuss 4-year planning with counselor</li>
+                <li>• Discuss career roadmap with counselor</li>
               </ul>
             </div>
             <div>
@@ -296,7 +296,7 @@ export default function ParentResourcesPage() {
             <div>
               <h4 className="font-medium text-gray-900 mb-2">Enhanced Assessment</h4>
               <p className="text-sm text-gray-600 mb-3">
-                Your child can take a comprehensive career assessment that provides detailed recommendations and 4-year planning.
+                Your child can take a comprehensive career assessment that provides detailed recommendations and career roadmap planning.
               </p>
               <Link href="/counselor-assessment" className="text-blue-600 hover:text-blue-800 text-sm">
                 Try Assessment →

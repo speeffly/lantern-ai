@@ -56,7 +56,7 @@ export interface JobRecommendation {
   }[];
 }
 
-export interface FourYearActionPlan {
+export interface CareerRoadmap {
   currentGrade: number;
   academicPlan: {
     [grade: number]: {
@@ -109,7 +109,7 @@ export interface CounselorRecommendation {
     careerReadiness: string;
   };
   topJobMatches: JobRecommendation[];
-  fourYearPlan: FourYearActionPlan;
+  careerRoadmap: CareerRoadmap;
   aiRecommendations?: {
     academicPlan: any;
     localJobs: any[];
@@ -328,146 +328,9 @@ CRITICAL: Return ONLY the JSON object. No additional text, explanations, or form
           'Talk to professionals in these fields',
           'Consider job shadowing opportunities'
         ]),
-        parentSummary: {
-          overview: parsed.parentGuidance?.summary || 'Your student has been presented with 3 diverse career options based on their assessment responses',
-          keyRecommendations: ensureArray(parsed.parentGuidance?.keyRecommendations, [
-            'Support exploration of all 3 career options',
-            'Help arrange informational interviews or job shadowing'
-          ]),
-          supportActions: ensureArray(parsed.parentGuidance?.supportActions, [
-            'Encourage research into each career path',
-            'Support relevant extracurricular activities'
-          ]),
-          timelineHighlights: [
-            `Grade ${grade}: Explore the 3 recommended career options`,
-            'Research education requirements for each path',
-            'Make final career decision by senior year'
-          ]
-        },
-        counselorNotes: {
-          assessmentInsights: [
-            `Student is in grade ${grade} and took the undecided assessment path`,
-            'Provided 3 diverse career options to help with decision-making',
-            'Student responses indicate need for career exploration guidance',
-            'Recommendations span multiple sectors for comprehensive choice'
-          ],
-          recommendationRationale: [
-            'Selected 3 careers from different sectors to provide variety',
-            'Each career aligns with different aspects of student interests',
-            'Recommendations consider local job market opportunities',
-            'Education pathways match student\'s stated commitment level'
-          ],
-          followUpActions: [
-            'Schedule follow-up meeting to discuss student\'s career preferences',
-            'Arrange informational interviews with professionals in each field',
-            'Monitor student\'s research progress on each career option',
-            'Help student make final career selection within 3 months'
-          ],
-          parentMeetingTopics: [
-            'Review the 3 career options and selection rationale',
-            'Discuss how to support student\'s career exploration',
-            'Plan next steps for career decision-making process',
-            'Address any questions about education requirements'
-          ]
-        },
-        fourYearPlan: {
-          currentGrade: parseInt(grade),
-          academicPlan: {
-            [grade]: {
-              coreCourses: ['English', 'Mathematics', 'Science', 'Social Studies'],
-              electiveCourses: ['Explore electives related to your 3 career options'],
-              extracurriculars: ['Join clubs that align with your career interests'],
-              milestones: ['Research the 3 career options thoroughly', 'Begin narrowing down preferences']
-            },
-            [Math.min(parseInt(grade) + 1, 12)]: {
-              coreCourses: ['Advanced English', 'Advanced Mathematics', 'Advanced Science'],
-              electiveCourses: ['Take courses specific to your chosen career path'],
-              extracurriculars: ['Leadership roles in relevant organizations'],
-              milestones: ['Make final career decision', 'Plan post-secondary education']
-            }
-          },
-          careerPreparation: {
-            skillsToDevelope: [
-              {
-                skill: 'Research and Analysis',
-                howToAcquire: 'Practice researching careers, conduct informational interviews',
-                timeline: 'Throughout high school'
-              },
-              {
-                skill: 'Decision Making',
-                howToAcquire: 'Weigh pros and cons of each career option, seek guidance',
-                timeline: 'Junior and Senior year'
-              },
-              {
-                skill: 'Adaptability',
-                howToAcquire: 'Stay open to new opportunities, develop multiple interests',
-                timeline: 'Ongoing'
-              }
-            ],
-            experienceOpportunities: [
-              {
-                activity: 'Job shadowing in each of the 3 career fields',
-                when: 'Junior year',
-                benefit: 'Real-world exposure to different career paths'
-              },
-              {
-                activity: 'Volunteer work related to career interests',
-                when: 'Throughout high school',
-                benefit: 'Build experience and confirm interests'
-              },
-              {
-                activity: 'Informational interviews with professionals',
-                when: 'Junior and Senior year',
-                benefit: 'Gain insights into career realities'
-              }
-            ],
-            networkingSteps: [
-              {
-                action: 'Connect with professionals in all 3 career fields',
-                timeline: 'Junior year',
-                purpose: 'Learn about different career paths and opportunities'
-              },
-              {
-                action: 'Join student organizations related to career interests',
-                timeline: 'Throughout high school',
-                purpose: 'Meet like-minded peers and mentors'
-              }
-            ]
-          },
-          postGraduationPath: {
-            immediateSteps: [
-              'Complete high school with strong academic performance',
-              'Make final career decision based on exploration',
-              'Apply to appropriate post-secondary programs',
-              'Secure funding for chosen education path'
-            ],
-            educationOptions: [
-              {
-                option: 'Community College (flexible start)',
-                duration: '2 years',
-                cost: '$6,000-12,000',
-                location: 'Local options available'
-              },
-              {
-                option: 'Four-year University',
-                duration: '4 years',
-                cost: '$20,000-50,000',
-                location: 'In-state and out-of-state options'
-              },
-              {
-                option: 'Trade/Technical School',
-                duration: '6 months - 2 years',
-                cost: '$5,000-20,000',
-                location: 'Regional programs'
-              }
-            ],
-            careerEntry: {
-              targetPositions: ['Entry-level positions in chosen career field'],
-              expectedSalary: '$35,000 - $55,000 (varies by chosen career)',
-              advancement: ['Gain experience', 'Pursue additional certifications', 'Advance to specialized roles']
-            }
-          }
-        },
+        parentSummary: this.generateDynamicParentSummary(careerMatches, parseInt(grade), zipCode),
+        counselorNotes: this.generateDynamicCounselorNotes(careerMatches, parseInt(grade), {}),
+        careerRoadmap: this.generateDynamicCareerRoadmap(parseInt(grade), careerMatches),
         undecidedPath: true,
         rtcrosFramework: true
       };
@@ -562,93 +425,21 @@ CRITICAL: Return ONLY the JSON object. No additional text, explanations, or form
           'Talk to people working in these fields',
           'Consider which type of work environment appeals to you most'
         ],
-        parentSummary: {
-          overview: 'Your student has been provided with 3 diverse career options to help them decide on their future path',
-          keyRecommendations: [
-            'Support exploration of all 3 career options',
-            'Help arrange conversations with professionals in each field'
-          ],
-          supportActions: [
-            'Encourage research and exploration',
-            'Support relevant coursework and activities'
-          ],
-          timelineHighlights: [
-            `Grade ${grade}: Explore the 3 career options`,
-            'Make career decision by end of junior year',
-            'Plan education path based on chosen career'
-          ]
-        },
-        counselorNotes: {
-          assessmentInsights: [
-            `Undecided student in grade ${grade} provided with 3 career options`,
-            'Fallback recommendations due to AI parsing issues',
-            'Student needs structured career exploration support'
-          ],
-          recommendationRationale: [
-            'Provided diverse career options across different sectors',
-            'Recommendations based on common student interests and local opportunities'
-          ],
-          followUpActions: [
-            'Schedule career exploration meeting',
-            'Help student research each option',
-            'Support decision-making process'
-          ],
-          parentMeetingTopics: [
-            'Review career exploration process',
-            'Discuss support strategies',
-            'Plan next steps for career decision'
-          ]
-        },
-        fourYearPlan: {
-          currentGrade: parseInt(grade),
-          academicPlan: {
-            [grade]: {
-              coreCourses: ['English', 'Mathematics', 'Science', 'Social Studies'],
-              electiveCourses: ['Career exploration electives'],
-              extracurriculars: ['Clubs related to career interests'],
-              milestones: ['Research career options', 'Explore interests']
-            }
-          },
-          careerPreparation: {
-            skillsToDevelope: [
-              {
-                skill: 'Career Research',
-                howToAcquire: 'Use online resources, talk to professionals',
-                timeline: 'Throughout high school'
-              }
-            ],
-            experienceOpportunities: [
-              {
-                activity: 'Job shadowing',
-                when: 'Junior year',
-                benefit: 'Real-world career exposure'
-              }
-            ],
-            networkingSteps: [
-              {
-                action: 'Connect with career professionals',
-                timeline: 'Junior year',
-                purpose: 'Learn about career paths'
-              }
-            ]
-          },
-          postGraduationPath: {
-            immediateSteps: ['Complete high school', 'Choose career path', 'Apply to programs'],
-            educationOptions: [
-              {
-                option: 'Community College',
-                duration: '2 years',
-                cost: '$10,000',
-                location: 'Local'
-              }
-            ],
-            careerEntry: {
-              targetPositions: ['Entry-level positions'],
-              expectedSalary: '$35,000 - $50,000',
-              advancement: ['Gain experience', 'Develop skills']
-            }
-          }
-        },
+        parentSummary: this.generateDynamicParentSummary([
+          { career: { title: 'Healthcare Professional', sector: 'healthcare' } },
+          { career: { title: 'Technology Specialist', sector: 'technology' } },
+          { career: { title: 'Business Professional', sector: 'business' } }
+        ], parseInt(grade), zipCode),
+        counselorNotes: this.generateDynamicCounselorNotes([
+          { career: { title: 'Healthcare Professional', sector: 'healthcare' } },
+          { career: { title: 'Technology Specialist', sector: 'technology' } },
+          { career: { title: 'Business Professional', sector: 'business' } }
+        ], parseInt(grade), {}),
+        careerRoadmap: this.generateDynamicCareerRoadmap(parseInt(grade), [
+          { career: { title: 'Healthcare Professional', sector: 'healthcare' } },
+          { career: { title: 'Technology Specialist', sector: 'technology' } },
+          { career: { title: 'Business Professional', sector: 'business' } }
+        ]),
         undecidedPath: true,
         fallbackMode: true,
         rawAIResponse: aiResponse,
@@ -658,1347 +449,463 @@ CRITICAL: Return ONLY the JSON object. No additional text, explanations, or form
   }
 
   /**
-   * Generate counselor recommendations directly from raw responses (NEW SIMPLIFIED APPROACH)
-   * Bypasses the complex mapping logic and sends responses directly to AI
+   * Generate dynamic career roadmap based on student's grade and career matches
    */
-  static async generateDirectCounselorRecommendations(responses: any): Promise<any> {
-    try {
-      console.log('🚀 Using DIRECT AI approach - no mapping layer');
-      
-      // Extract basic info
-      const grade = responses.q1_grade_zip?.grade || responses.grade;
-      const zipCode = responses.q1_grade_zip?.zipCode || responses.zipCode;
-
-      // Create a comprehensive RTCROS-structured prompt with all raw responses
-      const directPrompt = `ROLE:
-You are a Senior Career Counselor AI specializing in high school career guidance, with expertise in educational pathways, labor market analysis, and personalized career development planning.
-
-TASK:
-Analyze the student's direct assessment responses and generate a comprehensive, personalized career guidance package including career matches, academic planning, skill development recommendations, and actionable next steps.
-
-CONTEXT:
-- Platform: Lantern AI career guidance system for high school students
-- Student: Grade ${grade} student in ZIP code ${zipCode}
-- Assessment Type: Direct questionnaire responses covering interests, skills, education willingness, and career preferences
-- Output Usage: Direct student guidance, counselor support materials, parent communication
-- Geographic Focus: Local job market analysis for ZIP ${zipCode}
-
-STUDENT ASSESSMENT RESPONSES:
-${Object.entries(responses)
-  .filter(([key]) => !['grade', 'zipCode', 'q1_grade_zip'].includes(key))
-  .map(([questionId, answer]) => {
-    const cleanAnswer = typeof answer === 'object' ? JSON.stringify(answer) : answer;
-    return `${questionId}: ${cleanAnswer}`;
-  })
-  .join('\n')}
-
-REASONING FRAMEWORK:
-1. STUDENT-FIRST APPROACH: Prioritize the student's explicitly stated career goals and interests from their responses
-2. EVIDENCE-BASED RECOMMENDATIONS: Base all suggestions on actual student responses, not generic assumptions
-3. REALISTIC PATHWAYS: Align recommendations with student's education willingness and practical constraints
-4. LOCAL RELEVANCE: Consider ZIP code ${zipCode} job market and educational opportunities
-5. GROWTH MINDSET: Present challenges as development opportunities, not barriers
-6. CONTRADICTION RESOLUTION: When student goals conflict with constraints, provide bridging solutions
-
-OUTPUT REQUIREMENTS:
-Generate a structured JSON response with these exact sections:
-
-{
-  "careerMatches": [
-    {
-      "careerTitle": "Specific career title",
-      "matchPercentage": 85,
-      "matchReasoning": "Specific reasons based on student responses",
-      "sector": "healthcare/technology/infrastructure/etc",
-      "averageSalary": 65000,
-      "requiredEducation": "Specific education requirement",
-      "localJobMarket": {
-        "estimatedJobs": 45,
-        "averageLocalSalary": 62000,
-        "topEmployers": ["Local employer 1", "Local employer 2"],
-        "growthOutlook": "Growing/Stable/Declining"
-      }
-    }
-  ],
-  "academicPlan": {
-    "currentYear": {
-      "coreCourses": ["Specific course 1", "Specific course 2"],
-      "electiveCourses": ["Career-relevant elective 1", "Career-relevant elective 2"],
-      "extracurriculars": ["Relevant activity 1", "Relevant activity 2"],
-      "milestones": ["Specific milestone 1", "Specific milestone 2"]
-    },
-    "nextYear": {
-      "coreCourses": ["Advanced course 1", "Advanced course 2"],
-      "electiveCourses": ["Specialized elective 1", "Specialized elective 2"],
-      "extracurriculars": ["Leadership activity 1", "Skill-building activity 2"],
-      "milestones": ["Advanced milestone 1", "Advanced milestone 2"]
-    },
-    "postGraduation": {
-      "educationOptions": ["Specific program 1", "Alternative pathway 2"],
-      "timeline": "Realistic timeframe",
-      "estimatedCost": "Cost range"
-    }
-  },
-  "skillGaps": [
-    {
-      "skill": "Specific skill name",
-      "importance": "Critical/Important/Helpful",
-      "howToAcquire": "Concrete methods to develop this skill",
-      "timeline": "When to develop this skill"
-    }
-  ],
-  "actionPlan": [
-    {
-      "title": "Clear, actionable task",
-      "description": "Detailed explanation and rationale",
-      "priority": "high/medium/low",
-      "timeline": "Specific timeframe for completion",
-      "category": "academic/career/skill/experience"
-    }
-  ],
-  "parentGuidance": {
-    "summary": "Brief overview for parents",
-    "supportActions": ["How parents can help 1", "How parents can help 2"],
-    "keyRecommendations": ["Important point 1", "Important point 2"]
-  }
-}
-
-STOPPING CRITERIA:
-1. COMPLETENESS CHECK: Ensure all five JSON sections are populated with relevant, specific content
-2. PERSONALIZATION VERIFICATION: Confirm recommendations reference student's actual responses and interests
-3. CONTRADICTION HANDLING: Verify any conflicts between goals and constraints are explicitly addressed
-4. ACTIONABILITY TEST: Ensure all recommendations include specific, measurable next steps
-5. JSON VALIDATION: Confirm output is valid JSON with no syntax errors
-6. SPECIFICITY STANDARD: Replace all generic placeholders with actual career-specific information based on student responses
-
-CRITICAL: Return ONLY the JSON object. No additional text, explanations, or formatting outside the JSON structure.`;
-
-      // Send directly to AI
-      console.log('📤 Sending direct prompt to AI...');
-      const aiResponse = await CleanAIRecommendationService.callAI(directPrompt);
-      
-      // Parse AI response and structure it
-      const parsedResponse = this.parseDirectAIResponse(aiResponse, grade, zipCode);
-      
-      return parsedResponse;
-
-    } catch (error) {
-      console.error('❌ Direct AI approach failed:', error);
-      // Fallback to original method
-      return this.generateCounselorRecommendations(responses);
-    }
-  }
-
-  /**
-   * Parse the RTCROS-structured AI response into the expected format
-   */
-  private static parseDirectAIResponse(aiResponse: string, grade: string, zipCode: string): any {
-    try {
-      // Clean the response to extract JSON
-      let cleanResponse = aiResponse.trim();
-      
-      // Remove any markdown formatting
-      cleanResponse = cleanResponse.replace(/```json\s*/g, '').replace(/```\s*$/g, '');
-      
-      // Find the JSON object (starts with { and ends with })
-      const jsonStart = cleanResponse.indexOf('{');
-      const jsonEnd = cleanResponse.lastIndexOf('}') + 1;
-      
-      if (jsonStart !== -1 && jsonEnd > jsonStart) {
-        cleanResponse = cleanResponse.substring(jsonStart, jsonEnd);
-      }
-      
-      const parsed = JSON.parse(cleanResponse);
-      
-      // Helper function to ensure arrays
-      const ensureArray = (value: any, fallback: string[] = []): string[] => {
-        if (Array.isArray(value)) return value;
-        if (typeof value === 'string') return [value];
-        return fallback;
-      };
-      
-      // Transform RTCROS response to expected format
-      return {
-        studentProfile: {
-          grade: parseInt(grade),
-          location: zipCode,
-          careerReadiness: 'AI-Assessed via RTCROS Framework'
-        },
-        topJobMatches: (parsed.careerMatches || []).map((match: any) => ({
-          career: {
-            id: match.careerTitle?.toLowerCase().replace(/\s+/g, '-') || 'unknown',
-            title: match.careerTitle || 'Career Match',
-            description: match.matchReasoning || 'AI-generated career match',
-            sector: match.sector || 'general',
-            averageSalary: match.averageSalary || 50000,
-            requiredEducation: match.requiredEducation || 'High school diploma',
-            certifications: [],
-            growthOutlook: match.localJobMarket?.growthOutlook || 'Stable'
-          },
-          matchScore: match.matchPercentage || 75,
-          matchReasons: [match.matchReasoning || 'Based on assessment responses'],
-          localOpportunities: {
-            estimatedJobs: match.localJobMarket?.estimatedJobs || 25,
-            averageLocalSalary: match.localJobMarket?.averageLocalSalary || match.averageSalary || 50000,
-            topEmployers: ensureArray(match.localJobMarket?.topEmployers, ['Local employers']),
-            distanceFromStudent: 15
-          },
-          educationPath: {
-            highSchoolCourses: ensureArray(parsed.academicPlan?.currentYear?.coreCourses, ['Core academic courses']),
-            postSecondaryOptions: ensureArray(parsed.academicPlan?.postGraduation?.educationOptions, ['Post-secondary education']),
-            timeToCareer: parsed.academicPlan?.postGraduation?.timeline || '2-4 years',
-            estimatedCost: 25000
-          }
-        })),
-        aiRecommendations: {
-          recommendations: ensureArray(parsed.actionPlan?.map((action: any) => action.description), ['AI-generated recommendations']),
-          academicPlan: {
-            currentYear: [
-              ...ensureArray(parsed.academicPlan?.currentYear?.coreCourses, []),
-              ...ensureArray(parsed.academicPlan?.currentYear?.electiveCourses, []),
-              ...ensureArray(parsed.academicPlan?.currentYear?.extracurriculars, [])
-            ].filter(item => item), // Remove empty items
-            nextYear: [
-              ...ensureArray(parsed.academicPlan?.nextYear?.coreCourses, []),
-              ...ensureArray(parsed.academicPlan?.nextYear?.electiveCourses, []),
-              ...ensureArray(parsed.academicPlan?.nextYear?.extracurriculars, [])
-            ].filter(item => item),
-            longTerm: [
-              ...ensureArray(parsed.academicPlan?.postGraduation?.educationOptions, []),
-              'Complete high school requirements',
-              'Prepare for post-secondary education'
-            ].filter(item => item),
-            postGraduation: parsed.academicPlan?.postGraduation || {}
-          },
-          skillGaps: ensureArray(parsed.skillGaps, []),
-          rtcrosStructured: true
-        },
-        fourYearPlan: {
-          currentGrade: parseInt(grade),
-          academicPlan: {
-            [grade]: {
-              coreCourses: ensureArray(parsed.academicPlan?.currentYear?.coreCourses, ['Core academic courses']),
-              electiveCourses: ensureArray(parsed.academicPlan?.currentYear?.electiveCourses, ['Career-focused electives']),
-              extracurriculars: ensureArray(parsed.academicPlan?.currentYear?.extracurriculars, ['Relevant activities']),
-              milestones: ['Complete grade requirements', 'Explore career interests']
-            },
-            [parseInt(grade) + 1]: {
-              coreCourses: ensureArray(parsed.academicPlan?.nextYear?.coreCourses, ['Advanced core courses']),
-              electiveCourses: ensureArray(parsed.academicPlan?.nextYear?.electiveCourses, ['Specialized electives']),
-              extracurriculars: ensureArray(parsed.academicPlan?.nextYear?.extracurriculars, ['Leadership activities']),
-              milestones: ['Prepare for graduation', 'Finalize career plans']
-            }
-          },
-          careerPreparation: {
-            skillsToDevelope: (parsed.skillGaps || []).map((gap: any) => ({
-              skill: gap.skill || 'Skill development',
-              howToAcquire: gap.howToAcquire || 'Through practice and education',
-              timeline: gap.timeline || 'Ongoing'
-            })),
-            experienceOpportunities: (parsed.actionPlan || [])
-              .filter((action: any) => action.category === 'experience')
-              .map((action: any) => ({
-                activity: action.title || 'Experience opportunity',
-                when: action.timeline || 'As available',
-                benefit: action.description || 'Career development'
-              }))
-          },
-          postGraduationPath: {
-            educationOptions: (parsed.academicPlan?.postGraduation?.educationOptions || ['Post-secondary education']).map((option: any) => ({
-              option: typeof option === 'string' ? option : option.option || 'Education option',
-              duration: typeof option === 'object' ? option.duration || '2-4 years' : '2-4 years',
-              cost: typeof option === 'object' ? option.cost || '$20,000-$40,000' : '$20,000-$40,000',
-              location: typeof option === 'object' ? option.location || 'Local/Regional' : 'Local/Regional'
-            })),
-            careerEntry: {
-              targetPositions: ensureArray(parsed.careerMatches?.map((match: any) => `Entry-level ${match.careerTitle || 'position'}`), ['Entry-level positions in chosen career']),
-              expectedSalary: parsed.careerMatches?.[0]?.averageSalary ? `$${(parsed.careerMatches[0].averageSalary * 0.8).toLocaleString()} - $${parsed.careerMatches[0].averageSalary.toLocaleString()}` : '$45,000 - $55,000',
-              advancement: ensureArray(parsed.actionPlan?.filter((action: any) => action.category === 'career')?.map((action: any) => action.title), ['Gain experience', 'Pursue additional certifications', 'Advance to senior roles'])
-            }
-          }
-        },
-        parentSummary: {
-          overview: parsed.parentGuidance?.summary || 'AI-generated career guidance recommendations based on comprehensive assessment',
-          keyRecommendations: ensureArray(parsed.parentGuidance?.keyRecommendations, ['Encourage academic excellence', 'Support career exploration']),
-          supportActions: ensureArray(parsed.parentGuidance?.supportActions, ['Support student\'s career exploration', 'Help with educational planning']),
-          timelineHighlights: ensureArray(parsed.parentGuidance?.timelineHighlights, ['Focus on current grade requirements', 'Plan for post-secondary education'])
-        },
-        counselorNotes: {
-          assessmentInsights: [
-            `Student is in grade ${grade} and shows strong career potential`,
-            'Assessment responses indicate clear career interests and goals',
-            'AI analysis suggests good alignment with recommended career paths',
-            'Student demonstrates readiness for career-focused academic planning'
-          ],
-          recommendationRationale: [
-            'Career matches selected based on comprehensive AI analysis of student responses',
-            'Education pathways align with student interests and local opportunities',
-            'Recommendations consider both student preferences and market realities',
-            'AI-powered analysis ensures personalized and relevant guidance'
-          ],
-          followUpActions: [
-            'Schedule follow-up meeting to review progress on recommended action items',
-            'Monitor academic performance in career-relevant courses',
-            'Connect student with professionals in recommended career fields',
-            'Assist with scholarship and program application processes'
-          ],
-          parentMeetingTopics: [
-            'Review AI-generated career recommendations and rationale',
-            'Discuss 4-year academic plan and course selection strategy',
-            'Explore post-secondary education options and financial planning',
-            'Plan career exploration activities and work experience opportunities'
-          ]
-        },
-        directAIResponse: true,
-        rtcrosFramework: true
-      };
-    } catch (parseError) {
-      console.error('❌ Failed to parse RTCROS AI response:', parseError);
-      console.error('Raw AI Response:', aiResponse);
-      
-      // Enhanced fallback with RTCROS context
-      return {
-        studentProfile: {
-          grade: parseInt(grade),
-          location: zipCode,
-          careerReadiness: 'AI-Assessed (Fallback Mode)'
-        },
-        topJobMatches: [],
-        aiRecommendations: {
-          textResponse: aiResponse,
-          recommendations: ['AI provided detailed recommendations - see raw response'],
-          academicPlan: {
-            currentYear: ['Review AI recommendations for academic planning'],
-            nextYear: ['Continue following AI guidance'],
-            longTerm: ['Prepare for post-secondary education', 'Develop career-relevant skills'],
-            postGraduation: { textPlan: 'See AI recommendations' }
-          },
-          skillGaps: [],
-          rtcrosAttempted: true,
-          parseError: parseError instanceof Error ? parseError.message : String(parseError)
-        },
-        fourYearPlan: {
-          currentGrade: parseInt(grade),
-          academicPlan: {
-            [grade]: {
-              coreCourses: ['Review AI recommendations for core courses'],
-              electiveCourses: ['Follow AI guidance for electives'],
-              extracurriculars: ['Participate in recommended activities'],
-              milestones: ['Complete grade requirements']
-            }
-          },
-          careerPreparation: {
-            skillsToDevelope: [{
-              skill: 'Review AI recommendations',
-              howToAcquire: 'Follow detailed guidance provided',
-              timeline: 'Ongoing'
-            }],
-            experienceOpportunities: [{
-              activity: 'Career exploration',
-              when: 'Throughout high school',
-              benefit: 'Better career understanding'
-            }]
-          },
-          postGraduationPath: {
-            educationOptions: [{
-              option: 'See AI recommendations for education options',
-              duration: '2-4 years',
-              cost: 'Variable',
-              location: 'To be determined'
-            }],
-            careerEntry: {
-              targetPositions: ['Entry-level positions'],
-              expectedSalary: '$40,000 - $60,000',
-              advancement: ['Gain experience', 'Develop skills']
-            }
-          },
-          textPlan: aiResponse,
-          rtcrosStructured: false
-        },
-        parentSummary: {
-          overview: 'AI provided detailed career guidance recommendations - see raw response for complete analysis',
-          keyRecommendations: ['Review AI recommendations for key guidance points'],
-          supportActions: ['Support student\'s career exploration based on AI analysis'],
-          timelineHighlights: ['Follow AI-provided timeline recommendations']
-        },
-        counselorNotes: {
-          assessmentInsights: [
-            `Student is in grade ${grade} - AI analysis attempted`,
-            'Raw AI response contains detailed assessment insights',
-            'Fallback mode activated due to JSON parsing issues',
-            'Manual review of AI response recommended'
-          ],
-          recommendationRationale: [
-            'AI provided comprehensive analysis but JSON parsing failed',
-            'Raw response contains detailed reasoning for recommendations',
-            'Fallback structure ensures system stability',
-            'Manual interpretation of AI response may be needed'
-          ],
-          followUpActions: [
-            'Review raw AI response for detailed recommendations',
-            'Schedule follow-up meeting to discuss AI insights',
-            'Consider retaking assessment if needed',
-            'Monitor system for improved AI response parsing'
-          ],
-          parentMeetingTopics: [
-            'Review AI analysis and recommendations',
-            'Discuss career exploration based on AI insights',
-            'Plan next steps for career development',
-            'Address any questions about AI recommendations'
-          ]
-        },
-        directAIResponse: true,
-        rtcrosFramework: true,
-        rawAIResponse: aiResponse,
-        parseError: parseError instanceof Error ? parseError.message : String(parseError)
-      };
-    }
-  }
-  static async generateCounselorRecommendations(
-    responses: CounselorAssessmentResponse
-  ): Promise<CounselorRecommendation> {
-    try {
-      console.log('🎓 Generating counselor recommendations for grade', responses.grade, 'student');
-      console.log('📍 Location:', responses.zipCode);
-
-      // Convert responses to student profile format
-      const studentProfile = this.convertToStudentProfile(responses);
-      console.log('👤 Student Profile:', JSON.stringify(studentProfile, null, 2));
-      
-      // STEP 1: Get enhanced career matches with AI insights and individual pathways
-      console.log('\n' + '='.repeat(80));
-      console.log('🤖 STEP 1: GETTING ENHANCED CAREER MATCHES WITH AI INSIGHTS');
-      console.log('='.repeat(80));
-      
-      const enhancedResult = await EnhancedCareerService.getCareerMatchesWithDynamicSalaries(
-        studentProfile,
-        this.convertToAssessmentAnswers(responses),
-        responses.zipCode || ''
-      );
-      
-      // Get AI-enhanced matches with individual career pathways
-      const enhancedCareerMatches = await CareerMatchingService.getEnhancedMatches(
-        studentProfile,
-        this.convertToAssessmentAnswers(responses),
-        enhancedResult.careerMatches
-      );
-      
-      console.log('📊 Enhanced Career Analysis Results:');
-      console.log('   - Career matches found:', enhancedResult.careerMatches.length);
-      console.log('   - AI-enhanced matches:', enhancedCareerMatches.length);
-      console.log('   - Dynamic data available:', enhancedResult.insights.dynamicDataAvailable);
-      console.log('   - Jobs analyzed:', enhancedResult.insights.jobsAnalyzed);
-      console.log('   - Average salary difference:', enhancedResult.insights.averageSalaryDifference.toLocaleString());
-      console.log('   - Recommendation quality:', enhancedResult.insights.recommendationQuality);
-      
-      // Log salary data details
-      console.log('\n📈 SALARY ANALYSIS BREAKDOWN:');
-      enhancedResult.salaryData.salaryAnalyses.forEach((analysis, index) => {
-        console.log(`   ${index + 1}. ${analysis.careerTitle}:`);
-        console.log(`      - Average Salary: $${analysis.averageSalary.toLocaleString()}`);
-        console.log(`      - Salary Range: $${analysis.salaryRange.min.toLocaleString()} - $${analysis.salaryRange.max.toLocaleString()}`);
-        console.log(`      - Job Count: ${analysis.jobCount}`);
-        console.log(`      - Data Source: ${analysis.dataSource}`);
-        console.log(`      - Last Updated: ${analysis.lastUpdated.toISOString()}`);
-      });
-      
-      console.log('\n🏢 MARKET INSIGHTS:');
-      console.log('   - Highest Paying Career:', enhancedResult.salaryData.marketInsights.highestPaying);
-      console.log('   - Most Jobs Available:', enhancedResult.salaryData.marketInsights.mostJobs);
-      console.log('   - Average Across All Careers: $' + enhancedResult.salaryData.marketInsights.averageAcrossAllCareers.toLocaleString());
-      console.log('='.repeat(80));
-      
-      // Use enhanced career matches instead of basic ones
-      const careerMatches = enhancedResult.careerMatches;
-      
-      // Get top 15 matches for high school students
-      const topMatches = careerMatches
-        .filter(match => this.isAppropriateForHighSchool(match.career))
-        .slice(0, 15);
-
-      console.log('\n🎯 TOP CAREER MATCHES (after filtering):');
-      topMatches.slice(0, 5).forEach((match: any, index: number) => {
-        console.log(`   ${index + 1}. ${match.career.title} (${match.matchScore}% match)`);
-        console.log(`      - Sector: ${match.career.sector}`);
-        console.log(`      - Average Salary: $${match.career.averageSalary.toLocaleString()}`);
-        console.log(`      - Required Education: ${match.career.requiredEducation}`);
-        if (match.localSalaryData) {
-          console.log(`      - Local Salary Data: ${match.localSalaryData.source} (${match.localSalaryData.jobCount} jobs)`);
-        }
-      });
-
-      // STEP 2: Generate detailed job recommendations with enhanced career pathways
-      console.log('\n' + '='.repeat(80));
-      console.log('💼 STEP 2: GENERATING JOB RECOMMENDATIONS WITH ENHANCED CAREER PATHWAYS');
-      console.log('='.repeat(80));
-      
-      const jobRecommendations = await this.generateJobRecommendationsFromEnhanced(
-        enhancedCareerMatches, 
-        responses.zipCode || '', 
-        responses.grade || 11,
-        enhancedResult.salaryData
-      );
-
-      console.log('✅ Job recommendations generated with dynamic salary data');
-      jobRecommendations.slice(0, 3).forEach((job, index) => {
-        console.log(`   ${index + 1}. ${job.career.title}:`);
-        console.log(`      - Match Score: ${job.matchScore}%`);
-        console.log(`      - Local Average Salary: $${job.localOpportunities.averageLocalSalary.toLocaleString()}`);
-        console.log(`      - Estimated Jobs: ${job.localOpportunities.estimatedJobs}`);
-        console.log(`      - Distance: ${job.localOpportunities.distanceFromStudent} miles`);
-      });
-
-      // Create 4-year action plan
-      const fourYearPlan = this.createFourYearActionPlan(
-        responses.grade || 11,
-        topMatches,
-        responses
-      );
-
-      // Generate parent summary
-      const parentSummary = this.createParentSummary(
-        jobRecommendations,
-        fourYearPlan,
-        responses
-      );
-
-      // Generate AI-powered recommendations
-      console.log('\n' + '='.repeat(80));
-      console.log('🤖 STEP 3: GENERATING AI-POWERED RECOMMENDATIONS');
-      console.log('='.repeat(80));
-      let aiRecommendations: {
-        academicPlan: any;
-        localJobs: any[];
-        careerPathway: any;
-        skillGaps: any[];
-        actionItems: any[];
-      } | undefined = undefined;
-      
-      try {
-        // Convert responses to assessment answers format for AI service
-        const assessmentAnswers = this.convertToAssessmentAnswers(responses);
-        
-        const aiResult = await CleanAIRecommendationService.generateRecommendations(
-          studentProfile,
-          assessmentAnswers,
-          topMatches,
-          responses.zipCode || '',
-          responses.grade || 11
-        );
-        
-        // Convert AIRecommendations to the expected format
-        aiRecommendations = {
-          academicPlan: aiResult.academicPlan,
-          localJobs: aiResult.localJobs || [],
-          careerPathway: aiResult.careerPathway,
-          skillGaps: aiResult.skillGaps || [],
-          actionItems: aiResult.actionItems || []
-        };
-        
-        console.log('✅ AI recommendations generated successfully for counselor assessment');
-      } catch (aiError) {
-        const useRealAI = process.env.USE_REAL_AI === 'true';
-        
-        if (useRealAI) {
-          console.error('❌ Real AI mode failed - OpenAI integration required:', aiError);
-          // Set error state to show real AI is expected but failed
-          aiRecommendations = {
-            academicPlan: { error: 'Real AI mode enabled but OpenAI integration failed' },
-            localJobs: [],
-            careerPathway: { error: 'Real AI mode enabled but OpenAI integration failed' },
-            skillGaps: [],
-            actionItems: []
-          };
-        } else {
-          console.log('⚠️ AI recommendations failed, but fallback mode should have handled this:', aiError);
-          aiRecommendations = undefined;
-        }
-      }
-
-      // Create counselor notes
-      const counselorNotes = this.createCounselorNotes(
-        responses,
-        jobRecommendations,
-        fourYearPlan
-      );
-
-      console.log('\n' + '='.repeat(80));
-      console.log('✅ COUNSELOR RECOMMENDATIONS GENERATION COMPLETE');
-      console.log('='.repeat(80));
-      console.log('📊 Final Summary:');
-      console.log('   - Top career matches:', jobRecommendations.length);
-      console.log('   - Dynamic salary data used:', enhancedResult.insights.dynamicDataAvailable ? 'YES' : 'NO');
-      console.log('   - Total jobs analyzed:', enhancedResult.insights.jobsAnalyzed);
-      console.log('   - AI recommendations:', aiRecommendations ? 'Generated' : 'Not available');
-      console.log('='.repeat(80) + '\n');
-
-      return {
-        studentProfile: {
-          grade: responses.grade || 11,
-          location: responses.zipCode || 'Unknown',
-          strengths: this.identifyStrengths(responses),
-          interests: this.extractInterests(responses),
-          careerReadiness: this.assessCareerReadiness(responses)
-        },
-        topJobMatches: jobRecommendations,
-        fourYearPlan,
-        aiRecommendations,
-        parentSummary,
-        counselorNotes
-      };
-    } catch (error) {
-      console.error('❌ Error generating counselor recommendations:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Convert counselor responses to assessment answers format for AI service
-   */
-  private static convertToAssessmentAnswers(responses: CounselorAssessmentResponse): AssessmentAnswer[] {
-    const answers: AssessmentAnswer[] = [];
-    
-    // Convert each response to an assessment answer
-    if (responses.grade) {
-      answers.push({
-        questionId: 'grade',
-        answer: responses.grade.toString(),
-        timestamp: new Date()
-      });
-    }
-    
-    if (responses.zipCode) {
-      answers.push({
-        questionId: 'zip_code',
-        answer: responses.zipCode,
-        timestamp: new Date()
-      });
-    }
-    
-    if (responses.workEnvironment) {
-      answers.push({
-        questionId: 'work_environment',
-        answer: responses.workEnvironment,
-        timestamp: new Date()
-      });
-    }
-    
-    if (responses.handsOnPreference) {
-      answers.push({
-        questionId: 'interests',
-        answer: responses.handsOnPreference,
-        timestamp: new Date()
-      });
-    }
-    
-    if (responses.subjectsStrengths) {
-      answers.push({
-        questionId: 'skills',
-        answer: responses.subjectsStrengths.join(', '),
-        timestamp: new Date()
-      });
-    }
-    
-    if (responses.educationCommitment) {
-      answers.push({
-        questionId: 'education',
-        answer: responses.educationCommitment,
-        timestamp: new Date()
-      });
-    }
-    
-    if (responses.interestsPassions) {
-      answers.push({
-        questionId: 'interests_detailed',
-        answer: responses.interestsPassions,
-        timestamp: new Date()
-      });
-    }
-    
-    return answers;
-  }
-
-  /**
-   * Convert counselor responses to student profile format
-   */
-  private static convertToStudentProfile(responses: CounselorAssessmentResponse): any {
-    const interests: string[] = [];
-    const skills: string[] = [];
-
-    // Map responses to interests and skills
-    if (responses.handsOnPreference?.includes('tools')) {
-      interests.push('Hands-on Work', 'Infrastructure');
-    }
-    if (responses.handsOnPreference?.includes('people')) {
-      interests.push('Healthcare', 'Helping Others');
-    }
-    if (responses.handsOnPreference?.includes('computers')) {
-      interests.push('Technology', 'Problem Solving');
-    }
-    if (responses.helpingOthers?.includes('Very important')) {
-      interests.push('Healthcare', 'Community Impact');
-    }
-
-    // Map academic strengths to skills
-    if (responses.subjectsStrengths?.includes('Math')) {
-      skills.push('Problem Solving', 'Analytical Thinking');
-    }
-    if (responses.subjectsStrengths?.includes('Science')) {
-      skills.push('Scientific Method', 'Research');
-    }
-    if (responses.subjectsStrengths?.includes('English')) {
-      skills.push('Communication', 'Writing');
-    }
-
-    // Add interests from free text
-    if (responses.interestsPassions) {
-      const passionKeywords = this.extractKeywordsFromText(responses.interestsPassions);
-      interests.push(...passionKeywords);
-    }
-
-    return {
-      interests: [...new Set(interests)], // Remove duplicates
-      skills: [...new Set(skills)],
-      educationGoal: this.mapEducationGoal(responses.educationCommitment),
-      workEnvironment: this.mapWorkEnvironment(responses.workEnvironment),
-      grade: responses.grade
-    };
-  }
-
-  /**
-   * Check if career is appropriate for high school students
-   */
-  private static isAppropriateForHighSchool(career: any): boolean {
-    // Filter out careers requiring advanced degrees or extensive experience
-    const inappropriateKeywords = [
-      'surgeon', 'physician', 'lawyer', 'judge', 'professor', 
-      'executive', 'senior manager', 'director', 'chief'
-    ];
-    
-    const title = career.title.toLowerCase();
-    return !inappropriateKeywords.some(keyword => title.includes(keyword));
-  }
-
-  /**
-   * Generate detailed job recommendations from enhanced career matches (includes individual career pathways)
-   */
-  private static async generateJobRecommendationsFromEnhanced(
-    enhancedMatches: EnhancedCareerMatch[],
-    zipCode: string,
-    grade: number,
-    salaryData: any
-  ): Promise<JobRecommendation[]> {
-    const recommendations: JobRecommendation[] = [];
-
-    for (const match of enhancedMatches) {
-      // Get local job market data using dynamic salary analysis
-      const localData = await this.getLocalJobDataWithDynamicSalary(match.career, zipCode, salaryData);
-      
-      // Get education path
-      const educationPath = this.createEducationPath(match.career, grade);
-      
-      recommendations.push({
-        career: match.career,
-        matchScore: match.matchScore,
-        matchReasons: match.reasoningFactors || this.generateMatchReasons(match),
-        localOpportunities: localData,
-        educationPath,
-        careerPathway: match.careerPathway, // Include the individual career pathway
-        skillGaps: match.skillGaps // Include the individual skill gaps
-      });
-    }
-
-    return recommendations;
-  }
-
-  /**
-   * Generate detailed job recommendations with dynamic salary data
-   */
-  private static async generateJobRecommendationsWithDynamicSalary(
-    careerMatches: CareerMatch[],
-    zipCode: string,
-    grade: number,
-    salaryData: any
-  ): Promise<JobRecommendation[]> {
-    const recommendations: JobRecommendation[] = [];
-
-    for (const match of careerMatches) {
-      // Get local job market data using dynamic salary analysis
-      const localData = await this.getLocalJobDataWithDynamicSalary(match.career, zipCode, salaryData);
-      
-      // Get education path
-      const educationPath = this.createEducationPath(match.career, grade);
-      
-      recommendations.push({
-        career: match.career,
-        matchScore: match.matchScore,
-        matchReasons: match.reasoningFactors || this.generateMatchReasons(match),
-        localOpportunities: localData,
-        educationPath
-      });
-    }
-
-    return recommendations;
-  }
-
-  /**
-   * Generate detailed job recommendations
-   */
-  private static async generateJobRecommendations(
-    careerMatches: CareerMatch[],
-    zipCode: string,
-    grade: number
-  ): Promise<JobRecommendation[]> {
-    const recommendations: JobRecommendation[] = [];
-
-    for (const match of careerMatches) {
-      // Get local job market data
-      const localData = await this.getLocalJobData(match.career, zipCode);
-      
-      // Get education path
-      const educationPath = this.createEducationPath(match.career, grade);
-      
-      recommendations.push({
-        career: match.career,
-        matchScore: match.matchScore,
-        matchReasons: match.reasoningFactors || this.generateMatchReasons(match),
-        localOpportunities: localData,
-        educationPath
-      });
-    }
-
-    return recommendations;
-  }
-
-  /**
-   * Get local job market data using dynamic salary analysis
-   */
-  private static async getLocalJobDataWithDynamicSalary(career: any, zipCode: string, salaryData: any) {
-    console.log(`💰 Getting dynamic salary data for ${career.title} in ${zipCode}...`);
-    
-    // Find the salary analysis for this career
-    const salaryAnalysis = salaryData.salaryAnalyses.find(
-      (analysis: any) => analysis.careerTitle === career.title
-    );
-
-    if (salaryAnalysis) {
-      console.log(`   ✅ Found dynamic salary data for ${career.title}:`);
-      console.log(`      - Average Salary: $${salaryAnalysis.averageSalary.toLocaleString()}`);
-      console.log(`      - Job Count: ${salaryAnalysis.jobCount}`);
-      console.log(`      - Data Source: ${salaryAnalysis.dataSource}`);
-      console.log(`      - Salary Range: $${salaryAnalysis.salaryRange.min.toLocaleString()} - $${salaryAnalysis.salaryRange.max.toLocaleString()}`);
-      
-      // Use dynamic salary data
-      return {
-        estimatedJobs: salaryAnalysis.jobCount,
-        averageLocalSalary: salaryAnalysis.averageSalary,
-        topEmployers: this.generateLocalEmployers(career.sector),
-        distanceFromStudent: Math.floor(Math.random() * 35) + 5 // 5-40 miles (still simulated)
-      };
-    } else {
-      console.log(`   ⚠️ No dynamic salary data found for ${career.title}, using fallback`);
-      
-      // Fallback to simulated data
-      return this.getLocalJobDataFallback(career, zipCode);
-    }
-  }
-
-  /**
-   * Get local job market data for a career (original method, now fallback)
-   */
-  private static async getLocalJobData(career: any, zipCode: string) {
-    console.log(`📊 Getting simulated job data for ${career.title} in ${zipCode}...`);
-    return this.getLocalJobDataFallback(career, zipCode);
-  }
-
-  /**
-   * Fallback method for local job data (simulated)
-   */
-  private static getLocalJobDataFallback(career: any, _zipCode: string) {
-    // Simulate local job market analysis
-    const baseJobs = Math.floor(Math.random() * 50) + 10; // 10-60 jobs
-    const salaryVariation = 0.1; // ±10%
-    const distance = Math.floor(Math.random() * 35) + 5; // 5-40 miles
-
-    const simulatedData = {
-      estimatedJobs: baseJobs,
-      averageLocalSalary: Math.round(career.averageSalary * (1 + (Math.random() - 0.5) * salaryVariation)),
-      topEmployers: this.generateLocalEmployers(career.sector),
-      distanceFromStudent: distance
-    };
-
-    console.log(`   📊 Simulated data: ${baseJobs} jobs, $${simulatedData.averageLocalSalary.toLocaleString()} avg salary`);
-    return simulatedData;
-  }
-
-  /**
-   * Generate local employers based on sector
-   */
-  private static generateLocalEmployers(sector: string): string[] {
-    const employers = {
-      healthcare: ['Regional Medical Center', 'Community Health Clinic', 'Rural Hospital Network'],
-      infrastructure: ['County Public Works', 'Local Construction Co.', 'Regional Utilities'],
-      education: ['School District', 'Community College', 'Local Library System'],
-      technology: ['Local IT Services', 'Regional Tech Company', 'Government IT Department']
-    };
-
-    return employers[sector as keyof typeof employers] || ['Local Business', 'Regional Company', 'Government Agency'];
-  }
-
-  /**
-   * Create education path for a career
-   */
-  private static createEducationPath(career: any, _currentGrade: number) {
-    const highSchoolCourses = this.getRecommendedCourses(career);
-    const postSecondaryOptions = this.getPostSecondaryOptions(career);
-    const timeToCareer = this.calculateTimeToCareer(career.requiredEducation);
-    const estimatedCost = this.estimateEducationCost(career.requiredEducation);
-
-    return {
-      highSchoolCourses,
-      postSecondaryOptions,
-      timeToCareer,
-      estimatedCost
-    };
-  }
-
-  /**
-   * Get recommended high school courses for a career
-   */
-  private static getRecommendedCourses(career: any): string[] {
-    const courseMap: { [key: string]: string[] } = {
-      healthcare: ['Biology', 'Chemistry', 'Anatomy & Physiology', 'Health Sciences', 'Psychology'],
-      infrastructure: ['Geometry', 'Physics', 'Construction Technology', 'CAD', 'Shop Class'],
-      technology: ['Computer Science', 'Mathematics', 'Physics', 'Statistics'],
-      education: ['English', 'Psychology', 'Speech', 'Subject-specific courses'],
-      business: ['Business Math', 'Economics', 'Accounting', 'Marketing', 'Communication']
-    };
-
-    return courseMap[career.sector] || ['Core Academic Courses', 'Career-Related Electives'];
-  }
-
-  /**
-   * Get post-secondary education options
-   */
-  private static getPostSecondaryOptions(career: any): string[] {
-    const educationLevel = career.requiredEducation;
-    
-    if (educationLevel === 'certificate') {
-      return ['Vocational School', 'Community College Certificate', 'Apprenticeship Program'];
-    } else if (educationLevel === 'associate') {
-      return ['Community College (2-year)', 'Technical College', 'Online Degree Program'];
-    } else if (educationLevel === 'bachelor') {
-      return ['4-year University', 'State College', 'Online Bachelor\'s Program'];
-    }
-    
-    return ['Various Training Options'];
-  }
-
-  /**
-   * Calculate time to career entry
-   */
-  private static calculateTimeToCareer(educationLevel: string): string {
-    const timeMap: { [key: string]: string } = {
-      'certificate': '6 months - 2 years after high school',
-      'associate': '2-3 years after high school',
-      'bachelor': '4-5 years after high school',
-      'master': '6-7 years after high school'
-    };
-
-    return timeMap[educationLevel] || '2-4 years after high school';
-  }
-
-  /**
-   * Estimate education cost
-   */
-  private static estimateEducationCost(educationLevel: string): number {
-    const costMap: { [key: string]: number } = {
-      'certificate': 8000,
-      'associate': 15000,
-      'bachelor': 40000,
-      'master': 60000
-    };
-
-    return costMap[educationLevel] || 20000;
-  }
-
-  /**
-   * Create 4-year action plan
-   */
-  private static createFourYearActionPlan(
-    currentGrade: number,
-    topMatches: CareerMatch[],
-    responses: CounselorAssessmentResponse
-  ): FourYearActionPlan {
-    const academicPlan: { [grade: number]: any } = {};
-    
-    // Generate plan for each remaining grade
+  private static generateDynamicCareerRoadmap(currentGrade: number, careerMatches: any[]): CareerRoadmap {
+    const remainingGrades = [];
     for (let grade = currentGrade; grade <= 12; grade++) {
-      academicPlan[grade] = this.createGradePlan(grade, topMatches, responses);
+      remainingGrades.push(grade);
     }
+
+    // Extract career-specific courses based on top career matches
+    const careerSpecificCourses = this.getCareerSpecificCourses(careerMatches);
+    const academicPlan: any = {};
+
+    remainingGrades.forEach((grade, index) => {
+      const isCurrentGrade = grade === currentGrade;
+      const isFinalYear = grade === 12;
+      
+      academicPlan[grade] = {
+        coreCourses: this.getCoreCoursesForGrade(grade),
+        electiveCourses: this.getElectiveCoursesForGrade(grade, careerMatches, isCurrentGrade),
+        extracurriculars: this.getExtracurricularsForGrade(grade, careerMatches, isCurrentGrade),
+        summerActivities: this.getSummerActivitiesForGrade(grade, careerMatches),
+        milestones: this.getMilestonesForGrade(grade, careerMatches, isFinalYear)
+      };
+    });
 
     return {
       currentGrade,
       academicPlan,
-      careerPreparation: this.createCareerPreparation(topMatches, responses),
-      postGraduationPath: this.createPostGraduationPath(topMatches, responses)
-    };
-  }
-
-  /**
-   * Create plan for specific grade
-   */
-  private static createGradePlan(
-    grade: number,
-    topMatches: CareerMatch[],
-    responses: CounselorAssessmentResponse
-  ) {
-    const topCareer = topMatches[0]?.career;
-    const isHealthcare = topCareer?.sector === 'healthcare';
-    const isInfrastructure = topCareer?.sector === 'infrastructure';
-
-    const baseCourses = {
-      9: ['English I', 'Algebra I', 'Biology', 'World History', 'PE/Health'],
-      10: ['English II', 'Geometry', 'Chemistry', 'World Geography', 'PE/Health'],
-      11: ['English III', 'Algebra II', 'Physics', 'US History', 'Government'],
-      12: ['English IV', 'Pre-Calculus/Statistics', 'Economics', 'Electives']
-    };
-
-    const careerElectives: { [key: string]: { [key: number]: string[] } } = {
-      healthcare: {
-        11: ['Health Sciences', 'Psychology', 'Anatomy & Physiology'],
-        12: ['Medical Terminology', 'First Aid/CPR', 'Dual Enrollment Biology']
+      careerPreparation: {
+        skillsToDevelope: this.getSkillsToDevelope(careerMatches),
+        experienceOpportunities: this.getExperienceOpportunities(careerMatches, currentGrade),
+        networkingSteps: this.getNetworkingSteps(careerMatches, currentGrade)
       },
-      infrastructure: {
-        11: ['Construction Technology', 'CAD', 'Shop Class'],
-        12: ['Advanced Construction', 'Electrical Basics', 'Dual Enrollment Math']
-      }
-    };
-
-    const extracurriculars = {
-      healthcare: ['HOSA (Health Occupations)', 'Volunteer at Hospital', 'Red Cross Club'],
-      infrastructure: ['Skills USA', 'Robotics Club', 'Construction Club']
-    };
-
-    const summerActivities = {
-      healthcare: ['Hospital Volunteer', 'CNA Training', 'Health Camp'],
-      infrastructure: ['Construction Job', 'Trade Skills Workshop', 'Apprenticeship Prep']
-    };
-
-    const sector = isHealthcare ? 'healthcare' : isInfrastructure ? 'infrastructure' : 'general';
-
-    return {
-      coreCourses: baseCourses[grade as keyof typeof baseCourses] || [],
-      electiveCourses: careerElectives[sector as keyof typeof careerElectives]?.[grade] || ['Career-Related Electives'],
-      extracurriculars: extracurriculars[sector as keyof typeof extracurriculars] || ['Career-Related Clubs'],
-      summerActivities: summerActivities[sector as keyof typeof summerActivities] || ['Career Exploration'],
-      milestones: this.getGradeMilestones(grade, sector)
-    };
-  }
-
-  /**
-   * Get milestones for each grade
-   */
-  private static getGradeMilestones(grade: number, sector: string): string[] {
-    const milestones: { [key: number]: { [key: string]: string[] } } = {
-      9: {
-        general: ['Establish good study habits', 'Explore career interests', 'Join relevant clubs'],
-        healthcare: ['Shadow healthcare workers', 'Learn basic first aid', 'Volunteer in community'],
-        infrastructure: ['Learn basic tool safety', 'Visit construction sites', 'Try hands-on projects']
-      },
-      10: {
-        general: ['Maintain strong GPA', 'Develop leadership skills', 'Research career paths'],
-        healthcare: ['Complete health sciences course', 'Get CPR certified', 'Job shadow nurses'],
-        infrastructure: ['Complete construction tech course', 'Learn blueprint reading', 'Visit trade schools']
-      },
-      11: {
-        general: ['Take SAT/ACT', 'Research colleges/training', 'Apply for scholarships'],
-        healthcare: ['Take anatomy course', 'Apply for CNA program', 'Research nursing schools'],
-        infrastructure: ['Apply for apprenticeships', 'Get OSHA safety training', 'Research trade programs']
-      },
-      12: {
-        general: ['Complete applications', 'Secure funding', 'Plan transition'],
-        healthcare: ['Complete CNA if possible', 'Apply to nursing programs', 'Secure healthcare job'],
-        infrastructure: ['Start apprenticeship', 'Apply to trade schools', 'Secure construction job']
-      }
-    };
-
-    return milestones[grade]?.[sector] || milestones[grade]?.['general'] || [];
-  }
-
-  /**
-   * Create career preparation plan
-   */
-  private static createCareerPreparation(
-    topMatches: CareerMatch[],
-    responses: CounselorAssessmentResponse
-  ) {
-    const topCareer = topMatches[0]?.career;
-    
-    return {
-      skillsToDevelope: [
-        {
-          skill: 'Communication',
-          howToAcquire: 'Join speech club, practice presentations, customer service job',
-          timeline: 'Throughout high school'
-        },
-        {
-          skill: 'Technical Skills',
-          howToAcquire: `Take ${topCareer?.sector} courses, online tutorials, hands-on practice`,
-          timeline: 'Junior and Senior year'
-        },
-        {
-          skill: 'Work Ethic',
-          howToAcquire: 'Part-time job, volunteer work, internships',
-          timeline: 'Starting sophomore year'
+      postGraduationPath: {
+        immediateSteps: this.getImmediateSteps(careerMatches),
+        educationOptions: this.getEducationOptions(careerMatches),
+        careerEntry: {
+          targetPositions: careerMatches.map(match => `Entry-level ${match.career.title}`),
+          expectedSalary: this.getExpectedSalaryRange(careerMatches),
+          advancement: this.getAdvancementPath(careerMatches)
         }
-      ],
-      experienceOpportunities: [
-        {
-          activity: 'Job Shadowing',
-          when: 'Junior year',
-          benefit: 'See real workplace environment and daily tasks'
-        },
-        {
-          activity: 'Internship/Part-time work',
-          when: 'Senior year',
-          benefit: 'Gain actual work experience and references'
-        },
-        {
-          activity: 'Volunteer Work',
-          when: 'Throughout high school',
-          benefit: 'Develop skills and show community commitment'
-        }
-      ],
-      networkingSteps: [
-        {
-          action: 'Connect with professionals in field',
-          timeline: 'Junior year',
-          purpose: 'Learn about career paths and opportunities'
-        },
-        {
-          action: 'Join professional student organizations',
-          timeline: 'Sophomore year',
-          purpose: 'Meet peers and professionals in the field'
-        },
-        {
-          action: 'Attend career fairs and industry events',
-          timeline: 'Throughout high school',
-          purpose: 'Learn about employers and opportunities'
-        }
-      ]
-    };
-  }
-
-  /**
-   * Create post-graduation path
-   */
-  private static createPostGraduationPath(
-    topMatches: CareerMatch[],
-    _responses: CounselorAssessmentResponse
-  ) {
-    const topCareer = topMatches[0]?.career;
-    
-    return {
-      immediateSteps: [
-        'Complete high school with strong GPA',
-        `Apply to ${topCareer?.requiredEducation} programs`,
-        'Secure funding for education',
-        'Find part-time work in related field'
-      ],
-      educationOptions: [
-        {
-          option: 'Local Community College',
-          duration: '2 years',
-          cost: '$6,000-12,000',
-          location: 'Within 30 miles'
-        },
-        {
-          option: 'State University',
-          duration: '4 years',
-          cost: '$20,000-40,000',
-          location: 'In-state options'
-        },
-        {
-          option: 'Trade School',
-          duration: '6 months - 2 years',
-          cost: '$5,000-15,000',
-          location: 'Regional options'
-        }
-      ],
-      careerEntry: {
-        targetPositions: [
-          `Entry-level ${topCareer?.title}`,
-          `${topCareer?.title} Trainee`,
-          `Assistant ${topCareer?.title}`
-        ],
-        expectedSalary: `$${Math.round((topCareer?.averageSalary || 40000) * 0.7).toLocaleString()} - $${Math.round((topCareer?.averageSalary || 40000) * 0.9).toLocaleString()}`,
-        advancement: [
-          `Senior ${topCareer?.title}`,
-          `Lead ${topCareer?.title}`,
-          'Supervisory roles',
-          'Specialized positions'
-        ]
       }
     };
   }
 
   /**
-   * Create parent summary
+   * Generate dynamic parent summary based on career matches and student grade
    */
-  private static createParentSummary(
-    jobRecommendations: JobRecommendation[],
-    _fourYearPlan: FourYearActionPlan,
-    responses: CounselorAssessmentResponse
-  ) {
-    const topJob = jobRecommendations[0];
+  private static generateDynamicParentSummary(careerMatches: any[], grade: number, zipCode: string): any {
+    const topCareer = careerMatches[0];
+    const careerTitles = careerMatches.map(match => match.career.title).join(', ');
+    const sectors = [...new Set(careerMatches.map(match => match.career.sector))];
     
     return {
-      overview: `Based on the assessment, your child shows strong potential for ${topJob?.career.title} and related careers. They demonstrate ${this.identifyStrengths(responses).join(', ')} and express interest in ${this.extractInterests(responses).join(', ')}.`,
-      keyRecommendations: [
-        `Focus on ${topJob?.educationPath.highSchoolCourses.slice(0, 3).join(', ')} courses`,
-        `Plan for ${topJob?.career.requiredEducation} education after high school`,
-        `Encourage ${topJob?.career.sector} extracurricular activities`,
-        `Support job shadowing and volunteer opportunities`
-      ],
-      supportActions: [
-        'Help research local training programs and colleges',
-        'Support extracurricular activities related to career interests',
-        'Encourage part-time work or volunteering in the field',
-        'Assist with scholarship and financial aid applications'
-      ],
-      timelineHighlights: [
-        `Grade ${responses.grade}: Focus on core academics and career exploration`,
-        `Grade ${Math.min((responses.grade || 11) + 1, 12)}: Take career-specific courses and gain experience`,
-        'After graduation: Pursue recommended education/training path',
-        `Career entry: Target ${topJob?.career.title} positions with $${topJob?.localOpportunities.averageLocalSalary.toLocaleString()} average salary`
-      ]
+      overview: `Your child shows strong potential in ${sectors.join(' and ')} fields. Based on their assessment, we recommend focusing on ${careerTitles} as primary career paths to explore during their remaining high school years.`,
+      keyRecommendations: this.getParentKeyRecommendations(grade, careerMatches),
+      supportActions: this.getParentSupportActions(grade, careerMatches),
+      timelineHighlights: this.getParentTimelineHighlights(grade, careerMatches)
     };
   }
 
   /**
-   * Create counselor notes
+   * Generate dynamic counselor notes based on career matches and responses
    */
-  private static createCounselorNotes(
-    responses: CounselorAssessmentResponse,
-    jobRecommendations: JobRecommendation[],
-    _fourYearPlan: FourYearActionPlan
-  ) {
+  private static generateDynamicCounselorNotes(careerMatches: any[], grade: number, responses: any): any {
+    const topCareer = careerMatches[0];
+    const careerTitles = careerMatches.map(match => match.career.title);
+    const assessmentInsights = this.getAssessmentInsights(responses);
+    
     return {
-      assessmentInsights: [
-        `Student is in grade ${responses.grade} and shows ${this.assessCareerReadiness(responses)} career readiness`,
-        `Primary interests align with ${jobRecommendations[0]?.career.sector} sector`,
-        `Education commitment level: ${responses.educationCommitment}`,
-        `Work environment preference: ${responses.workEnvironment}`
-      ],
+      assessmentInsights,
       recommendationRationale: [
-        `Top career match (${jobRecommendations[0]?.career.title}) selected based on interest alignment and local opportunities`,
-        `Education path matches student's commitment level and financial considerations`,
-        `Local job market shows ${jobRecommendations[0]?.localOpportunities.estimatedJobs} estimated positions`,
-        `Salary expectations align with student's income importance level`
+        `Student shows alignment with ${careerTitles.join(', ')} based on their interests and strengths`,
+        `Grade ${grade} timing allows for ${12 - grade + 1} years of focused preparation`,
+        'Career matches span different sectors to provide exploration options'
       ],
       followUpActions: [
-        'Schedule follow-up meeting in 3 months to review progress',
-        'Connect student with professionals in recommended field',
-        'Monitor academic performance in recommended courses',
-        'Assist with scholarship and program applications'
+        'Schedule career exploration activities',
+        'Connect with professionals in recommended fields',
+        'Monitor academic progress in relevant subjects',
+        'Plan summer experiences related to career interests'
       ],
       parentMeetingTopics: [
-        'Review career recommendations and rationale',
-        'Discuss 4-year academic plan and course selections',
-        'Explore post-secondary education options and costs',
-        'Plan for career exploration activities and experiences'
+        'Review career exploration timeline',
+        'Discuss post-secondary education options',
+        'Plan family support for career development',
+        'Address any concerns about career choices'
       ]
     };
   }
 
-  // Helper methods
-  private static identifyStrengths(responses: CounselorAssessmentResponse): string[] {
-    const strengths: string[] = [];
-    
-    if (responses.subjectsStrengths?.includes('Math')) strengths.push('analytical thinking');
-    if (responses.subjectsStrengths?.includes('Science')) strengths.push('scientific reasoning');
-    if (responses.subjectsStrengths?.includes('English')) strengths.push('communication skills');
-    if (responses.problemSolving?.includes('step-by-step')) strengths.push('logical problem-solving');
-    if (responses.helpingOthers?.includes('Very important')) strengths.push('empathy and service orientation');
-    
-    return strengths.length > 0 ? strengths : ['diverse interests', 'learning potential'];
+  // Helper methods for dynamic content generation
+  private static getCareerSpecificCourses(careerMatches: any[]): string[] {
+    const courseMapping: { [key: string]: string[] } = {
+      'healthcare': ['Biology', 'Chemistry', 'Anatomy & Physiology', 'Health Sciences', 'Psychology'],
+      'technology': ['Computer Science', 'Programming', 'Web Design', 'Digital Media', 'Statistics'],
+      'business': ['Business Management', 'Economics', 'Accounting', 'Marketing', 'Public Speaking'],
+      'education': ['Psychology', 'Child Development', 'Public Speaking', 'Education Theory'],
+      'infrastructure': ['Physics', 'Engineering', 'Technical Drawing', 'Construction Technology'],
+      'creative': ['Art', 'Design', 'Digital Media', 'Photography', 'Creative Writing'],
+      'science': ['Advanced Biology', 'Chemistry', 'Physics', 'Environmental Science', 'Research Methods']
+    };
+
+    const courses = new Set<string>();
+    careerMatches.forEach(match => {
+      const sector = match.career.sector || 'general';
+      const sectorCourses = courseMapping[sector] || [];
+      sectorCourses.forEach(course => courses.add(course));
+    });
+
+    return Array.from(courses);
   }
 
-  private static extractInterests(responses: CounselorAssessmentResponse): string[] {
-    const interests: string[] = [];
+  private static getCoreCoursesForGrade(grade: number): string[] {
+    const baseCourses = ['English', 'Mathematics', 'Science', 'Social Studies'];
     
-    if (responses.handsOnPreference?.includes('tools')) interests.push('hands-on work');
-    if (responses.handsOnPreference?.includes('people')) interests.push('helping others');
-    if (responses.handsOnPreference?.includes('computers')) interests.push('technology');
-    if (responses.workEnvironment?.includes('Outdoors')) interests.push('outdoor work');
-    
-    return interests.length > 0 ? interests : ['career exploration'];
-  }
-
-  private static assessCareerReadiness(responses: CounselorAssessmentResponse): string {
-    let readinessScore = 0;
-    
-    if (responses.educationCommitment && !responses.educationCommitment.includes('Unsure')) readinessScore++;
-    if (responses.incomeImportance && !responses.incomeImportance.includes('Unsure')) readinessScore++;
-    if (responses.interestsPassions && responses.interestsPassions.length > 100) readinessScore++;
-    if (responses.subjectsStrengths && responses.subjectsStrengths.length > 0) readinessScore++;
-    
-    if (readinessScore >= 3) return 'high';
-    if (readinessScore >= 2) return 'moderate';
-    return 'developing';
-  }
-
-  private static extractKeywordsFromText(text: string): string[] {
-    const keywords: string[] = [];
-    const lowerText = text.toLowerCase();
-    
-    // Healthcare keywords
-    if (lowerText.includes('health') || lowerText.includes('medical') || lowerText.includes('help')) {
-      keywords.push('Healthcare');
+    if (grade >= 11) {
+      return [
+        'English 11/12',
+        'Advanced Mathematics (Algebra II/Pre-Calc)',
+        'Advanced Science (Chemistry/Physics)',
+        'U.S. History/Government'
+      ];
     }
     
-    // Technology keywords
-    if (lowerText.includes('computer') || lowerText.includes('tech') || lowerText.includes('digital')) {
-      keywords.push('Technology');
+    return baseCourses;
+  }
+
+  private static getElectiveCoursesForGrade(grade: number, careerMatches: any[], isCurrentGrade: boolean): string[] {
+    const careerCourses = this.getCareerSpecificCourses(careerMatches);
+    
+    if (isCurrentGrade) {
+      return [
+        ...careerCourses.slice(0, 2),
+        'Career Exploration',
+        'Study Skills'
+      ];
     }
     
-    // Infrastructure keywords
-    if (lowerText.includes('build') || lowerText.includes('construct') || lowerText.includes('fix')) {
-      keywords.push('Infrastructure');
-    }
-    
-    return keywords;
-  }
-
-  private static mapEducationGoal(commitment?: string): string {
-    if (!commitment) return 'certificate';
-    
-    if (commitment.includes('right away')) return 'certificate';
-    if (commitment.includes('Short-term')) return 'certificate';
-    if (commitment.includes('2-year')) return 'associate';
-    if (commitment.includes('4-year')) return 'bachelor';
-    if (commitment.includes('Advanced')) return 'master';
-    
-    return 'certificate';
-  }
-
-  private static mapWorkEnvironment(environment?: string): string {
-    if (!environment) return 'mixed';
-    
-    if (environment.includes('Outdoors')) return 'outdoor';
-    if (environment.includes('Indoors')) return 'indoor';
-    if (environment.includes('home')) return 'remote';
-    
-    return 'mixed';
-  }
-
-  private static generateMatchReasons(_match: CareerMatch): string[] {
     return [
-      `Strong alignment with your interests and preferences`,
-      `Good local job opportunities in your area`,
-      `Education requirements match your commitment level`,
-      `Salary potential aligns with your goals`
+      ...careerCourses.slice(0, 3),
+      'Advanced Placement courses in relevant subjects'
     ];
+  }
+
+  private static getExtracurricularsForGrade(grade: number, careerMatches: any[], isCurrentGrade: boolean): string[] {
+    const activityMapping: { [key: string]: string[] } = {
+      'healthcare': ['Health Occupations Students of America (HOSA)', 'Volunteer at local hospital', 'Red Cross Club'],
+      'technology': ['Computer Science Club', 'Robotics Team', 'Coding Bootcamp', 'Tech Support Volunteer'],
+      'business': ['DECA', 'Future Business Leaders of America', 'Student Government', 'Entrepreneurship Club'],
+      'education': ['Tutoring Program', 'Peer Mentoring', 'Education Club', 'Volunteer at elementary schools'],
+      'infrastructure': ['Engineering Club', 'Construction Technology Club', 'Habitat for Humanity'],
+      'creative': ['Art Club', 'Drama Club', 'Photography Club', 'Creative Writing Club'],
+      'science': ['Science Olympiad', 'Environmental Club', 'Research Projects', 'Science Fair']
+    };
+
+    const activities = new Set<string>();
+    careerMatches.forEach(match => {
+      const sector = match.career.sector || 'general';
+      const sectorActivities = activityMapping[sector] || ['Career-related clubs'];
+      sectorActivities.slice(0, 2).forEach(activity => activities.add(activity));
+    });
+
+    if (grade >= 11) {
+      activities.add('Leadership roles in chosen activities');
+    }
+
+    return Array.from(activities);
+  }
+
+  private static getSummerActivitiesForGrade(grade: number, careerMatches: any[]): string[] {
+    const activities = [];
+    
+    if (grade === 11) {
+      activities.push('Job shadowing in your top career choices');
+      activities.push('Summer internship or volunteer work');
+      activities.push('College campus visits');
+    } else if (grade === 12) {
+      activities.push('Summer job in related field');
+      activities.push('College preparation courses');
+      activities.push('Scholarship applications');
+    } else {
+      activities.push('Career exploration activities');
+      activities.push('Skill-building workshops');
+    }
+
+    // Add career-specific summer activities
+    const topCareer = careerMatches[0];
+    if (topCareer) {
+      const sector = topCareer.career.sector;
+      if (sector === 'healthcare') {
+        activities.push('Volunteer at healthcare facilities');
+      } else if (sector === 'technology') {
+        activities.push('Coding bootcamp or tech workshops');
+      } else if (sector === 'business') {
+        activities.push('Business internship or entrepreneurship program');
+      }
+    }
+
+    return activities;
+  }
+
+  private static getMilestonesForGrade(grade: number, careerMatches: any[], isFinalYear: boolean): string[] {
+    const milestones = [];
+    
+    if (isFinalYear) {
+      milestones.push('Complete college applications');
+      milestones.push('Apply for scholarships and financial aid');
+      milestones.push('Make final career path decision');
+    } else if (grade === 11) {
+      milestones.push('Take SAT/ACT tests');
+      milestones.push('Complete career exploration activities');
+      milestones.push('Begin college research');
+    } else {
+      milestones.push('Maintain strong GPA');
+      milestones.push('Explore career interests through activities');
+      milestones.push('Build relevant skills and experience');
+    }
+
+    return milestones;
+  }
+
+  private static getSkillsToDevelope(careerMatches: any[]): Array<{skill: string; howToAcquire: string; timeline: string}> {
+    const skills: Array<{skill: string; howToAcquire: string; timeline: string}> = [];
+    
+    // Add skills based on career matches
+    careerMatches.forEach(match => {
+      const sector = match.career.sector;
+      if (sector === 'healthcare') {
+        skills.push({
+          skill: 'Medical Knowledge',
+          howToAcquire: 'Take biology, chemistry, and health science courses',
+          timeline: 'Throughout high school'
+        });
+      } else if (sector === 'technology') {
+        skills.push({
+          skill: 'Programming',
+          howToAcquire: 'Take computer science courses, online coding bootcamps',
+          timeline: 'Start immediately'
+        });
+      } else if (sector === 'business') {
+        skills.push({
+          skill: 'Business Communication',
+          howToAcquire: 'Join DECA, take business courses, practice presentations',
+          timeline: 'Throughout high school'
+        });
+      }
+    });
+
+    return skills;
+  }
+
+  private static getExperienceOpportunities(careerMatches: any[], currentGrade: number): Array<{activity: string; when: string; benefit: string}> {
+    const opportunities: Array<{activity: string; when: string; benefit: string}> = [];
+    
+    careerMatches.forEach(match => {
+      const sector = match.career.sector;
+      if (currentGrade <= 11) {
+        opportunities.push({
+          activity: `Job shadowing in ${sector}`,
+          when: 'Junior year',
+          benefit: `Real-world exposure to ${match.career.title} work environment`
+        });
+      }
+    });
+
+    return opportunities;
+  }
+
+  private static getNetworkingSteps(careerMatches: any[], currentGrade: number): any[] {
+    return [
+      {
+        action: 'Connect with professionals in your top career fields',
+        timeline: 'Junior year',
+        purpose: 'Learn about career paths and opportunities'
+      },
+      {
+        action: 'Join student organizations related to career interests',
+        timeline: 'Throughout high school',
+        purpose: 'Meet like-minded peers and mentors'
+      }
+    ];
+  }
+
+  private static getImmediateSteps(careerMatches: any[]): string[] {
+    return [
+      'Complete high school with strong academic performance',
+      'Apply to appropriate post-secondary programs',
+      'Secure funding for chosen education path',
+      'Gain relevant work experience through internships or part-time jobs'
+    ];
+  }
+
+  private static getEducationOptions(careerMatches: any[]): any[] {
+    const options = [
+      {
+        option: 'Community College',
+        duration: '2 years',
+        cost: '$6,000-12,000',
+        location: 'Local options available'
+      },
+      {
+        option: 'Four-year University',
+        duration: '4 years',
+        cost: '$20,000-50,000',
+        location: 'In-state and out-of-state options'
+      }
+    ];
+
+    // Add career-specific options
+    careerMatches.forEach(match => {
+      const sector = match.career.sector;
+      if (sector === 'technology' || sector === 'infrastructure') {
+        options.push({
+          option: 'Trade/Technical School',
+          duration: '6 months - 2 years',
+          cost: '$5,000-20,000',
+          location: 'Regional programs'
+        });
+      }
+    });
+
+    return options;
+  }
+
+  private static getExpectedSalaryRange(careerMatches: any[]): string {
+    const salaries = careerMatches.map(match => match.career.averageSalary || 45000);
+    const minSalary = Math.min(...salaries);
+    const maxSalary = Math.max(...salaries);
+    return `$${minSalary.toLocaleString()} - $${maxSalary.toLocaleString()}`;
+  }
+
+  private static getAdvancementPath(careerMatches: any[]): string[] {
+    return [
+      'Gain experience in entry-level positions',
+      'Pursue additional certifications or training',
+      'Advance to specialized or management roles',
+      'Consider entrepreneurship opportunities'
+    ];
+  }
+
+  private static getParentKeyRecommendations(grade: number, careerMatches: any[]): string[] {
+    const recommendations = [];
+    
+    if (grade <= 10) {
+      recommendations.push('Focus on building strong academic foundation');
+      recommendations.push('Encourage exploration of career-related activities');
+    } else if (grade === 11) {
+      recommendations.push('Support college and career planning activities');
+      recommendations.push('Help arrange job shadowing opportunities');
+    } else {
+      recommendations.push('Assist with college applications and financial planning');
+      recommendations.push('Support final career decision-making process');
+    }
+
+    return recommendations;
+  }
+
+  private static getParentSupportActions(grade: number, careerMatches: any[]): string[] {
+    return [
+      'Discuss career options regularly with your child',
+      'Support participation in relevant extracurricular activities',
+      'Help research post-secondary education options',
+      'Connect with professionals in fields of interest'
+    ];
+  }
+
+  private static getParentTimelineHighlights(grade: number, careerMatches: any[]): string[] {
+    const highlights = [];
+    
+    if (grade === 9) {
+      highlights.push('Focus on academic foundation and career exploration');
+    } else if (grade === 10) {
+      highlights.push('Begin narrowing career interests and taking relevant courses');
+    } else if (grade === 11) {
+      highlights.push('Intensive career exploration and college preparation');
+    } else {
+      highlights.push('Final preparations for post-secondary transition');
+    }
+
+    return highlights;
+  }
+
+  private static getAssessmentInsights(responses: any): string[] {
+    const insights = [];
+    
+    // Add insights based on responses
+    if (responses.workEnvironment) {
+      insights.push(`Prefers ${responses.workEnvironment} work environment`);
+    }
+    if (responses.helpingOthers) {
+      insights.push(`Shows interest in helping others: ${responses.helpingOthers}`);
+    }
+    if (responses.problemSolving) {
+      insights.push(`Problem-solving approach: ${responses.problemSolving}`);
+    }
+
+    return insights;
+  }
+
+  /**
+   * Fallback method for direct counselor recommendations
+   */
+  static async generateDirectCounselorRecommendations(responses: any): Promise<any> {
+    // This is a simplified fallback implementation
+    const grade = responses.basic_info?.grade || responses.grade || 11;
+    const zipCode = responses.basic_info?.zipCode || responses.zipCode || '12345';
+
+    return {
+      studentProfile: {
+        grade: parseInt(grade),
+        location: zipCode,
+        strengths: ['Academic performance', 'Communication skills'],
+        interests: ['Career exploration'],
+        careerReadiness: 'Developing'
+      },
+      topJobMatches: [
+        {
+          career: {
+            id: 'general-career',
+            title: 'General Career Path',
+            description: 'Explore various career options based on your interests',
+            sector: 'general',
+            averageSalary: 45000,
+            requiredEducation: 'High school diploma'
+          },
+          matchScore: 75,
+          matchReasons: ['Based on your assessment responses'],
+          localOpportunities: {
+            estimatedJobs: 50,
+            averageLocalSalary: 45000,
+            topEmployers: ['Local Companies'],
+            distanceFromStudent: 15
+          },
+          educationPath: {
+            highSchoolCourses: ['Core academic subjects'],
+            postSecondaryOptions: ['Various education paths'],
+            timeToCareer: '1-4 years',
+            estimatedCost: 20000
+          }
+        }
+      ],
+      careerRoadmap: this.generateDynamicCareerRoadmap(parseInt(grade), [
+        { career: { title: 'General Career Path', sector: 'general' } }
+      ]),
+      parentSummary: {
+        overview: 'Your child is exploring various career options.',
+        keyRecommendations: ['Support career exploration', 'Maintain strong academics'],
+        supportActions: ['Encourage participation in activities', 'Discuss career interests'],
+        timelineHighlights: ['Focus on exploration and preparation']
+      },
+      counselorNotes: {
+        assessmentInsights: ['Student is exploring career options'],
+        recommendationRationale: ['Providing general guidance for career exploration'],
+        followUpActions: ['Continue career exploration', 'Monitor academic progress'],
+        parentMeetingTopics: ['Discuss career interests', 'Plan next steps']
+      }
+    };
   }
 }

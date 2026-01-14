@@ -86,7 +86,7 @@ async function testUndecidedPlanTabFix() {
       console.log('\n🎯 Expected User Experience:');
       console.log('   1. Student completes undecided assessment');
       console.log('   2. Student sees 3 career options in Career Options tab');
-      console.log('   3. Student clicks on "4-Year Plan" tab');
+      console.log('   3. Student clicks on "Career Roadmap" tab');
       console.log('   4. NO ERROR occurs (TypeError fixed)');
       console.log('   5. Student sees career exploration guidance');
       console.log('   6. Student sees general preparation advice');

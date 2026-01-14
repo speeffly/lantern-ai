@@ -50,7 +50,7 @@ Added comprehensive error handling and fallback content for undecided students:
     <h2 className="text-2xl font-bold mb-6">Your 4-Year Action Plan</h2>
     
     {recommendations.fourYearPlan ? (
-      // Regular 4-year plan for decided students
+      // Regular career roadmap for decided students
       <RegularPlanContent />
     ) : (
       // Special career exploration plan for undecided students
@@ -160,7 +160,7 @@ fourYearPlan: {
 ## Testing Results ✅
 
 ### Before Fix:
-- ❌ TypeError when clicking "4-Year Plan" tab
+- ❌ TypeError when clicking "Career Roadmap" tab
 - ❌ Application crash for undecided students
 - ❌ No plan guidance available
 

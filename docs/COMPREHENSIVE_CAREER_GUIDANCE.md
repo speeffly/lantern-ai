@@ -119,7 +119,7 @@ Career Matching Algorithm
 {
   "fourYearPlan": {
     "overview": {
-      "planSummary": "A comprehensive 4-year plan focused on healthcare career preparation...",
+      "planSummary": "A comprehensive career roadmap focused on healthcare career preparation...",
       "careerGoal": "Registered Nurse",
       "educationPath": "Associate Degree in Nursing",
       "keyMilestones": ["Complete prerequisites", "Apply to nursing program", "Pass NCLEX", "Begin RN career"]
@@ -224,7 +224,7 @@ Career Matching Algorithm
 |-----------|------------------|-----------------|------------------|--------------|
 | **Enhanced Career Matches** | Profile + AI insights | ~2,000 tokens | $0.002 | Career exploration |
 | **Parent Summary** | Profile + family focus | ~2,500 tokens | $0.0025 | Family communication |
-| **4-Year Plan** | Profile + market trends | ~3,000 tokens | $0.003 | Academic planning |
+| **Career Roadmap** | Profile + market trends | ~3,000 tokens | $0.003 | Academic planning |
 | **Counselor Guidance** | Profile + real jobs | ~5,000 tokens | $0.005 | Detailed guidance |
 | **Complete Package** | All combined | ~12,500 tokens | $0.0125 | Comprehensive guidance |
 
@@ -351,7 +351,7 @@ const [careerMatches, parentSummary, fourYearPlan, counselorGuidance] = await Pr
 ### **Response Times** (typical):
 - Enhanced Career Matches: 2-3 seconds
 - Parent Summary: 3-4 seconds
-- 4-Year Plan: 4-5 seconds
+- Career Roadmap: 4-5 seconds
 - Counselor Guidance: 5-7 seconds
 - Complete Package: 6-8 seconds (parallel processing)
 

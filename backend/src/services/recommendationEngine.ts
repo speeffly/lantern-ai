@@ -31,8 +31,8 @@ export class RecommendationEngine {
     //   stretch_options: categorizedCareers.stretch_options.length
     // });
     
-    // Step 5: Generate four-year plan
-    const fourYearPlan = this.generateFourYearPlan(profile, categorizedCareers.best_fit[0]);
+    // Step 5: Generate career roadmap
+    const careerRoadmap = this.generateCareerRoadmap(profile, categorizedCareers.best_fit[0]);
     
     // Step 6: Generate comparison questions
     const comparisonQuestions = this.generateComparisonQuestions(categorizedCareers);
@@ -48,7 +48,7 @@ export class RecommendationEngine {
         good_fit: categorizedCareers.good_fit.slice(0, 3),
         stretch_options: categorizedCareers.stretch_options.slice(0, 2)
       },
-      four_year_plan: fourYearPlan,
+      career_roadmap: careerRoadmap,
       comparison_questions: comparisonQuestions,
       disclaimer: "These recommendations are based on your assessment responses and are meant to guide your exploration. Consider your personal circumstances, local opportunities, and changing interests as you make decisions about your future.",
       generated_at: new Date().toISOString()
@@ -365,9 +365,9 @@ export class RecommendationEngine {
   }
 
   /**
-   * Generate four-year plan based on top career recommendation
+   * Generate career roadmap based on top career recommendation
    */
-  private static generateFourYearPlan(profile: StudentProfile, topCareer?: CareerRecommendation): any {
+  private static generateCareerRoadmap(profile: StudentProfile, topCareer?: CareerRecommendation): any {
     const currentGrade = profile.grade;
     const plan: any = {};
     

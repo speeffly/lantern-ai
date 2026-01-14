@@ -79,7 +79,7 @@ export interface CareerRecommendation {
   feasibility_notes?: string[];
 }
 
-export interface FourYearPlan {
+export interface CareerRoadmap {
   grade_9?: YearPlan;
   grade_10?: YearPlan;
   grade_11?: YearPlan;
@@ -124,7 +124,7 @@ export interface RecommendationResult {
     stretch_options: CareerRecommendation[];
   };
   
-  four_year_plan: FourYearPlan;
+  career_roadmap: CareerRoadmap;
   
   comparison_questions: ComparisonQuestion[];
   

@@ -129,7 +129,7 @@ Counselor Results Page
 │   ├── AI-Generated Action Items
 │   ├── AI-Recommended Academic Plan
 │   └── AI-Analyzed Local Job Market
-├── 4-Year Plan (Counselor-generated)
+├── Career Roadmap (Counselor-generated)
 ├── Parent Summary
 └── Counselor Notes
 ```

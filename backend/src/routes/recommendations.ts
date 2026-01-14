@@ -94,7 +94,7 @@ router.post('/explanations', async (req, res) => {
       overview: generateOverviewExplanation(recommendations, profile),
       cluster_explanations: generateClusterExplanations(recommendations.top_clusters),
       career_explanations: generateCareerExplanations(recommendations.career_recommendations),
-      plan_explanation: generatePlanExplanation(recommendations.four_year_plan),
+      plan_explanation: generatePlanExplanation(recommendations.career_roadmap),
       next_steps: generateNextStepsExplanation(recommendations)
     };
 
@@ -154,7 +154,7 @@ function generatePlanExplanation(plan: any): string {
   const grades = Object.keys(plan).filter(key => key.startsWith('grade_'));
   const currentGrade = Math.min(...grades.map(g => parseInt(g.split('_')[1])));
   
-  return `Your four-year plan starts in grade ${currentGrade} with ${plan[`grade_${currentGrade}`]?.focus || 'academic foundation building'}. Each year builds toward your career goals with specific courses, activities, and milestones. After graduation, you'll ${plan.post_graduation?.education_path || 'pursue further education or training'} with an estimated timeline of ${plan.post_graduation?.timeline || '2-4 years'}.`;
+  return `Your career roadmap starts in grade ${currentGrade} with ${plan[`grade_${currentGrade}`]?.focus || 'academic foundation building'}. Each year builds toward your career goals with specific courses, activities, and milestones. After graduation, you'll ${plan.post_graduation?.education_path || 'pursue further education or training'} with an estimated timeline of ${plan.post_graduation?.timeline || '2-4 years'}.`;
 }
 
 function generateNextStepsExplanation(recommendations: any): string[] {

@@ -2,7 +2,7 @@ import { StudentProfile, AssessmentAnswer, CareerMatch } from '../types';
 import { CleanAIRecommendationService } from './cleanAIRecommendationService';
 import { RealJobProvider } from './realJobProvider';
 
-export interface FourYearPlan {
+export interface CareerRoadmap {
   overview: {
     planSummary: string;
     careerGoal: string;
@@ -52,19 +52,19 @@ export interface FourYearPlan {
 
 export class AcademicPlanService {
   /**
-   * Generate comprehensive 4-year academic plan
+   * Generate comprehensive career roadmap
    * IMPORTANT: This method accepts preloadedJobs to prevent duplicate API calls
    */
-  static async generateFourYearPlan(
+  static async generateCareerRoadmap(
     profile: Partial<StudentProfile>,
     answers: AssessmentAnswer[],
     careerMatches: CareerMatch[],
     zipCode: string,
     currentGrade?: number,
     preloadedJobs?: any[] // Add parameter to reuse jobs from comprehensive guidance
-  ): Promise<FourYearPlan> {
+  ): Promise<CareerRoadmap> {
     try {
-      console.log('📚 Generating 4-year academic plan...');
+      console.log('📚 Generating career roadmap...');
 
       const grade = currentGrade || 9;
       const topCareers = careerMatches.slice(0, 3);
@@ -72,7 +72,7 @@ export class AcademicPlanService {
       // Get market insights using preloaded jobs to prevent duplicate API calls
       const marketInsights = await this.getMarketInsights(topCareers, zipCode, preloadedJobs);
 
-      const prompt = `You are an academic advisor creating a comprehensive 4-year high school plan for a student based on their career interests and market trends.
+      const prompt = `You are an academic advisor creating a comprehensive career roadmap for a high school student based on their career interests and market trends.
 
 STUDENT PROFILE:
 - Current Grade: ${grade}
@@ -100,13 +100,13 @@ Job Growth: ${marketInsights.growth}
 Salary Outlook: ${marketInsights.salary}
 ` : 'Market data being analyzed...'}
 
-Create a detailed 4-year academic plan in JSON format:
+Create a detailed career roadmap in JSON format:
 
 IMPORTANT: Return ONLY valid JSON. No additional text or explanations outside the JSON object.
 
 {
   "overview": {
-    "planSummary": "Comprehensive summary of the 4-year plan strategy",
+    "planSummary": "Comprehensive summary of the career roadmap strategy",
     "careerGoal": "Primary career goal based on top matches",
     "educationPath": "Recommended post-secondary education path",
     "keyMilestones": ["milestone 1", "milestone 2", "milestone 3", "milestone 4"]
@@ -176,12 +176,12 @@ Plan should start from Grade ${grade} and go through Grade 12, then include post
         parsed.yearByYear = this.adjustYearByYearPlan(parsed.yearByYear, grade, yearsRemaining);
       }
       
-      console.log('✅ 4-year academic plan generated successfully');
+      console.log('✅ Career roadmap generated successfully');
       return parsed;
 
     } catch (error) {
-      console.error('❌ 4-year plan generation failed:', error);
-      return this.generateFallbackFourYearPlan(profile, careerMatches, currentGrade);
+      console.error('❌ Career roadmap generation failed:', error);
+      return this.generateFallbackCareerRoadmap(profile, careerMatches, currentGrade);
     }
   }
 
@@ -371,20 +371,20 @@ Plan should start from Grade ${grade} and go through Grade 12, then include post
   }
 
   /**
-   * Generate fallback 4-year plan when AI fails
+   * Generate fallback career roadmap when AI fails
    */
-  private static generateFallbackFourYearPlan(
+  private static generateFallbackCareerRoadmap(
     profile: Partial<StudentProfile>,
     careerMatches: CareerMatch[],
     currentGrade?: number
-  ): FourYearPlan {
+  ): CareerRoadmap {
     const grade = currentGrade || 9;
     const topCareer = careerMatches[0];
     const yearsRemaining = Math.max(1, 13 - grade);
 
     return {
       overview: {
-        planSummary: `A comprehensive 4-year plan focused on preparing for ${topCareer.career.title} and related careers in ${topCareer.career.sector}.`,
+        planSummary: `A comprehensive career roadmap focused on preparing for ${topCareer.career.title} and related careers in ${topCareer.career.sector}.`,
         careerGoal: topCareer.career.title,
         educationPath: topCareer.career.requiredEducation,
         keyMilestones: [

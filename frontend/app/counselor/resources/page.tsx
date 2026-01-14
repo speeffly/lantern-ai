@@ -104,7 +104,7 @@ export default function CounselorResourcesPage() {
             <div className="space-y-4">
               <div className="border-l-4 border-blue-500 pl-4">
                 <h3 className="font-semibold text-gray-900">Enhanced Assessment Tool</h3>
-                <p className="text-sm text-gray-600">Comprehensive 10-question career assessment with 4-year planning</p>
+                <p className="text-sm text-gray-600">Comprehensive 10-question career assessment with career roadmap planning</p>
                 <Link href="/counselor-assessment" className="text-blue-600 hover:text-blue-800 text-sm">
                   Try Assessment →
                 </Link>

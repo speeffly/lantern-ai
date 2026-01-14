@@ -16,7 +16,7 @@ export class CleanAIRecommendationService {
     try {
       // Check if we should use real AI
       const useRealAI = process.env.USE_REAL_AI === 'true';
-      
+      console.log('\n🚀 UserAI :'+useRealAI);
       if (!useRealAI) {
         return this.generateFallbackRecommendations(profile, careerMatches, zipCode, currentGrade);
       }

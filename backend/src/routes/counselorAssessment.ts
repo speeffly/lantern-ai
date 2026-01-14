@@ -456,7 +456,7 @@ router.post('/submit', upload.single('transcriptFile'), async (req, res) => {
           })),
           counselorRecommendation.aiRecommendations, // AI recommendations
           counselorRecommendation.topJobMatches.map((job: any) => job.localOpportunities), // local job market
-          counselorRecommendation.fourYearPlan // academic plan
+          counselorRecommendation.careerRoadmap // academic plan
         );
 
         // Create action plan
@@ -466,11 +466,11 @@ router.post('/submit', upload.single('transcriptFile'), async (req, res) => {
             parseInt(userId),
             topCareer.career.id,
             topCareer.career.title,
-            counselorRecommendation.fourYearPlan.careerPreparation.skillsToDevelope.map((skill: any) => skill.skill),
-            counselorRecommendation.fourYearPlan.postGraduationPath.immediateSteps,
-            counselorRecommendation.fourYearPlan.postGraduationPath.careerEntry.advancement,
+            counselorRecommendation.careerRoadmap.careerPreparation.skillsToDevelope.map((skill: any) => skill.skill),
+            counselorRecommendation.careerRoadmap.postGraduationPath.immediateSteps,
+            counselorRecommendation.careerRoadmap.postGraduationPath.careerEntry.advancement,
             [], // skill gaps
-            counselorRecommendation.fourYearPlan.careerPreparation.experienceOpportunities
+            counselorRecommendation.careerRoadmap.careerPreparation.experienceOpportunities
           );
         }
 

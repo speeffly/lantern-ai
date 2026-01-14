@@ -2,7 +2,7 @@
 
 /**
  * Test script for comprehensive career guidance system
- * Tests all phases: career matching, parent summary, 4-year plan, counselor guidance
+ * Tests all phases: career matching, parent summary, career roadmap, counselor guidance
  */
 
 require('dotenv').config();
@@ -131,8 +131,8 @@ async function testComprehensiveGuidance() {
       console.log('   ❌ Parent summary failed:', error.response?.data?.error || error.message);
     }
 
-    // Test 4-year plan
-    console.log('\n4. Testing 4-Year Academic Plan...');
+    // Test career roadmap
+    console.log('\n4. Testing Career Roadmap...');
     try {
       const planResponse = await axios.post(`${baseURL}/api/comprehensive-guidance/four-year-plan`, {
         profile: testData.profile,
@@ -148,7 +148,7 @@ async function testComprehensiveGuidance() {
       console.log(`   Years covered: ${plan.yearByYear.length} years`);
       console.log(`   Post-graduation options: ${plan.postGraduation.immediateOptions.length} options`);
     } catch (error) {
-      console.log('   ❌ 4-year plan failed:', error.response?.data?.error || error.message);
+      console.log('   ❌ Career roadmap failed:', error.response?.data?.error || error.message);
     }
 
     // Test counselor recommendations
@@ -182,7 +182,7 @@ async function testComprehensiveGuidance() {
       console.log('\n📊 Complete Package Summary:');
       console.log(`   - Enhanced Career Matches: ${complete.enhancedCareerMatches.length} matches`);
       console.log(`   - Parent Summary: ${complete.parentSummary.topCareerPaths.length} career paths`);
-      console.log(`   - 4-Year Plan: ${complete.fourYearPlan.yearByYear.length} years planned`);
+      console.log(`   - Career Roadmap: ${complete.careerRoadmap.yearByYear.length} years planned`);
       console.log(`   - Counselor Recommendations: ${complete.counselorRecommendations.localJobs.length} jobs`);
       
     } catch (error) {
@@ -200,7 +200,7 @@ async function testComprehensiveGuidance() {
     console.log('   - Frontend can call individual endpoints for specific needs');
     console.log('   - Complete package for comprehensive career guidance');
     console.log('   - Parent summary for family communication');
-    console.log('   - 4-year plan for academic planning');
+    console.log('   - Career roadmap for academic planning');
     console.log('   - Enhanced career matches for detailed exploration');
 
   } catch (error) {

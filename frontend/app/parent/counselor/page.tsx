@@ -130,7 +130,7 @@ export default function ParentCounselorPage() {
               <div className="flex items-start">
                 <div className="w-2 h-2 bg-purple-500 rounded-full mt-2 mr-3"></div>
                 <div>
-                  <h4 className="font-medium text-gray-900">4-Year Planning</h4>
+                  <h4 className="font-medium text-gray-900">Career Roadmap</h4>
                   <p className="text-sm text-gray-600">Create detailed academic and career preparation plans</p>
                 </div>
               </div>

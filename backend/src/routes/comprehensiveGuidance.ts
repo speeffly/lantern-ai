@@ -117,10 +117,10 @@ router.post('/parent-summary', async (req, res) => {
 });
 
 /**
- * Generate 4-year academic plan only
- * POST /api/comprehensive-guidance/four-year-plan
+ * Generate career roadmap only
+ * POST /api/comprehensive-guidance/career-roadmap
  */
-router.post('/four-year-plan', async (req, res) => {
+router.post('/career-roadmap', async (req, res) => {
   try {
     const { profile, answers, careerMatches, zipCode, currentGrade } = req.body;
 
@@ -130,8 +130,8 @@ router.post('/four-year-plan', async (req, res) => {
       });
     }
 
-    // Generate 4-year academic plan with real job data
-    const fourYearPlan = await AcademicPlanService.generateFourYearPlan(
+    // Generate career roadmap with real job data
+    const careerRoadmap = await AcademicPlanService.generateCareerRoadmap(
       profile,
       answers,
       careerMatches,
@@ -141,14 +141,14 @@ router.post('/four-year-plan', async (req, res) => {
 
     res.json({
       success: true,
-      data: { fourYearPlan },
+      data: { careerRoadmap },
       timestamp: new Date().toISOString()
     });
 
   } catch (error) {
-    console.error('❌ 4-year plan generation failed:', error);
+    console.error('❌ Career roadmap generation failed:', error);
     res.status(500).json({
-      error: 'Failed to generate 4-year academic plan',
+      error: 'Failed to generate career roadmap',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }
@@ -201,7 +201,7 @@ router.get('/health', (req, res) => {
     services: {
       careerMatching: 'available',
       parentSummary: 'available',
-      fourYearPlan: 'available',
+      careerRoadmap: 'available',
       counselorGuidance: 'available',
       adzunaIntegration: process.env.ADZUNA_APP_ID ? 'configured' : 'not configured',
       aiProvider: process.env.AI_PROVIDER || 'openai'

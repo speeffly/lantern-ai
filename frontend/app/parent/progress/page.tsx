@@ -190,7 +190,7 @@ export default function ParentProgressPage() {
               </div>
               <h4 className="font-semibold text-gray-900 mb-2">Review Together</h4>
               <p className="text-sm text-gray-600">
-                Go through the career recommendations and 4-year plan as a family
+                Go through the career recommendations and career roadmap as a family
               </p>
             </div>
             <div className="text-center">
