@@ -280,7 +280,7 @@ router.get('/questions', async (req, res) => {
 // POST /api/counselor-assessment/submit
 router.post('/submit', upload.single('transcriptFile'), async (req, res) => {
   try {
-    const { sessionId, userId } = req.body;
+    const { sessionId } = req.body;
     let responses = req.body.responses;
     
     // Parse responses if it's a string (from FormData)
@@ -298,19 +298,18 @@ router.post('/submit', upload.single('transcriptFile'), async (req, res) => {
     // Check if user is authenticated and get their profile
     const token = req.headers.authorization?.replace('Bearer ', '');
     let userProfile = null;
+    let userId: string | null = null;
     
-    if (token || userId) {
+    if (token) {
       try {
-        if (token) {
-          const user = AuthServiceDB.verifyToken(token);
-          if (user) {
-            userProfile = await AuthServiceDB.getUserProfile(parseInt(user.id));
-          }
-        } else if (userId) {
-          userProfile = await AuthServiceDB.getUserProfile(parseInt(userId));
+        const user = AuthServiceDB.verifyToken(token);
+        if (user) {
+          userId = user.id; // Extract userId from verified token
+          userProfile = await AuthServiceDB.getUserProfile(parseInt(user.id));
+          console.log(`✅ Authenticated user: ${user.id} (${user.email})`);
         }
       } catch (error) {
-        console.log('Could not get user profile, continuing with provided data');
+        console.log('⚠️  Could not verify token, treating as anonymous user');
       }
     }
 
@@ -434,9 +433,11 @@ router.post('/submit', upload.single('transcriptFile'), async (req, res) => {
     // Save assessment session to database if user is logged in
     let assessmentSessionId = null;
     if (userId) {
+      console.log(`💾 Saving assessment to database for user ${userId}...`);
       try {
         const session = await AssessmentServiceDB.createSession(parseInt(userId));
         assessmentSessionId = session.id;
+        console.log(`✅ Created assessment session: ${session.id}`);
 
         // Save individual responses as answers
         const answersToSave = Object.entries(responses).map(([questionId, answer]) => ({
@@ -446,6 +447,7 @@ router.post('/submit', upload.single('transcriptFile'), async (req, res) => {
         }));
 
         await AssessmentServiceDB.saveAnswers(session.session_token, answersToSave);
+        console.log(`✅ Saved ${answersToSave.length} assessment answers`);
 
         // Update student profile with grade and zipCode if user is authenticated
         if (userId && userProfile && userProfile.role === 'student') {
@@ -464,6 +466,7 @@ router.post('/submit', upload.single('transcriptFile'), async (req, res) => {
 
         // Complete the session
         await AssessmentServiceDB.completeSession(session.session_token, responses.zipCode || '');
+        console.log(`✅ Marked session as completed`);
 
         // Save career recommendations to database
         await CareerPlanService.saveCareerRecommendations(
@@ -515,8 +518,15 @@ router.post('/submit', upload.single('transcriptFile'), async (req, res) => {
 
         console.log('✅ Assessment and recommendations saved to database');
       } catch (dbError) {
-        console.error('⚠️ Database save failed, continuing with response:', dbError);
+        console.error('❌ Database save failed:', dbError);
+        console.error('   This assessment will only be available in localStorage');
+        console.error('   User will lose data on logout or browser clear');
+        // Continue with response even if database save fails
       }
+    } else {
+      console.log('⚠️  No authenticated user - assessment will only be saved to localStorage');
+      console.log('   User will lose data on logout or browser clear');
+      console.log('   Token present:', !!token);
     }
 
     // Store in session for anonymous users

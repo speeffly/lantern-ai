@@ -42,7 +42,7 @@ export class DatabaseAdapter {
     if (this.usePostgreSQL) {
       // Convert SQLite syntax to PostgreSQL if needed
       const pgSql = this.convertSqlToPostgreSQL(sql);
-      console.log('🔄 SQL Conversion:', { original: sql, converted: pgSql, params });
+      // console.log('🔄 SQL Conversion:', { original: sql, converted: pgSql, params });
       return DatabaseServicePG.get<T>(pgSql, params);
     } else {
       return DatabaseService.get<T>(sql, params);
@@ -55,7 +55,7 @@ export class DatabaseAdapter {
   static async all<T = any>(sql: string, params: any[] = []): Promise<T[]> {
     if (this.usePostgreSQL) {
       const pgSql = this.convertSqlToPostgreSQL(sql);
-      console.log('🔄 SQL Conversion:', { original: sql, converted: pgSql, params });
+      // console.log('🔄 SQL Conversion:', { original: sql, converted: pgSql, params });
       return DatabaseServicePG.all<T>(pgSql, params);
     } else {
       return DatabaseService.all<T>(sql, params);
@@ -68,7 +68,7 @@ export class DatabaseAdapter {
   static async run(sql: string, params: any[] = []): Promise<any> {
     if (this.usePostgreSQL) {
       const pgSql = this.convertSqlToPostgreSQL(sql);
-      console.log('🔄 SQL Conversion:', { original: sql, converted: pgSql, params });
+      // console.log('🔄 SQL Conversion:', { original: sql, converted: pgSql, params });
       
       // Handle INSERT statements to return lastID for compatibility
       if (pgSql.trim().toLowerCase().startsWith('insert')) {
