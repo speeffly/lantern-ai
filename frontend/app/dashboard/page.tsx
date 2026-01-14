@@ -102,14 +102,10 @@ export default function DashboardPage() {
         });
         
         // Set user data with assessment completion status
+        // Backend now returns flattened data with camelCase fields
         const userData = {
           ...data.data,
-          profileCompleted: hasEnhancedResults || hasQuickResults,
-          // Ensure we have the basic user fields
-          firstName: data.data.firstName || data.data.first_name,
-          lastName: data.data.lastName || data.data.last_name,
-          grade: data.data.profile?.grade || data.data.grade,
-          zipCode: data.data.profile?.zip_code || data.data.zipCode
+          profileCompleted: hasEnhancedResults || hasQuickResults
         };
         
         console.log('🔍 Dashboard - Final user data:', userData);

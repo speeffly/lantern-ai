@@ -196,11 +196,36 @@ export class AuthServiceDB {
         }));
       }
 
-      return {
+      // Flatten profile data and convert to camelCase for frontend
+      const result: any = {
         ...user,
-        profile,
-        children: user.role === 'parent' ? children : undefined
+        firstName: (user as any).first_name || (user as any).firstName,
+        lastName: (user as any).last_name || (user as any).lastName,
+        profile
       };
+
+      // Add flattened profile fields for easy access
+      if (profile) {
+        if (user.role === 'student') {
+          const studentProfile = profile as any;
+          result.grade = studentProfile.grade;
+          result.zipCode = studentProfile.zip_code;
+          result.schoolName = studentProfile.school_name;
+          result.interests = studentProfile.interests;
+          result.skills = studentProfile.skills;
+          result.educationGoal = studentProfile.education_goal;
+          result.workEnvironment = studentProfile.work_environment;
+          result.gpa = studentProfile.gpa;
+          result.extracurricularActivities = studentProfile.extracurricular_activities;
+          result.careerAspirations = studentProfile.career_aspirations;
+        }
+      }
+
+      if (user.role === 'parent') {
+        result.children = children;
+      }
+
+      return result;
     } catch (error) {
       console.error('❌ Error getting user profile:', error);
       return null;
