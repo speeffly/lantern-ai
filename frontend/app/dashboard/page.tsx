@@ -20,6 +20,8 @@ export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasEnhancedResults, setHasEnhancedResults] = useState(false);
+  const [hasQuickResults, setHasQuickResults] = useState(false);
 
   // Helper function to get user-specific storage key
   const getUserSpecificKey = (baseKey: string, userEmail?: string): string => {
@@ -30,9 +32,33 @@ export default function DashboardPage() {
   };
 
   // Helper function to check for user-specific assessment results
-  const checkUserAssessmentResults = (userEmail?: string): boolean => {
-    if (!userEmail) return false;
+  const checkUserAssessmentResults = async (userEmail?: string, token?: string): Promise<boolean> => {
+    if (!userEmail || !token) return false;
     
+    // First, try to check database for assessment
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/counselor-assessment/history`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data && data.data.length > 0) {
+          // Check if there's at least one completed session
+          const hasCompletedSession = data.data.some((s: any) => s.status === 'completed');
+          if (hasCompletedSession) {
+            console.log('✅ Dashboard - Found completed assessment in database');
+            return true;
+          }
+        }
+      }
+    } catch (error) {
+      console.log('⚠️ Dashboard - Database check failed, falling back to localStorage');
+    }
+    
+    // Fallback to localStorage check
     const userSpecificKey = getUserSpecificKey('counselorAssessmentResults', userEmail);
     const hasUserSpecificResults = !!localStorage.getItem(userSpecificKey);
     
@@ -89,14 +115,18 @@ export default function DashboardPage() {
       console.log('🔍 Dashboard - Profile response data:', data);
       
       if (data.success) {
-        // Check if enhanced assessment was completed for this specific user
+        // Check if enhanced assessment was completed for this specific user (check database first)
         const userEmail = data.data.email;
-        const hasEnhancedResults = checkUserAssessmentResults(userEmail);
-        const hasQuickResults = !!localStorage.getItem('sessionId');
+        const enhancedResults = await checkUserAssessmentResults(userEmail, token);
+        const quickResults = !!localStorage.getItem('sessionId');
+        
+        // Update state
+        setHasEnhancedResults(enhancedResults);
+        setHasQuickResults(quickResults);
         
         console.log('🔍 Dashboard - Assessment status:', {
-          hasEnhancedResults,
-          hasQuickResults,
+          hasEnhancedResults: enhancedResults,
+          hasQuickResults: quickResults,
           userEmail,
           profileData: data.data
         });
@@ -105,7 +135,7 @@ export default function DashboardPage() {
         // Backend now returns flattened data with camelCase fields
         const userData = {
           ...data.data,
-          profileCompleted: hasEnhancedResults || hasQuickResults
+          profileCompleted: enhancedResults || quickResults
         };
         
         console.log('🔍 Dashboard - Final user data:', userData);
@@ -246,9 +276,6 @@ export default function DashboardPage() {
               }
             </p>
             {(() => {
-              const hasEnhancedResults = checkUserAssessmentResults(user?.email);
-              const hasQuickResults = !!localStorage.getItem('sessionId');
-              
               if (hasEnhancedResults || hasQuickResults) {
                 return (
                   <div className="space-y-2">
@@ -356,9 +383,6 @@ export default function DashboardPage() {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Status</h3>
           <div className="space-y-3">
             {(() => {
-              const hasEnhancedResults = checkUserAssessmentResults(user?.email);
-              const hasQuickResults = !!localStorage.getItem('sessionId');
-              
               return (
                 <>
                   <div className="flex items-center">
