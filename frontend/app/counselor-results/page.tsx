@@ -241,20 +241,7 @@ export default function CounselorResultsPage() {
       if (storedResults) {
         const data = JSON.parse(storedResults);
         
-        // Additional security check: verify user match
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-          const user = JSON.parse(storedUser);
-          if (data.userEmail && data.userEmail !== user.email) {
-            console.log('⚠️ Results belong to different user, clearing and redirecting');
-            localStorage.removeItem(userSpecificKey);
-            alert('Please complete the Enhanced Assessment to see your results.');
-            router.push('/counselor-assessment');
-            return;
-          }
-        }
-        
-        console.log('✅ Results loaded from localStorage');
+        console.log('✅ Results loaded from localStorage (fallback)');
         setResults({
           ...data,
           source: 'localStorage'
