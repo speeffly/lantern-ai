@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Individual Career Roadmaps UI Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .loading-spinner {
+            border: 2px solid #f3f4f6;
+            border-top: 2px solid #3b82f6;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Individual Career Roadmaps</h1>
+            <p class="text-gray-600">Personalized step-by-step paths to achieve your career goals</p>
+        </div>
+
+        <div class="space-y-6" id="career-roadmaps">
+            <!-- Career roadmap cards will be inserted here -->
+        </div>
+    </div>
+
+    <script>
+        // Mock career data
+        const mockCareers = [
+            {
+                title: 'Software Developer',
+                sector: 'technology',
+                matchScore: 92,
+                averageSalary: 85000,
+                requiredEducation: 'Bachelor\'s degree in Computer Science',
+                description: 'Design, develop, and maintain software applications and systems'
+            },
+            {
+                title: 'Biomedical Engineer',
+                sector: 'healthcare',
+                matchScore: 88,
+                averageSalary: 78000,
+                requiredEducation: 'Bachelor\'s degree in Biomedical Engineering',
+                description: 'Apply engineering principles to solve problems in medicine and biology'
+            },
+            {
+                title: 'Data Scientist',
+                sector: 'technology',
+                matchScore: 85,
+                averageSalary: 95000,
+                requiredEducation: 'Bachelor\'s degree in Data Science or related field',
+                description: 'Analyze complex data to help organizations make informed decisions'
+            }
+        ];
+
+        // Mock roadmap data
+        const mockRoadmapData = {
+            overview: {
+                totalTimeToCareer: '4-6 years',
+                estimatedTotalCost: 65000,
+                educationLevel: 'Bachelor\'s degree',
+                difficultyLevel: 'Intermediate',
+                jobAvailability: 'High'
+            },
+            detailedPath: {
+                highSchoolPhase: {
+                    timeframe: 'Grade 11-12',
+                    requiredCourses: ['AP Computer Science A', 'AP Calculus BC', 'Physics'],
+                    recommendedCourses: ['Statistics', 'Digital Media', 'Engineering'],
+                    skillsToFocus: ['Programming fundamentals', 'Problem-solving', 'Mathematical thinking'],
+                    milestones: ['Complete AP Computer Science', 'Build portfolio projects', 'Maintain 3.5+ GPA']
+                },
+                postSecondaryPhase: {
+                    timeframe: '4 years after high school',
+                    educationType: 'Bachelor\'s degree in Computer Science',
+                    specificPrograms: ['Computer Science', 'Software Engineering', 'Information Technology'],
+                    estimatedCost: 50000,
+                    internshipOpportunities: ['Google Summer Internship', 'Microsoft Student Program', 'Local tech companies']
+                },
+                earlyCareerPhase: {
+                    timeframe: 'Years 1-3 in career',
+                    entryLevelPositions: ['Junior Software Developer', 'Software Engineer I', 'Full Stack Developer'],
+                    certifications: ['AWS Certified Developer', 'Google Cloud Professional', 'Microsoft Azure Fundamentals'],
+                    skillDevelopment: ['Advanced programming languages', 'System design', 'Agile methodologies']
+                },
+                advancementPhase: {
+                    timeframe: 'Years 4-10 in career',
+                    careerProgression: ['Senior Developer', 'Tech Lead', 'Engineering Manager', 'Principal Engineer'],
+                    advancedCertifications: ['AWS Solutions Architect', 'Kubernetes Certified', 'Scrum Master'],
+                    salaryProgression: ['$85k → $120k → $150k → $200k+']
+                }
+            },
+            personalizedRecommendations: {
+                strengthsToLeverage: ['Strong math performance in AP Calculus', 'Excellent technology aptitude', 'Problem-solving mindset'],
+                areasForImprovement: ['Develop communication skills', 'Gain more hands-on programming experience', 'Build portfolio projects'],
+                specificActions: ['Join coding club or hackathons', 'Complete online programming courses', 'Start personal coding projects']
+            },
+            localContext: {
+                nearbySchools: ['State University Computer Science Program', 'Community College IT Program', 'Technical Institute'],
+                localEmployers: ['Tech Startup Hub', 'Regional Software Company', 'Government IT Department'],
+                regionalOpportunities: ['Growing tech sector', 'Remote work opportunities', 'Startup ecosystem development']
+            }
+        };
+
+        // Utility functions
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+            }).format(amount);
+        }
+
+        function getDifficultyColor(level) {
+            const colors = {
+                'Beginner': 'text-green-600 bg-green-100',
+                'Intermediate': 'text-yellow-600 bg-yellow-100',
+                'Advanced': 'text-orange-600 bg-orange-100',
+                'Expert': 'text-red-600 bg-red-100'
+            };
+            return colors[level] || 'text-gray-600 bg-gray-100';
+        }
+
+        function getAvailabilityColor(level) {
+            const colors = {
+                'High': 'text-green-600 bg-green-100',
+                'Medium': 'text-yellow-600 bg-yellow-100',
+                'Low': 'text-red-600 bg-red-100'
+            };
+            return colors[level] || 'text-gray-600 bg-gray-100';
+        }
+
+        function getSectorIcon(sector) {
+            const icons = {
+                'healthcare': '🏥',
+                'technology': '💻',
+                'business': '💼',
+                'education': '📚'
+            };
+            return icons[sector] || '💼';
+        }
+
+        // Create career roadmap card
+        function createCareerCard(career, index) {
+            const cardId = `career-${index}`;
+            const detailsId = `details-${index}`;
+            
+            return `
+                <div class="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden" id="${cardId}">
+                    <!-- Career Header -->
+                    <div class="p-6 border-b border-gray-200">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <h3 class="text-xl font-bold text-gray-800 mb-2">${career.title}</h3>
+                                <div class="flex flex-wrap gap-2 mb-3">
+                                    <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                                        ${getSectorIcon(career.sector)} ${career.sector}
+                                    </span>
+                                    <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                                        ${career.matchScore}% Match
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-lg font-semibold text-gray-800">
+                                    ${formatCurrency(career.averageSalary)}
+                                </p>
+                                <p class="text-sm text-gray-600">${career.requiredEducation}</p>
+                            </div>
+                        </div>
+
+                        <!-- Overview Cards (Initially Hidden) -->
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 roadmap-overview" id="overview-${index}" style="display: none;">
+                            <div class="text-center p-3 bg-gray-50 rounded-lg">
+                                <p class="text-xs text-gray-600 mb-1">Time to Career</p>
+                                <p class="font-semibold text-gray-800">${mockRoadmapData.overview.totalTimeToCareer}</p>
+                            </div>
+                            <div class="text-center p-3 bg-gray-50 rounded-lg">
+                                <p class="text-xs text-gray-600 mb-1">Total Cost</p>
+                                <p class="font-semibold text-gray-800">${formatCurrency(mockRoadmapData.overview.estimatedTotalCost)}</p>
+                            </div>
+                            <div class="text-center p-3 bg-gray-50 rounded-lg">
+                                <p class="text-xs text-gray-600 mb-1">Difficulty</p>
+                                <span class="px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(mockRoadmapData.overview.difficultyLevel)}">
+                                    ${mockRoadmapData.overview.difficultyLevel}
+                                </span>
+                            </div>
+                            <div class="text-center p-3 bg-gray-50 rounded-lg">
+                                <p class="text-xs text-gray-600 mb-1">Job Market</p>
+                                <span class="px-2 py-1 rounded-full text-xs font-medium ${getAvailabilityColor(mockRoadmapData.overview.jobAvailability)}">
+                                    ${mockRoadmapData.overview.jobAvailability}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex gap-3 mt-4">
+                            <button 
+                                onclick="generateRoadmap(${index})" 
+                                id="generate-btn-${index}"
+                                class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                            >
+                                Generate Career Roadmap
+                            </button>
+                            
+                            <button 
+                                onclick="toggleDetails(${index})" 
+                                id="details-btn-${index}"
+                                class="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                                style="display: none;"
+                            >
+                                View Detailed Path
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Roadmap (Initially Hidden) -->
+                    <div class="p-6" id="${detailsId}" style="display: none;">
+                        <!-- Phase Navigation -->
+                        <div class="flex flex-wrap gap-2 mb-6">
+                            <button onclick="showPhase(${index}, 'highSchool')" class="phase-btn px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white" data-phase="highSchool">
+                                High School
+                            </button>
+                            <button onclick="showPhase(${index}, 'postSecondary')" class="phase-btn px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" data-phase="postSecondary">
+                                Post-Secondary
+                            </button>
+                            <button onclick="showPhase(${index}, 'earlyCareer')" class="phase-btn px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" data-phase="earlyCareer">
+                                Early Career
+                            </button>
+                            <button onclick="showPhase(${index}, 'advancement')" class="phase-btn px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200" data-phase="advancement">
+                                Advancement
+                            </button>
+                        </div>
+
+                        <!-- Phase Content -->
+                        <div class="bg-gray-50 rounded-lg p-6" id="phase-content-${index}">
+                            <!-- Content will be dynamically loaded -->
+                        </div>
+
+                        <!-- Personalized Recommendations -->
+                        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-blue-50 rounded-lg p-4">
+                                <h4 class="font-semibold text-blue-800 mb-3">Personalized for You</h4>
+                                <div class="space-y-3">
+                                    <div>
+                                        <h5 class="text-sm font-medium text-blue-700 mb-1">Strengths to Leverage</h5>
+                                        <ul class="text-sm text-blue-600 space-y-1">
+                                            ${mockRoadmapData.personalizedRecommendations.strengthsToLeverage.map(strength => `<li>• ${strength}</li>`).join('')}
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <h5 class="text-sm font-medium text-blue-700 mb-1">Areas for Improvement</h5>
+                                        <ul class="text-sm text-blue-600 space-y-1">
+                                            ${mockRoadmapData.personalizedRecommendations.areasForImprovement.map(area => `<li>• ${area}</li>`).join('')}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-green-50 rounded-lg p-4">
+                                <h4 class="font-semibold text-green-800 mb-3">Local Context</h4>
+                                <div class="space-y-3">
+                                    <div>
+                                        <h5 class="text-sm font-medium text-green-700 mb-1">Nearby Schools</h5>
+                                        <ul class="text-sm text-green-600 space-y-1">
+                                            ${mockRoadmapData.localContext.nearbySchools.slice(0, 3).map(school => `<li>• ${school}</li>`).join('')}
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <h5 class="text-sm font-medium text-green-700 mb-1">Local Employers</h5>
+                                        <ul class="text-sm text-green-600 space-y-1">
+                                            ${mockRoadmapData.localContext.localEmployers.slice(0, 3).map(employer => `<li>• ${employer}</li>`).join('')}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Generate roadmap (simulate AI generation)
+        function generateRoadmap(index) {
+            const generateBtn = document.getElementById(`generate-btn-${index}`);
+            const detailsBtn = document.getElementById(`details-btn-${index}`);
+            const overview = document.getElementById(`overview-${index}`);
+            
+            // Show loading state
+            generateBtn.innerHTML = `
+                <span class="flex items-center justify-center">
+                    <div class="loading-spinner mr-3"></div>
+                    Generating Roadmap...
+                </span>
+            `;
+            generateBtn.disabled = true;
+            
+            // Simulate AI generation delay
+            setTimeout(() => {
+                // Show overview cards
+                overview.style.display = 'grid';
+                
+                // Update buttons
+                generateBtn.style.display = 'none';
+                detailsBtn.style.display = 'block';
+                
+                // Show success message
+                const successMsg = document.createElement('div');
+                successMsg.className = 'mt-3 p-3 bg-green-50 border border-green-200 rounded-lg';
+                successMsg.innerHTML = `
+                    <p class="text-green-800 text-sm text-center">
+                        🎉 Personalized roadmap generated! Click "View Detailed Path" to explore your career journey.
+                    </p>
+                `;
+                generateBtn.parentNode.appendChild(successMsg);
+                
+                // Initialize with high school phase
+                showPhase(index, 'highSchool');
+            }, 3000); // 3 second delay to simulate AI processing
+        }
+
+        // Toggle detailed view
+        function toggleDetails(index) {
+            const details = document.getElementById(`details-${index}`);
+            const btn = document.getElementById(`details-btn-${index}`);
+            
+            if (details.style.display === 'none') {
+                details.style.display = 'block';
+                btn.textContent = 'Hide Detailed Path';
+                showPhase(index, 'highSchool'); // Default to high school phase
+            } else {
+                details.style.display = 'none';
+                btn.textContent = 'View Detailed Path';
+            }
+        }
+
+        // Show specific phase content
+        function showPhase(careerIndex, phase) {
+            const phaseContent = document.getElementById(`phase-content-${careerIndex}`);
+            const phaseButtons = document.querySelectorAll(`#details-${careerIndex} .phase-btn`);
+            
+            // Update button states
+            phaseButtons.forEach(btn => {
+                if (btn.dataset.phase === phase) {
+                    btn.className = 'phase-btn px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white';
+                } else {
+                    btn.className = 'phase-btn px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200';
+                }
+            });
+            
+            // Update content based on phase
+            const phaseData = mockRoadmapData.detailedPath[phase + 'Phase'];
+            let content = `
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-lg font-semibold text-gray-800 capitalize">
+                            ${phase.replace(/([A-Z])/g, ' $1').trim()} Phase
+                        </h4>
+                        <span class="text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                            ${phaseData.timeframe}
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            `;
+            
+            // Add phase-specific content
+            if (phaseData.requiredCourses) {
+                content += `
+                    <div>
+                        <h5 class="font-medium text-gray-700 mb-2">Required Courses</h5>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            ${phaseData.requiredCourses.map(course => `<li class="flex items-start"><span class="text-blue-500 mr-2">•</span>${course}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            if (phaseData.recommendedCourses) {
+                content += `
+                    <div>
+                        <h5 class="font-medium text-gray-700 mb-2">Recommended Courses</h5>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            ${phaseData.recommendedCourses.map(course => `<li class="flex items-start"><span class="text-green-500 mr-2">•</span>${course}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            if (phaseData.skillsToFocus) {
+                content += `
+                    <div>
+                        <h5 class="font-medium text-gray-700 mb-2">Skills to Focus On</h5>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            ${phaseData.skillsToFocus.map(skill => `<li class="flex items-start"><span class="text-purple-500 mr-2">•</span>${skill}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            if (phaseData.milestones) {
+                content += `
+                    <div>
+                        <h5 class="font-medium text-gray-700 mb-2">Key Milestones</h5>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            ${phaseData.milestones.map(milestone => `<li class="flex items-start"><span class="text-orange-500 mr-2">•</span>${milestone}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            if (phaseData.specificPrograms) {
+                content += `
+                    <div>
+                        <h5 class="font-medium text-gray-700 mb-2">Specific Programs</h5>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            ${phaseData.specificPrograms.map(program => `<li class="flex items-start"><span class="text-indigo-500 mr-2">•</span>${program}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            if (phaseData.estimatedCost) {
+                content += `
+                    <div>
+                        <h5 class="font-medium text-gray-700 mb-2">Estimated Cost</h5>
+                        <p class="text-lg font-semibold text-green-600">
+                            ${formatCurrency(phaseData.estimatedCost)}
+                        </p>
+                    </div>
+                `;
+            }
+            
+            if (phaseData.entryLevelPositions) {
+                content += `
+                    <div>
+                        <h5 class="font-medium text-gray-700 mb-2">Entry Level Positions</h5>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            ${phaseData.entryLevelPositions.map(position => `<li class="flex items-start"><span class="text-blue-500 mr-2">•</span>${position}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            if (phaseData.careerProgression) {
+                content += `
+                    <div>
+                        <h5 class="font-medium text-gray-700 mb-2">Career Progression</h5>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            ${phaseData.careerProgression.map(step => `<li class="flex items-start"><span class="text-green-500 mr-2">•</span>${step}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            content += `
+                    </div>
+                </div>
+            `;
+            
+            phaseContent.innerHTML = content;
+        }
+
+        // Initialize the page
+        function initializePage() {
+            const container = document.getElementById('career-roadmaps');
+            
+            mockCareers.forEach((career, index) => {
+                const cardHTML = createCareerCard(career, index);
+                container.innerHTML += cardHTML;
+            });
+        }
+
+        // Load the page when DOM is ready
+        document.addEventListener('DOMContentLoaded', initializePage);
+    </script>
+</body>
+</html>

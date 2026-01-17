@@ -29,13 +29,8 @@ function filterCareersByMatchScore(careers, isUndecided) {
   const sortedCareers = [...careers].sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
 
   if (isUndecided) {
-    // For undecided students: show all careers above 90%, or top 3 if none above 90%
-    const highMatchCareers = sortedCareers.filter(career => (career.matchScore || 0) >= 90);
-    if (highMatchCareers.length > 0) {
-      return highMatchCareers;
-    } else {
-      return sortedCareers.slice(0, 3);
-    }
+    // For undecided students: always show top 3 results (no match score filtering)
+    return sortedCareers.slice(0, 3);
   } else {
     // For decided students: show all careers above 90% (up to 5), or top 3 if none above 90%
     const highMatchCareers = sortedCareers.filter(career => (career.matchScore || 0) >= 90);
@@ -57,14 +52,14 @@ console.log('Input: 7 careers, 2 above 90%');
 const undecidedHighMatch = filterCareersByMatchScore(mockCareers, true);
 console.log('Output:', undecidedHighMatch.length, 'careers');
 console.log('Careers:', undecidedHighMatch.map(c => `${c.career.title} (${c.matchScore}%)`));
-console.log('✅ Expected: 2 careers (both above 90%)');
+console.log('✅ Expected: 3 careers (always top 3, regardless of match scores)');
 
 console.log('\n2. UNDECIDED STUDENTS - Low Match Scenario');
 console.log('Input: 5 careers, none above 90%');
 const undecidedLowMatch = filterCareersByMatchScore(mockCareersLowMatch, true);
 console.log('Output:', undecidedLowMatch.length, 'careers');
 console.log('Careers:', undecidedLowMatch.map(c => `${c.career.title} (${c.matchScore}%)`));
-console.log('✅ Expected: 3 careers (top 3)');
+console.log('✅ Expected: 3 careers (always top 3)');
 
 console.log('\n3. DECIDED STUDENTS - High Match Scenario');
 console.log('Input: 7 careers, 2 above 90%');
@@ -103,14 +98,14 @@ console.log('Input: 7 careers, all above 90%');
 const undecidedManyHighMatch = filterCareersByMatchScore(manyHighMatches, true);
 console.log('Output:', undecidedManyHighMatch.length, 'careers');
 console.log('Careers:', undecidedManyHighMatch.map(c => `${c.career.title} (${c.matchScore}%)`));
-console.log('✅ Expected: 7 careers (all above 90%, no limit for undecided)');
+console.log('✅ Expected: 3 careers (always top 3, regardless of match scores)');
 
 console.log('\n' + '='.repeat(60));
 console.log('FILTERING LOGIC SUMMARY');
 console.log('='.repeat(60));
 console.log('✅ Undecided Students:');
-console.log('   - Show ALL careers ≥90% (no limit)');
-console.log('   - If none ≥90%, show top 3');
+console.log('   - ALWAYS show top 3 careers (no match score filtering)');
+console.log('   - Consistent experience for exploration');
 console.log('✅ Decided Students:');
 console.log('   - Show careers ≥90% (max 5)');
 console.log('   - If none ≥90%, show top 3');

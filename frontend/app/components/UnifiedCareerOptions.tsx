@@ -148,11 +148,7 @@ export default function UnifiedCareerOptions({
     const highMatchCount = careerOptions.filter(career => career.matchScore >= 90).length;
     
     if (isUndecidedPath) {
-      if (highMatchCount > 0) {
-        return `Based on your assessment responses, we found ${highMatchCount} career${highMatchCount > 1 ? 's' : ''} with 90%+ match scores for you to explore. Each represents a different type of work environment and skill set.`;
-      } else {
-        return 'Based on your assessment responses, we\'ve selected your top career paths for you to explore. Each represents a different type of work environment and skill set.';
-      }
+      return 'Based on your assessment responses, we\'ve selected your top 3 career paths for you to explore. Each represents a different type of work environment and skill set.';
     } else {
       if (highMatchCount > 0) {
         return `Excellent news! We found ${highMatchCount} career${highMatchCount > 1 ? 's' : ''} with 90%+ match scores based on your assessment responses. These are highly personalized recommendations with detailed pathways and local opportunities.`;
@@ -181,13 +177,26 @@ export default function UnifiedCareerOptions({
         )}
         
         {/* High Match Score Indicator */}
-        {careerOptions.some(career => career.matchScore >= 90) && (
+        {!isUndecidedPath && careerOptions.some(career => career.matchScore >= 90) && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 max-w-4xl mx-auto mt-4">
             <p className="text-green-800 text-sm flex items-center justify-center">
               <span className="mr-2">🎯</span>
               <strong>Excellent Match!</strong> 
               <span className="ml-1">
                 {careerOptions.filter(career => career.matchScore >= 90).length} of these career{careerOptions.filter(career => career.matchScore >= 90).length > 1 ? 's have' : ' has'} a 90%+ compatibility score with your interests and strengths.
+              </span>
+            </p>
+          </div>
+        )}
+        
+        {/* Exploration Message for Undecided Students */}
+        {isUndecidedPath && (
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 max-w-4xl mx-auto mt-4">
+            <p className="text-purple-800 text-sm flex items-center justify-center">
+              <span className="mr-2">🔍</span>
+              <strong>Exploration Mode:</strong> 
+              <span className="ml-1">
+                These are your top 3 career matches to help you discover your interests. Take time to explore each option thoroughly.
               </span>
             </p>
           </div>
