@@ -178,6 +178,14 @@
                             </div>
                         </div>
 
+                        <!-- Loading State (Initially Visible) -->
+                        <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg" id="loading-${index}">
+                            <div class="flex items-center justify-center">
+                                <div class="loading-spinner mr-3"></div>
+                                <span class="text-blue-800">Generating personalized roadmap...</span>
+                            </div>
+                        </div>
+
                         <!-- Overview Cards (Initially Hidden) -->
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 roadmap-overview" id="overview-${index}" style="display: none;">
                             <div class="text-center p-3 bg-gray-50 rounded-lg">
@@ -202,23 +210,15 @@
                             </div>
                         </div>
 
-                        <!-- Action Buttons -->
-                        <div class="flex gap-3 mt-4">
-                            <button 
-                                onclick="generateRoadmap(${index})" 
-                                id="generate-btn-${index}"
-                                class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                            >
-                                Generate Career Roadmap
-                            </button>
-                            
+                        <!-- Action Button (Initially Hidden) -->
+                        <div class="mt-4">
                             <button 
                                 onclick="toggleDetails(${index})" 
                                 id="details-btn-${index}"
-                                class="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                                class="w-full bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
                                 style="display: none;"
                             >
-                                View Detailed Path
+                                ▼ View Detailed Roadmap
                             </button>
                         </div>
                     </div>
@@ -289,43 +289,29 @@
             `;
         }
 
-        // Generate roadmap (simulate AI generation)
-        function generateRoadmap(index) {
-            const generateBtn = document.getElementById(`generate-btn-${index}`);
-            const detailsBtn = document.getElementById(`details-btn-${index}`);
+        // Auto-generate roadmap (simulate immediate generation)
+        function autoGenerateRoadmap(index) {
             const overview = document.getElementById(`overview-${index}`);
+            const detailsBtn = document.getElementById(`details-btn-${index}`);
+            const loadingDiv = document.getElementById(`loading-${index}`);
             
-            // Show loading state
-            generateBtn.innerHTML = `
-                <span class="flex items-center justify-center">
-                    <div class="loading-spinner mr-3"></div>
-                    Generating Roadmap...
-                </span>
-            `;
-            generateBtn.disabled = true;
+            // Show loading state immediately
+            loadingDiv.style.display = 'block';
             
             // Simulate AI generation delay
             setTimeout(() => {
+                // Hide loading
+                loadingDiv.style.display = 'none';
+                
                 // Show overview cards
                 overview.style.display = 'grid';
                 
-                // Update buttons
-                generateBtn.style.display = 'none';
+                // Show expand button
                 detailsBtn.style.display = 'block';
-                
-                // Show success message
-                const successMsg = document.createElement('div');
-                successMsg.className = 'mt-3 p-3 bg-green-50 border border-green-200 rounded-lg';
-                successMsg.innerHTML = `
-                    <p class="text-green-800 text-sm text-center">
-                        🎉 Personalized roadmap generated! Click "View Detailed Path" to explore your career journey.
-                    </p>
-                `;
-                generateBtn.parentNode.appendChild(successMsg);
                 
                 // Initialize with high school phase
                 showPhase(index, 'highSchool');
-            }, 3000); // 3 second delay to simulate AI processing
+            }, 2000); // 2 second delay to simulate AI processing
         }
 
         // Toggle detailed view
@@ -335,11 +321,11 @@
             
             if (details.style.display === 'none') {
                 details.style.display = 'block';
-                btn.textContent = 'Hide Detailed Path';
+                btn.innerHTML = '▲ Hide Detailed Roadmap';
                 showPhase(index, 'highSchool'); // Default to high school phase
             } else {
                 details.style.display = 'none';
-                btn.textContent = 'View Detailed Path';
+                btn.innerHTML = '▼ View Detailed Roadmap';
             }
         }
 
@@ -476,6 +462,11 @@
             mockCareers.forEach((career, index) => {
                 const cardHTML = createCareerCard(career, index);
                 container.innerHTML += cardHTML;
+                
+                // Auto-generate roadmap for each career
+                setTimeout(() => {
+                    autoGenerateRoadmap(index);
+                }, index * 500); // Stagger the generation by 500ms per career
             });
         }
 

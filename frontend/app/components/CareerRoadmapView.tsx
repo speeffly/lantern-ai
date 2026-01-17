@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface CareerRoadmapOverview {
   totalTimeToCareer: string;
@@ -71,6 +71,13 @@ interface CareerRoadmapCardProps {
 function CareerRoadmapCard({ career, roadmap, onGenerateRoadmap, isGenerating }: CareerRoadmapCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activePhase, setActivePhase] = useState<'highSchool' | 'postSecondary' | 'earlyCareer' | 'advancement'>('highSchool');
+
+  // Auto-generate roadmap when component mounts
+  useEffect(() => {
+    if (!roadmap && !isGenerating) {
+      onGenerateRoadmap(career);
+    }
+  }, [career, roadmap, isGenerating, onGenerateRoadmap]);
 
   const getDifficultyColor = (level: string) => {
     switch (level) {
@@ -220,7 +227,7 @@ function CareerRoadmapCard({ career, roadmap, onGenerateRoadmap, isGenerating }:
           </div>
         </div>
 
-        {/* Overview Cards */}
+        {/* Overview Cards - Always show when roadmap is available */}
         {roadmap && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
             <div className="text-center p-3 bg-gray-50 rounded-lg">
@@ -246,37 +253,30 @@ function CareerRoadmapCard({ career, roadmap, onGenerateRoadmap, isGenerating }:
           </div>
         )}
 
-        {/* Action Buttons */}
-        <div className="flex gap-3 mt-4">
-          {!roadmap && (
-            <button
-              onClick={() => onGenerateRoadmap(career)}
-              disabled={isGenerating}
-              className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {isGenerating ? (
-                <span className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Generating Roadmap...
-                </span>
-              ) : (
-                'Generate Career Roadmap'
-              )}
-            </button>
-          )}
-          
-          {roadmap && (
+        {/* Loading State */}
+        {isGenerating && (
+          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center justify-center">
+              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span className="text-blue-800">Generating personalized roadmap...</span>
+            </div>
+          </div>
+        )}
+
+        {/* Action Button - Only show expand/collapse when roadmap is ready */}
+        {roadmap && (
+          <div className="mt-4">
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+              className="w-full bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
-              {isExpanded ? 'Hide Detailed Path' : 'View Detailed Path'}
+              {isExpanded ? '▲ Hide Detailed Roadmap' : '▼ View Detailed Roadmap'}
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Detailed Roadmap */}
