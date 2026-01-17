@@ -19,28 +19,44 @@ const testProfiles: TestProfile[] = [
     description: 'Tech-focused student interested in coding, systems, and problem-solving',
     icon: '💻',
     responses: {
-      grade: 11,
-      zipCode: '78735',
-      workEnvironment: 'Indoors (offices, hospitals, schools)',
-      handsOnPreference: 'Working with computers or technology',
-      problemSolving: 'Understanding how systems or machines work',
-      helpingOthers: 'Somewhat important',
-      educationCommitment: '4+ years (college and possibly graduate school)',
-      incomeImportance: 'Somewhat important',
-      jobSecurity: 'Somewhat important',
-      subjectsStrengths: ['Math', 'Science', 'Technology / Computer Science'],
-      interestsPassions: 'I enjoy coding small programs, building projects with Arduino, solving logic puzzles, and learning how software systems work.',
-      workExperience: 'Built small coding projects in Python and JavaScript, participated in a robotics club, and helped troubleshoot computers for family members.',
-      academicPerformance: {
-        inputMethod: 'Type grades manually',
-        gradesText: 'Math: A, Science: B+, English: B, History: B, Art: B, PE: B+, Computer Science: A, Foreign Language: B, Business: B'
+      // Basic info
+      q1_grade_zip: {
+        grade: '11',
+        zipCode: '78735'
       },
-      legacyImpact: 'I want to create technology that makes systems more efficient and solves real-world problems.',
-      personalTraits: {
-        selected: ['Analytical and logical', 'Curious and inquisitive', 'Detail-oriented and organized', 'Independent and self-reliant'],
-        other: ''
+
+      // Career knowledge - "yes" path
+      q3_career_knowledge: 'yes',
+      q3a_career_categories: 'technology',
+      q3a4_technology_careers: 'software_developer',
+
+      // Academic performance matrix
+      q4_academic_performance: {
+        'Math': 'Excellent',
+        'Science (Biology, Chemistry, Physics)': 'Good',
+        'English / Language Arts': 'Good',
+        'Social Studies / History': 'Good',
+        'Art / Creative Subjects': 'Average',
+        'Physical Education / Health': 'Good',
+        'Technology / Computer Science': 'Excellent',
+        'Foreign Languages': 'Good',
+        'Business / Economics': 'Good'
       },
-      inspirationRoleModels: 'Engineers and developers who build products that improve everyday life, like accessible software tools.'
+
+      // Education willingness
+      q5_education_willingness: 'advanced_degree',
+
+      // Constraints
+      q14_constraints: [
+        'flexible_hours',
+        'open_relocating'
+      ],
+
+      // Support confidence
+      q17_support_confidence: 'strong_support',
+
+      // Impact and inspiration
+      q19_20_impact_inspiration: 'I want to create technology that makes systems more efficient and solves real-world problems. I\'m inspired by engineers and developers who build products that improve everyday life, like accessible software tools and systems that help people work more effectively.'
     }
   },
   {
@@ -49,28 +65,44 @@ const testProfiles: TestProfile[] = [
     description: 'Caring student interested in helping people and medical sciences',
     icon: '🏥',
     responses: {
-      grade: 12,
-      zipCode: '90210',
-      workEnvironment: 'Indoors (offices, hospitals, schools)',
-      handsOnPreference: 'Helping people directly',
-      problemSolving: 'Helping people overcome challenges',
-      helpingOthers: 'Very important',
-      educationCommitment: '4+ years (college and possibly graduate school)',
-      incomeImportance: 'Somewhat important',
-      jobSecurity: 'Very important',
-      subjectsStrengths: ['Science', 'English / Language Arts', 'Physical Education / Health'],
-      interestsPassions: 'I love learning about the human body, volunteering at local health fairs, and helping people feel better when they are sick or injured.',
-      workExperience: 'Volunteered at a local hospital for 6 months, helped as a peer tutor for biology, and worked as a camp counselor for kids with disabilities.',
-      academicPerformance: {
-        inputMethod: 'Type grades manually',
-        gradesText: 'Math: B+, Science: A, English: A-, History: B+, Art: B, PE: A, Computer Science: B, Foreign Language: A-, Business: B'
+      // Basic info
+      q1_grade_zip: {
+        grade: '12',
+        zipCode: '90210'
       },
-      legacyImpact: 'I want to be remembered as someone who made a real difference in people\'s health and wellbeing, especially for underserved communities.',
-      personalTraits: {
-        selected: ['Compassionate and caring', 'Patient and persistent', 'Collaborative and team-focused', 'Detail-oriented and organized'],
-        other: ''
+
+      // Career knowledge - "yes" path
+      q3_career_knowledge: 'yes',
+      q3a_career_categories: 'healthcare',
+      q3a6_healthcare_careers: 'registered_nurse',
+
+      // Academic performance matrix
+      q4_academic_performance: {
+        'Math': 'Good',
+        'Science (Biology, Chemistry, Physics)': 'Excellent',
+        'English / Language Arts': 'Excellent',
+        'Social Studies / History': 'Good',
+        'Art / Creative Subjects': 'Average',
+        'Physical Education / Health': 'Excellent',
+        'Technology / Computer Science': 'Good',
+        'Foreign Languages': 'Excellent',
+        'Business / Economics': 'Good'
       },
-      inspirationRoleModels: 'My family doctor who always takes time to listen and explain things clearly, and nurses who work tirelessly to care for patients.'
+
+      // Education willingness
+      q5_education_willingness: 'advanced_degree',
+
+      // Constraints
+      q14_constraints: [
+        'predictable_hours',
+        'stay_close_home'
+      ],
+
+      // Support confidence
+      q17_support_confidence: 'strong_support',
+
+      // Impact and inspiration
+      q19_20_impact_inspiration: 'I want to be remembered as someone who made a real difference in people\'s health and wellbeing, especially for underserved communities. I\'m inspired by my family doctor who always takes time to listen and explain things clearly, and nurses who work tirelessly to care for patients with compassion and skill.'
     }
   },
   {
@@ -79,28 +111,44 @@ const testProfiles: TestProfile[] = [
     description: 'Artistic student interested in design, media, and creative expression',
     icon: '🎨',
     responses: {
-      grade: 10,
-      zipCode: '10001',
-      workEnvironment: 'A mix of indoor and outdoor work',
-      handsOnPreference: 'Creating designs, art, music, or media',
-      problemSolving: 'Inventing or designing new solutions',
-      helpingOthers: 'Somewhat important',
-      educationCommitment: '2–4 years (college or technical school)',
-      incomeImportance: 'Not very important',
-      jobSecurity: 'Somewhat important',
-      subjectsStrengths: ['Art / Creative Subjects', 'English / Language Arts', 'Technology / Computer Science'],
-      interestsPassions: 'I love drawing, photography, making videos for social media, and designing graphics. I also enjoy writing stories and creating digital art.',
-      workExperience: 'Created social media content for local businesses, designed posters for school events, and taught art classes to younger kids at summer camp.',
-      academicPerformance: {
-        inputMethod: 'Type grades manually',
-        gradesText: 'Math: B, Science: B+, English: A-, History: B+, Art: A, PE: B, Computer Science: B+, Foreign Language: B+, Business: B'
+      // Basic info
+      q1_grade_zip: {
+        grade: '10',
+        zipCode: '10001'
       },
-      legacyImpact: 'I want to create art and media that inspires people and brings beauty into the world, maybe through films, games, or public art.',
-      personalTraits: {
-        selected: ['Creative and artistic', 'Curious and inquisitive', 'Independent and self-reliant', 'Adventurous and willing to take risks'],
-        other: ''
+
+      // Career knowledge - "yes" path
+      q3_career_knowledge: 'yes',
+      q3a_career_categories: 'artist',
+      q3a9_artist_careers: 'graphic_designer',
+
+      // Academic performance matrix
+      q4_academic_performance: {
+        'Math': 'Average',
+        'Science (Biology, Chemistry, Physics)': 'Good',
+        'English / Language Arts': 'Excellent',
+        'Social Studies / History': 'Good',
+        'Art / Creative Subjects': 'Excellent',
+        'Physical Education / Health': 'Average',
+        'Technology / Computer Science': 'Good',
+        'Foreign Languages': 'Good',
+        'Business / Economics': 'Average'
       },
-      inspirationRoleModels: 'Artists and filmmakers who use their creativity to tell important stories and connect with people emotionally.'
+
+      // Education willingness
+      q5_education_willingness: 'college_technical',
+
+      // Constraints
+      q14_constraints: [
+        'flexible_hours',
+        'open_relocating'
+      ],
+
+      // Support confidence
+      q17_support_confidence: 'some_support',
+
+      // Impact and inspiration
+      q19_20_impact_inspiration: 'I want to create art and media that inspires people and brings beauty into the world, maybe through films, games, or public art. I\'m inspired by artists and filmmakers who use their creativity to tell important stories and connect with people emotionally, showing that art can change perspectives and make a difference.'
     }
   },
   {
@@ -109,28 +157,100 @@ const testProfiles: TestProfile[] = [
     description: 'Entrepreneurial student interested in leadership, organization, and business',
     icon: '💼',
     responses: {
-      grade: 12,
-      zipCode: '60601',
-      workEnvironment: 'Indoors (offices, hospitals, schools)',
-      handsOnPreference: 'Working with numbers, data, or analysis',
-      problemSolving: 'Planning, organizing, or managing projects',
-      helpingOthers: 'Somewhat important',
-      educationCommitment: '4+ years (college and possibly graduate school)',
-      incomeImportance: 'Very important',
-      jobSecurity: 'Very important',
-      subjectsStrengths: ['Math', 'Business / Economics', 'English / Language Arts'],
-      interestsPassions: 'I enjoy organizing events, analyzing market trends, following the stock market, and learning about successful businesses and entrepreneurs.',
-      workExperience: 'Started a small tutoring business, worked part-time at a retail store as a shift supervisor, and organized fundraising events for school clubs.',
-      academicPerformance: {
-        inputMethod: 'Type grades manually',
-        gradesText: 'Math: A-, Science: B+, English: A-, History: A-, Art: B, PE: B+, Computer Science: B+, Foreign Language: B+, Business: A'
+      // Basic info
+      q1_grade_zip: {
+        grade: '12',
+        zipCode: '60601'
       },
-      legacyImpact: 'I want to build or lead organizations that create jobs and make a positive impact on the economy and community.',
-      personalTraits: {
-        selected: ['Leadership-oriented', 'Detail-oriented and organized', 'Outgoing and social', 'Analytical and logical'],
-        other: ''
+
+      // Career knowledge - "yes" path
+      q3_career_knowledge: 'yes',
+      q3a_career_categories: 'business_management',
+      q3a3_business_careers: 'business_analyst',
+
+      // Academic performance matrix
+      q4_academic_performance: {
+        'Math': 'Excellent',
+        'Science (Biology, Chemistry, Physics)': 'Good',
+        'English / Language Arts': 'Excellent',
+        'Social Studies / History': 'Excellent',
+        'Art / Creative Subjects': 'Average',
+        'Physical Education / Health': 'Good',
+        'Technology / Computer Science': 'Good',
+        'Foreign Languages': 'Good',
+        'Business / Economics': 'Excellent'
       },
-      inspirationRoleModels: 'Successful entrepreneurs who built companies from the ground up and business leaders who prioritize both profit and social responsibility.'
+
+      // Education willingness
+      q5_education_willingness: 'advanced_degree',
+
+      // Constraints
+      q14_constraints: [
+        'predictable_hours',
+        'open_relocating'
+      ],
+
+      // Support confidence
+      q17_support_confidence: 'strong_support',
+
+      // Impact and inspiration
+      q19_20_impact_inspiration: 'I want to build or lead organizations that create jobs and make a positive impact on the economy and community. I\'m inspired by successful entrepreneurs who built companies from the ground up and business leaders who prioritize both profit and social responsibility, showing that business can be a force for good.'
+    }
+  },
+  {
+    id: 'undecided',
+    name: 'Undecided Explorer',
+    description: 'Student who is genuinely unsure about career direction and wants to explore options',
+    icon: '🤔',
+    responses: {
+      // Basic info - matches q1_grade_zip structure
+      q1_grade_zip: {
+        grade: '11',
+        zipCode: '30309'
+      },
+
+      // Career knowledge - KEY: "no" triggers the undecided path
+      q3_career_knowledge: 'no',
+
+      // Conditional questions that appear when q3_career_knowledge = "no"
+      q10_traits: [
+        'curious',
+        'analytical', 
+        'collaborative',
+        'detail_oriented'
+      ],
+
+      q8_interests_text: 'I have a lot of different interests but haven\'t found my main passion yet. I enjoy reading books, playing basketball with friends, volunteering at the local animal shelter, and learning about different topics online. I like both creative activities like drawing and analytical tasks like solving math problems. I\'m curious about many things but haven\'t found the one thing that really excites me for a career.',
+
+      q9_experience_text: 'I\'ve tried different types of work to see what I might like. I helped at my family\'s small restaurant during busy weekends, which taught me about customer service and working under pressure. I also volunteered at an animal shelter for 6 months, helping with feeding and cleaning, which I really enjoyed. I tutored younger kids in math and science, and worked part-time at a grocery store. Each job taught me something different, but I\'m still figuring out what type of work environment and tasks I prefer.',
+
+      // Academic performance matrix - matches exact structure
+      q4_academic_performance: {
+        'Math': 'Good',
+        'Science (Biology, Chemistry, Physics)': 'Good',
+        'English / Language Arts': 'Excellent',
+        'Social Studies / History': 'Good',
+        'Art / Creative Subjects': 'Average',
+        'Physical Education / Health': 'Good',
+        'Technology / Computer Science': 'Average',
+        'Foreign Languages': 'Good',
+        'Business / Economics': 'Average'
+      },
+
+      // Education willingness
+      q5_education_willingness: 'not_sure',
+
+      // Constraints
+      q14_constraints: [
+        'stay_close_home',
+        'flexible_hours'
+      ],
+
+      // Support confidence
+      q17_support_confidence: 'some_support',
+
+      // Impact and inspiration
+      q19_20_impact_inspiration: 'I want to find work that feels meaningful and makes a positive difference in some way, but I\'m still figuring out what that looks like for me. I hope to discover a career that combines my interests and allows me to grow as a person while contributing something valuable to society. I\'m inspired by people who found their passion later in life and weren\'t afraid to change directions. I admire professionals who seem genuinely happy with their work, regardless of what field they\'re in.'
     }
   }
 ];
