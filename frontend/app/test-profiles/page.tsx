@@ -43,6 +43,14 @@ const testProfiles: TestProfile[] = [
         'Business / Economics': 'Good'
       },
 
+      // Course history
+      q4b_course_history: {
+        'Math': 'AP Calculus BC, AP Statistics, Honors Algebra II, Honors Pre-Calculus, Computer Programming, Robotics',
+        'Science (Biology, Chemistry, Physics)': 'AP Computer Science A, Honors Physics, Honors Chemistry, Engineering Design, Electronics',
+        'Technology / Computer Science': 'AP Computer Science A, AP Computer Science Principles, Web Development, Game Design, Cybersecurity',
+        'English / Language Arts': 'Honors English 10, Honors English 11, Technical Writing, Debate'
+      },
+
       // Education willingness
       q5_education_willingness: 'advanced_degree',
 
@@ -87,6 +95,14 @@ const testProfiles: TestProfile[] = [
         'Technology / Computer Science': 'Good',
         'Foreign Languages': 'Excellent',
         'Business / Economics': 'Good'
+      },
+
+      // Course history
+      q4b_course_history: {
+        'Science (Biology, Chemistry, Physics)': 'AP Biology, AP Chemistry, Honors Anatomy & Physiology, Honors Physics, Medical Terminology, Health Sciences',
+        'English / Language Arts': 'AP English Language, AP English Literature, Honors English 10, Honors English 11, Medical Ethics, Psychology',
+        'Foreign Languages': 'AP Spanish Language, Honors Spanish III, Honors Spanish IV, Medical Spanish',
+        'Math': 'AP Statistics, Honors Algebra II, Honors Pre-Calculus'
       },
 
       // Education willingness
@@ -135,6 +151,14 @@ const testProfiles: TestProfile[] = [
         'Business / Economics': 'Average'
       },
 
+      // Course history
+      q4b_course_history: {
+        'Art / Creative Subjects': 'AP Studio Art, AP Art History, Digital Photography, Graphic Design, Film Production, Ceramics',
+        'English / Language Arts': 'AP English Language, Honors English 10, Honors English 11, Creative Writing, Journalism, Media Studies',
+        'Technology / Computer Science': 'Digital Media, Web Design, Animation',
+        'Social Studies / History': 'AP Art History, Honors World History, Film Studies, Cultural Studies'
+      },
+
       // Education willingness
       q5_education_willingness: 'college_technical',
 
@@ -179,6 +203,14 @@ const testProfiles: TestProfile[] = [
         'Technology / Computer Science': 'Good',
         'Foreign Languages': 'Good',
         'Business / Economics': 'Excellent'
+      },
+
+      // Course history
+      q4b_course_history: {
+        'Math': 'AP Calculus AB, AP Statistics, Honors Algebra II, Honors Pre-Calculus, Business Math, Economics',
+        'Business / Economics': 'AP Macroeconomics, AP Microeconomics, Business Management, Accounting, Marketing, Entrepreneurship',
+        'English / Language Arts': 'AP English Language, Honors English 10, Honors English 11, Business Communications, Public Speaking',
+        'Social Studies / History': 'AP US History, AP Government, Honors World History, Leadership, Model UN'
       },
 
       // Education willingness
@@ -235,6 +267,15 @@ const testProfiles: TestProfile[] = [
         'Technology / Computer Science': 'Average',
         'Foreign Languages': 'Good',
         'Business / Economics': 'Average'
+      },
+
+      // Course history
+      q4b_course_history: {
+        'Math': 'Honors Algebra II, Statistics, Personal Finance',
+        'Science (Biology, Chemistry, Physics)': 'Honors Biology, Environmental Science, Anatomy',
+        'English / Language Arts': 'Honors English 10, Honors English 11, Creative Writing, Speech & Debate',
+        'Social Studies / History': 'Honors World History, Psychology, Sociology, Current Events',
+        'Art / Creative Subjects': 'Art I, Drama, Music Appreciation'
       },
 
       // Education willingness

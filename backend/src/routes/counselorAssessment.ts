@@ -216,7 +216,8 @@ router.get('/questions', async (req, res) => {
               q.type === 'matrix' ? 'matrix_radio' :
               q.type === 'combined' ? 'combined' :
               q.type === 'text_long' ? 'free_text' : 
-              q.type === 'text' ? 'free_text' : q.type,
+              q.type === 'text' ? 'free_text' : 
+              q.type === 'subject_grid' ? 'subject_grid' : q.type,
         category: 'assessment',
         required: q.required,
         options: q.type === 'matrix' ? q.columns : (q.options?.map((opt: any) => {
@@ -226,11 +227,12 @@ router.get('/questions', async (req, res) => {
             return { key: opt.key, label: opt.label };
           }
         }) || []),
-        subjects: q.type === 'matrix' ? q.rows : undefined,
+        subjects: q.type === 'matrix' ? q.rows : (q.type === 'subject_grid' ? q.subjects : undefined),
         rows: q.rows || [],
         columns: q.columns || [],
         fields: q.fields,
         conditional_questions: q.conditional_questions,
+        description: q.description,
         placeholder: q.placeholder,
         minLength: q.minLength,
         maxLength: q.maxLength,

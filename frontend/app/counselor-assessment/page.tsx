@@ -719,6 +719,15 @@ function CounselorAssessmentContent() {
           return;
         }
       }
+    } else if (currentQuestion.type === 'grid_text') {
+      // Grid text questions are typically optional, but we can validate if needed
+      // For now, no validation required since it's course history
+    } else if (currentQuestion.type === 'subject_text') {
+      // Subject text questions are typically optional
+      // For now, no validation required since it's course history
+    } else if (currentQuestion.type === 'subject_grid') {
+      // Subject grid questions are typically optional
+      // For now, no validation required since it's course history
     } else if (currentQuestion.type === 'free_text' || currentQuestion.type === 'text_long') {
       // For free text questions, just check if they're required and have any content
       if (!isOptional && (!currentAnswer || currentAnswer.trim().length === 0)) {
@@ -1491,6 +1500,160 @@ function CounselorAssessmentContent() {
           </div>
           <div className="text-xs text-gray-600 mt-2">
             Rate your performance in each subject. Select one option per row.
+          </div>
+        </div>
+      );
+    }
+
+    if (question.type === 'grid_text') {
+      const currentAnswer = selectedAnswers[question.id] || {};
+      
+      return (
+        <div className="space-y-4">
+          {question.description && (
+            <p className="text-sm text-gray-600 mb-4">{question.description}</p>
+          )}
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="text-left p-3 font-medium text-gray-700 text-sm min-w-[200px] border-b border-gray-200">
+                    Subject Area
+                  </th>
+                  {question.columns?.map((column, index) => (
+                    <th key={index} className="text-center p-3 font-medium text-gray-700 min-w-[250px] border-b border-gray-200">
+                      <div className="text-sm">{column.label}</div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {question.rows?.map((subject, subjectIndex) => (
+                  <tr key={subject} className={subjectIndex % 2 === 0 ? 'bg-white' : 'bg-gray-25'}>
+                    <td className="p-3 font-medium text-gray-800 text-sm align-top border-b border-gray-200">
+                      {subject}
+                    </td>
+                    {question.columns?.map((column, columnIndex) => (
+                      <td key={columnIndex} className="p-3 border-b border-gray-200">
+                        <textarea
+                          placeholder={column.placeholder || ''}
+                          value={currentAnswer[subject]?.[column.key] || ''}
+                          onChange={(e) => {
+                            const newAnswer = {
+                              ...currentAnswer,
+                              [subject]: {
+                                ...currentAnswer[subject],
+                                [column.key]: e.target.value
+                              }
+                            };
+                            handleAnswerChange(question.id, newAnswer);
+                          }}
+                          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-sm"
+                          rows={2}
+                        />
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="text-xs text-gray-600 mt-2">
+            List any relevant courses you've taken. Leave blank if none apply.
+          </div>
+        </div>
+      );
+    }
+
+    if (question.type === 'subject_text') {
+      const currentAnswer = selectedAnswers[question.id] || {};
+      
+      return (
+        <div className="space-y-4">
+          {question.description && (
+            <p className="text-sm text-gray-600 mb-4">{question.description}</p>
+          )}
+          <div className="space-y-3">
+            {question.subjects?.map((subject, subjectIndex) => (
+              <div key={subject} className={`p-4 rounded-lg border ${subjectIndex % 2 === 0 ? 'bg-white border-gray-200' : 'bg-gray-25 border-gray-200'}`}>
+                <label className="block font-medium text-gray-800 text-sm mb-2">
+                  {subject}
+                </label>
+                <textarea
+                  placeholder={question.placeholder || 'List any advanced or specialized courses...'}
+                  value={currentAnswer[subject] || ''}
+                  onChange={(e) => {
+                    const newAnswer = {
+                      ...currentAnswer,
+                      [subject]: e.target.value
+                    };
+                    handleAnswerChange(question.id, newAnswer);
+                  }}
+                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-sm"
+                  rows={2}
+                />
+              </div>
+            ))}
+          </div>
+          <div className="text-xs text-gray-600 mt-2">
+            List any AP, Honors, electives, or specialized courses you've taken in each subject area.
+          </div>
+        </div>
+      );
+    }
+
+    if (question.type === 'subject_grid') {
+      const currentAnswer = selectedAnswers[question.id] || {};
+      
+      console.log('Rendering subject_grid question:', question.id);
+      console.log('Question subjects:', question.subjects);
+      console.log('Current answer:', currentAnswer);
+      
+      return (
+        <div className="space-y-4">
+          {question.description && (
+            <p className="text-sm text-gray-600 mb-4">{question.description}</p>
+          )}
+          <div className="w-full">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="text-left p-3 font-medium text-gray-700 text-sm border-b border-gray-200 w-1/3">
+                    Subject Area
+                  </th>
+                  <th className="text-left p-3 font-medium text-gray-700 text-sm border-b border-gray-200 w-2/3">
+                    Courses Taken
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {question.subjects?.map((subject, subjectIndex) => (
+                  <tr key={subject} className={subjectIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                    <td className="p-3 font-medium text-gray-800 text-sm align-top border-b border-gray-200">
+                      {subject}
+                    </td>
+                    <td className="p-3 border-b border-gray-200">
+                      <textarea
+                        placeholder={question.placeholder || 'List any advanced or specialized courses...'}
+                        value={currentAnswer[subject] || ''}
+                        onChange={(e) => {
+                          const newAnswer = {
+                            ...currentAnswer,
+                            [subject]: e.target.value
+                          };
+                          handleAnswerChange(question.id, newAnswer);
+                        }}
+                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-sm"
+                        rows={2}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="text-xs text-gray-600 mt-2">
+            List any AP, Honors, electives, or specialized courses you've taken in each subject area.
           </div>
         </div>
       );

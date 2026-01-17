@@ -411,6 +411,25 @@
       "required": true
     },
     {
+      "id": "q4b_course_history",
+      "type": "subject_grid",
+      "label": "List any AP, Honors, and elective classes you have taken in each subject area:",
+      "description": "For each subject, list any advanced or specialized courses you've taken (AP, Honors, electives, etc.). Leave blank if none.",
+      "subjects": [
+        "Math",
+        "Science (Biology, Chemistry, Physics)",
+        "English / Language Arts",
+        "Social Studies / History",
+        "Art / Creative Subjects",
+        "Physical Education / Health",
+        "Technology / Computer Science",
+        "Foreign Languages",
+        "Business / Economics"
+      ],
+      "placeholder": "e.g., AP Calculus BC, Honors Chemistry, Photography, Robotics",
+      "required": false
+    },
+    {
       "id": "q5_education_willingness",
       "type": "single_select",
       "label": "How much education are you willing to pursue?",

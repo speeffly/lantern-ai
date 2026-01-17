@@ -181,11 +181,12 @@ REASONING FRAMEWORK:
 1. DIVERSITY PRINCIPLE: Select 3 careers from different sectors/pathways to give student variety
 2. INTEREST ALIGNMENT: Match careers to student's stated interests, hobbies, and experiences
 3. TRAIT COMPATIBILITY: Ensure careers align with student's personality traits and work preferences
-4. REALISTIC PATHWAYS: Consider student's education commitment and support system
-5. LOCAL RELEVANCE: Factor in ZIP code ${zipCode} job market opportunities - provide REAL employer names that hire for these careers in or near this ZIP code
-6. GROWTH POTENTIAL: Include careers with good advancement opportunities for young professionals
-7. EMPLOYER SPECIFICITY: Research and provide actual company/organization names that hire for each career in the ZIP ${zipCode} area (e.g., specific hospitals, tech companies, school districts, construction firms, etc.)
-8. EMPLOYER REALISM: Suggest employers that would realistically appear in job search results (like Adzuna, Indeed, LinkedIn) for this career and location - use actual company names, not generic placeholders
+4. ACADEMIC PREPARATION: Consider any AP, Honors, or specialized courses the student has taken to assess their academic readiness and interests
+5. REALISTIC PATHWAYS: Consider student's education commitment and support system
+6. LOCAL RELEVANCE: Factor in ZIP code ${zipCode} job market opportunities - provide REAL employer names that hire for these careers in or near this ZIP code
+7. GROWTH POTENTIAL: Include careers with good advancement opportunities for young professionals
+8. EMPLOYER SPECIFICITY: Research and provide actual company/organization names that hire for each career in the ZIP ${zipCode} area (e.g., specific hospitals, tech companies, school districts, construction firms, etc.)
+9. EMPLOYER REALISM: Suggest employers that would realistically appear in job search results (like Adzuna, Indeed, LinkedIn) for this career and location - use actual company names, not generic placeholders
 
 OUTPUT REQUIREMENTS:
 Generate a structured JSON response with exactly 3 career matches.

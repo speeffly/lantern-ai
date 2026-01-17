@@ -121,13 +121,14 @@ The student has specifically chosen "${topCareer?.title}" with a ${careerMatches
 'EXPLORATION CONTEXT:\nThe student is exploring career options and needs guidance to discover suitable paths based on their assessment responses.'}
 
 REASONING:
-Apply the following 6-point analysis framework:
+Apply the following 7-point analysis framework:
 1. COMPATIBILITY ASSESSMENT: Evaluate how well each career aligns with the student's interests, skills, and academic performance
-2. EDUCATION PATHWAY ANALYSIS: Consider the student's education willingness against career requirements
-3. CONSTRAINT EVALUATION: Factor in any stated limitations (financial, time, geographic, physical)
-4. GROWTH POTENTIAL: Assess long-term career prospects and advancement opportunities
-5. SKILL GAP IDENTIFICATION: Determine what additional skills or education the student needs
-6. PERSONALIZATION FACTOR: Ensure recommendations reflect the student's unique profile and stated preferences
+2. ACADEMIC RIGOR ANALYSIS: Consider the student's course history (AP, Honors, electives) to assess their academic preparation and commitment level
+3. EDUCATION PATHWAY ANALYSIS: Consider the student's education willingness against career requirements
+4. CONSTRAINT EVALUATION: Factor in any stated limitations (financial, time, geographic, physical)
+5. GROWTH POTENTIAL: Assess long-term career prospects and advancement opportunities
+6. SKILL GAP IDENTIFICATION: Determine what additional skills or education the student needs based on their current coursework
+7. PERSONALIZATION FACTOR: Ensure recommendations reflect the student's unique profile, course history, and stated preferences
 
 ${hasDirectSelection ? 
 `DIRECT SELECTION REASONING:
@@ -224,6 +225,12 @@ Return ONLY the JSON response - no additional text or explanations.`;
         data.push(`Education Willingness: ${response}`);
       } else if (questionId === 'q4_academic_performance') {
         data.push(`Academic Performance: ${JSON.stringify(response)}`);
+      } else if (questionId === 'q4b_course_history') {
+        // Process course history data
+        const courseHistory = this.formatCourseHistory(response);
+        if (courseHistory) {
+          data.push(`Course History & Academic Rigor:\n${courseHistory}`);
+        }
       } else if (questionId === 'q19_20_impact_inspiration') {
         data.push(`Career Inspiration: "${response}"`);
       } else if (typeof response === 'string' && response.length > 10) {
@@ -234,6 +241,44 @@ Return ONLY the JSON response - no additional text or explanations.`;
     });
     
     return data.join('\n');
+  }
+
+  /**
+   * Format course history data for AI prompt
+   */
+  private static formatCourseHistory(courseData: any): string {
+    if (!courseData || typeof courseData !== 'object') {
+      return '';
+    }
+
+    const sections: string[] = [];
+    
+    Object.entries(courseData).forEach(([subject, courses]: [string, any]) => {
+      if (courses && typeof courses === 'string' && courses.trim()) {
+        sections.push(`  ${subject}: ${courses.trim()}`);
+      } else if (courses && typeof courses === 'object') {
+        // Handle old format for backward compatibility
+        const courseParts: string[] = [];
+        
+        if (courses.ap_courses && courses.ap_courses.trim()) {
+          courseParts.push(`AP: ${courses.ap_courses.trim()}`);
+        }
+        
+        if (courses.honors_courses && courses.honors_courses.trim()) {
+          courseParts.push(`Honors: ${courses.honors_courses.trim()}`);
+        }
+        
+        if (courses.electives_other && courses.electives_other.trim()) {
+          courseParts.push(`Electives: ${courses.electives_other.trim()}`);
+        }
+        
+        if (courseParts.length > 0) {
+          sections.push(`  ${subject}: ${courseParts.join(', ')}`);
+        }
+      }
+    });
+    
+    return sections.length > 0 ? sections.join('\n') : '';
   }
 
   /**
