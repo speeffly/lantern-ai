@@ -123,6 +123,7 @@ function CareerRoadmapCard({ career, roadmap, onGenerateRoadmap, isGenerating, e
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* High School Phase Fields */}
           {phase.requiredCourses && (
             <div>
               <h5 className="font-medium text-gray-700 mb-2">Required Courses</h5>
@@ -145,6 +146,20 @@ function CareerRoadmapCard({ career, roadmap, onGenerateRoadmap, isGenerating, e
                   <li key={index} className="flex items-start">
                     <span className="text-green-500 mr-2">•</span>
                     {course}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {phase.extracurriculars && (
+            <div>
+              <h5 className="font-medium text-gray-700 mb-2">Extracurricular Activities</h5>
+              <ul className="text-sm text-gray-600 space-y-1">
+                {phase.extracurriculars.map((activity, index) => (
+                  <li key={index} className="flex items-start">
+                    <span className="text-pink-500 mr-2">•</span>
+                    {activity}
                   </li>
                 ))}
               </ul>
@@ -179,6 +194,16 @@ function CareerRoadmapCard({ career, roadmap, onGenerateRoadmap, isGenerating, e
             </div>
           )}
 
+          {/* Post-Secondary Phase Fields */}
+          {phase.educationType && (
+            <div>
+              <h5 className="font-medium text-gray-700 mb-2">Education Type</h5>
+              <p className="text-sm text-gray-600 bg-blue-50 p-2 rounded">
+                {phase.educationType}
+              </p>
+            </div>
+          )}
+
           {phase.specificPrograms && (
             <div>
               <h5 className="font-medium text-gray-700 mb-2">Specific Programs</h5>
@@ -193,6 +218,149 @@ function CareerRoadmapCard({ career, roadmap, onGenerateRoadmap, isGenerating, e
             </div>
           )}
 
+          {phase.keyRequirements && (
+            <div>
+              <h5 className="font-medium text-gray-700 mb-2">Key Requirements</h5>
+              <ul className="text-sm text-gray-600 space-y-1">
+                {phase.keyRequirements.map((requirement, index) => (
+                  <li key={index} className="flex items-start">
+                    <span className="text-red-500 mr-2">•</span>
+                    {requirement}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {phase.internshipOpportunities && (
+            <div>
+              <h5 className="font-medium text-gray-700 mb-2">Internship Opportunities</h5>
+              <ul className="text-sm text-gray-600 space-y-1">
+                {phase.internshipOpportunities.map((internship, index) => (
+                  <li key={index} className="flex items-start">
+                    <span className="text-teal-500 mr-2">•</span>
+                    {internship}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Early Career Phase Fields */}
+          {phase.entryLevelPositions && (
+            <div>
+              <h5 className="font-medium text-gray-700 mb-2">Entry-Level Positions</h5>
+              <ul className="text-sm text-gray-600 space-y-1">
+                {phase.entryLevelPositions.map((position, index) => (
+                  <li key={index} className="flex items-start">
+                    <span className="text-emerald-500 mr-2">•</span>
+                    {position}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {phase.certifications && (
+            <div>
+              <h5 className="font-medium text-gray-700 mb-2">Certifications</h5>
+              <ul className="text-sm text-gray-600 space-y-1">
+                {phase.certifications.map((cert, index) => (
+                  <li key={index} className="flex items-start">
+                    <span className="text-amber-500 mr-2">•</span>
+                    {cert}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {phase.skillDevelopment && (
+            <div>
+              <h5 className="font-medium text-gray-700 mb-2">Skill Development</h5>
+              <ul className="text-sm text-gray-600 space-y-1">
+                {phase.skillDevelopment.map((skill, index) => (
+                  <li key={index} className="flex items-start">
+                    <span className="text-violet-500 mr-2">•</span>
+                    {skill}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {phase.networkingTips && (
+            <div>
+              <h5 className="font-medium text-gray-700 mb-2">Networking Tips</h5>
+              <ul className="text-sm text-gray-600 space-y-1">
+                {phase.networkingTips.map((tip, index) => (
+                  <li key={index} className="flex items-start">
+                    <span className="text-cyan-500 mr-2">•</span>
+                    {tip}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Advancement Phase Fields */}
+          {phase.careerProgression && (
+            <div>
+              <h5 className="font-medium text-gray-700 mb-2">Career Progression</h5>
+              <ul className="text-sm text-gray-600 space-y-1">
+                {phase.careerProgression.map((progression, index) => (
+                  <li key={index} className="flex items-start">
+                    <span className="text-rose-500 mr-2">•</span>
+                    {progression}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {phase.advancedCertifications && (
+            <div>
+              <h5 className="font-medium text-gray-700 mb-2">Advanced Certifications</h5>
+              <ul className="text-sm text-gray-600 space-y-1">
+                {phase.advancedCertifications.map((cert, index) => (
+                  <li key={index} className="flex items-start">
+                    <span className="text-yellow-500 mr-2">•</span>
+                    {cert}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {phase.leadershipOpportunities && (
+            <div>
+              <h5 className="font-medium text-gray-700 mb-2">Leadership Opportunities</h5>
+              <ul className="text-sm text-gray-600 space-y-1">
+                {phase.leadershipOpportunities.map((opportunity, index) => (
+                  <li key={index} className="flex items-start">
+                    <span className="text-lime-500 mr-2">•</span>
+                    {opportunity}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {phase.salaryProgression && (
+            <div>
+              <h5 className="font-medium text-gray-700 mb-2">Salary Progression</h5>
+              <ul className="text-sm text-gray-600 space-y-1">
+                {phase.salaryProgression.map((salary, index) => (
+                  <li key={index} className="flex items-start">
+                    <span className="text-green-500 mr-2">•</span>
+                    {salary}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Cost field (can appear in any phase) */}
           {phase.estimatedCost && (
             <div>
               <h5 className="font-medium text-gray-700 mb-2">Estimated Cost</h5>
