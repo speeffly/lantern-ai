@@ -31,11 +31,11 @@ export interface CareerRoadmapOutput {
   detailedPath: {
     highSchoolPhase: {
       timeframe: string;
-      requiredCourses: string[];
       recommendedCourses: string[];
       extracurriculars: string[];
       skillsToFocus: string[];
       milestones: string[];
+      internshipsAndSummerProgram: string[];
     };
     postSecondaryPhase: {
       timeframe: string;
@@ -59,12 +59,6 @@ export interface CareerRoadmapOutput {
       leadershipOpportunities: string[];
       salaryProgression: string[];
     };
-  };
-  personalizedRecommendations: {
-    strengthsToLeverage: string[];
-    areasForImprovement: string[];
-    specificActions: string[];
-    timelineAdjustments: string[];
   };
   localContext: {
     nearbySchools: string[];
@@ -211,19 +205,19 @@ Generate a detailed JSON roadmap with specific, actionable steps. Ensure all rec
   "detailedPath": {
     "highSchoolPhase": {
       "timeframe": "Grade ${studentData.grade} - 12",
-      "requiredCourses": ["Specific courses needed for this career"],
-      "recommendedCourses": ["Additional courses that would help"],
+      "recommendedCourses": ["Specific courses needed for this career and additional courses that would help"],
       "extracurriculars": ["Relevant clubs, activities, competitions"],
       "skillsToFocus": ["Key skills to develop during high school"],
-      "milestones": ["Specific achievements to aim for each year"]
+      "milestones": ["Specific achievements to aim for each year"],
+      "interships and summer program": ["Internship programs or summer opportunities. Include links for applying"]
     },
     "postSecondaryPhase": {
-      "timeframe": "1-4 years after high school",
-      "educationType": "Bachelor's degree/Associate degree/Certificate/etc.",
-      "specificPrograms": ["Exact degree programs or majors to consider"],
-      "estimatedCost": 40000,
-      "keyRequirements": ["GPA, test scores, prerequisites"],
-      "internshipOpportunities": ["Specific internship programs or companies"]
+      "timeframe": "X (based on career) years after high school",
+      "educationType": "Bachelor's degree in example field(s)/Associate degree in example field(s)/Certificate/etc.",
+      "specificPrograms": ["Colleges/schools/programs to consider"],
+      "estimatedCost": $#####,
+      "keyRequirements": ["Key Prerequisites from High school"],
+      "internshipOpportunities": ["Specific internship programs or companies. Include links for applying"]
     },
     "earlyCareerPhase": {
       "timeframe": "Years 1-3 in career",
@@ -239,12 +233,6 @@ Generate a detailed JSON roadmap with specific, actionable steps. Ensure all rec
       "leadershipOpportunities": ["Management and leadership roles"],
       "salaryProgression": ["Expected salary growth over time"]
     }
-  },
-  "personalizedRecommendations": {
-    "strengthsToLeverage": ["Based on course history and academic performance"],
-    "areasForImprovement": ["Specific gaps to address"],
-    "specificActions": ["Concrete next steps for this student"],
-    "timelineAdjustments": ["How to accelerate or modify standard timeline"]
   },
   "localContext": {
     "nearbySchools": ["Specific colleges/universities near ZIP ${studentData.zipCode}"],
@@ -319,11 +307,11 @@ Return ONLY the JSON response - no additional text or explanations.`;
         detailedPath: {
           highSchoolPhase: {
             timeframe: parsed.detailedPath?.highSchoolPhase?.timeframe || `Grade ${input.studentData.grade} - 12`,
-            requiredCourses: this.ensureArray(parsed.detailedPath?.highSchoolPhase?.requiredCourses, ['Core academic courses']),
             recommendedCourses: this.ensureArray(parsed.detailedPath?.highSchoolPhase?.recommendedCourses, ['Additional electives']),
             extracurriculars: this.ensureArray(parsed.detailedPath?.highSchoolPhase?.extracurriculars, ['Relevant activities']),
             skillsToFocus: this.ensureArray(parsed.detailedPath?.highSchoolPhase?.skillsToFocus, ['Communication', 'Problem-solving']),
-            milestones: this.ensureArray(parsed.detailedPath?.highSchoolPhase?.milestones, ['Maintain good grades'])
+            milestones: this.ensureArray(parsed.detailedPath?.highSchoolPhase?.milestones, ['Maintain good grades']),
+            internshipsAndSummerProgram: this.ensureArray(parsed.detailedPath?.highSchoolPhase?.['interships and summer program'], ['Summer programs and internships'])
           },
           postSecondaryPhase: {
             timeframe: parsed.detailedPath?.postSecondaryPhase?.timeframe || '2-4 years',
@@ -347,12 +335,6 @@ Return ONLY the JSON response - no additional text or explanations.`;
             leadershipOpportunities: this.ensureArray(parsed.detailedPath?.advancementPhase?.leadershipOpportunities, ['Leadership roles']),
             salaryProgression: this.ensureArray(parsed.detailedPath?.advancementPhase?.salaryProgression, ['Salary growth'])
           }
-        },
-        personalizedRecommendations: {
-          strengthsToLeverage: this.ensureArray(parsed.personalizedRecommendations?.strengthsToLeverage, ['Academic strengths']),
-          areasForImprovement: this.ensureArray(parsed.personalizedRecommendations?.areasForImprovement, ['Areas to develop']),
-          specificActions: this.ensureArray(parsed.personalizedRecommendations?.specificActions, ['Next steps']),
-          timelineAdjustments: this.ensureArray(parsed.personalizedRecommendations?.timelineAdjustments, ['Standard timeline'])
         },
         localContext: {
           nearbySchools: this.ensureArray(parsed.localContext?.nearbySchools, ['Local educational institutions']),
@@ -386,11 +368,11 @@ Return ONLY the JSON response - no additional text or explanations.`;
       detailedPath: {
         highSchoolPhase: {
           timeframe: `Grade ${studentData.grade} - 12`,
-          requiredCourses: ['English', 'Mathematics', 'Science', 'Social Studies'],
-          recommendedCourses: ['Electives related to career field'],
+          recommendedCourses: ['English', 'Mathematics', 'Science', 'Social Studies', 'Electives related to career field'],
           extracurriculars: ['Clubs and activities in area of interest'],
           skillsToFocus: ['Communication', 'Problem-solving', 'Critical thinking'],
-          milestones: ['Maintain good grades', 'Explore career through activities']
+          milestones: ['Maintain good grades', 'Explore career through activities'],
+          internshipsAndSummerProgram: ['Summer programs related to career field', 'Local internship opportunities']
         },
         postSecondaryPhase: {
           timeframe: '2-4 years after high school',
@@ -414,12 +396,6 @@ Return ONLY the JSON response - no additional text or explanations.`;
           leadershipOpportunities: ['Team leadership', 'Project management'],
           salaryProgression: ['Steady salary increases with experience']
         }
-      },
-      personalizedRecommendations: {
-        strengthsToLeverage: ['Academic preparation', 'Interest in field'],
-        areasForImprovement: ['Continue developing relevant skills'],
-        specificActions: ['Research career requirements', 'Explore educational options'],
-        timelineAdjustments: ['Follow standard timeline for career preparation']
       },
       localContext: {
         nearbySchools: ['Local colleges and universities'],

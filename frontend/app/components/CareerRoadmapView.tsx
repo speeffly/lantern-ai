@@ -12,11 +12,11 @@ interface CareerRoadmapOverview {
 
 interface CareerPhase {
   timeframe: string;
-  requiredCourses?: string[];
   recommendedCourses?: string[];
   extracurriculars?: string[];
   skillsToFocus?: string[];
   milestones?: string[];
+  internshipsAndSummerProgram?: string[];
   educationType?: string;
   specificPrograms?: string[];
   estimatedCost?: number;
@@ -40,12 +40,6 @@ interface CareerRoadmapData {
     postSecondaryPhase: CareerPhase;
     earlyCareerPhase: CareerPhase;
     advancementPhase: CareerPhase;
-  };
-  personalizedRecommendations: {
-    strengthsToLeverage: string[];
-    areasForImprovement: string[];
-    specificActions: string[];
-    timelineAdjustments: string[];
   };
   localContext: {
     nearbySchools: string[];
@@ -124,20 +118,6 @@ function CareerRoadmapCard({ career, roadmap, onGenerateRoadmap, isGenerating, e
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* High School Phase Fields */}
-          {phase.requiredCourses && (
-            <div>
-              <h5 className="font-medium text-gray-700 mb-2">Required Courses</h5>
-              <ul className="text-sm text-gray-600 space-y-1">
-                {phase.requiredCourses.map((course, index) => (
-                  <li key={index} className="flex items-start">
-                    <span className="text-blue-500 mr-2">•</span>
-                    {course}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
           {phase.recommendedCourses && (
             <div>
               <h5 className="font-medium text-gray-700 mb-2">Recommended Courses</h5>
@@ -188,6 +168,20 @@ function CareerRoadmapCard({ career, roadmap, onGenerateRoadmap, isGenerating, e
                   <li key={index} className="flex items-start">
                     <span className="text-orange-500 mr-2">•</span>
                     {milestone}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {phase.internshipsAndSummerProgram && (
+            <div>
+              <h5 className="font-medium text-gray-700 mb-2">Internships & Summer Programs</h5>
+              <ul className="text-sm text-gray-600 space-y-1">
+                {phase.internshipsAndSummerProgram.map((program, index) => (
+                  <li key={index} className="flex items-start">
+                    <span className="text-blue-500 mr-2">•</span>
+                    {program}
                   </li>
                 ))}
               </ul>
@@ -495,33 +489,11 @@ function CareerRoadmapCard({ career, roadmap, onGenerateRoadmap, isGenerating, e
             {activePhase === 'advancement' && renderPhaseContent(roadmap.detailedPath.advancementPhase, 'advancement')}
           </div>
 
-          {/* Personalized Recommendations */}
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-blue-50 rounded-lg p-4">
-              <h4 className="font-semibold text-blue-800 mb-3">Personalized for You</h4>
-              <div className="space-y-3">
-                <div>
-                  <h5 className="text-sm font-medium text-blue-700 mb-1">Strengths to Leverage</h5>
-                  <ul className="text-sm text-blue-600 space-y-1">
-                    {roadmap.personalizedRecommendations.strengthsToLeverage.map((strength, index) => (
-                      <li key={index}>• {strength}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <h5 className="text-sm font-medium text-blue-700 mb-1">Areas for Improvement</h5>
-                  <ul className="text-sm text-blue-600 space-y-1">
-                    {roadmap.personalizedRecommendations.areasForImprovement.map((area, index) => (
-                      <li key={index}>• {area}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
-
+          {/* Local Context */}
+          <div className="mt-6">
             <div className="bg-green-50 rounded-lg p-4">
               <h4 className="font-semibold text-green-800 mb-3">Local Context</h4>
-              <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <h5 className="text-sm font-medium text-green-700 mb-1">Nearby Schools</h5>
                   <ul className="text-sm text-green-600 space-y-1">
@@ -538,7 +510,20 @@ function CareerRoadmapCard({ career, roadmap, onGenerateRoadmap, isGenerating, e
                     ))}
                   </ul>
                 </div>
+                <div>
+                  <h5 className="text-sm font-medium text-green-700 mb-1">Regional Opportunities</h5>
+                  <ul className="text-sm text-green-600 space-y-1">
+                    {roadmap.localContext.regionalOpportunities.slice(0, 3).map((opportunity, index) => (
+                      <li key={index}>• {opportunity}</li>
+                    ))}
+                  </ul>
+                </div>
               </div>
+              {roadmap.localContext.costOfLivingImpact && (
+                <div className="mt-3 p-2 bg-green-100 rounded text-sm text-green-700">
+                  <strong>Cost of Living Impact:</strong> {roadmap.localContext.costOfLivingImpact}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -570,10 +555,11 @@ export default function CareerRoadmapView({ careers, studentData }: CareerRoadma
     detailedPath: {
       highSchoolPhase: {
         timeframe: 'Grade 9-12',
-        requiredCourses: ['English', 'Mathematics', 'Science'],
-        recommendedCourses: ['Electives related to career field'],
+        recommendedCourses: ['English', 'Mathematics', 'Science', 'Electives related to career field'],
+        extracurriculars: ['Clubs and activities in area of interest'],
         skillsToFocus: ['Communication', 'Problem-solving', 'Critical thinking'],
-        milestones: ['Maintain good grades', 'Explore career through activities']
+        milestones: ['Maintain good grades', 'Explore career through activities'],
+        internshipsAndSummerProgram: ['Summer programs related to career field', 'Local internship opportunities']
       },
       postSecondaryPhase: {
         timeframe: '2-4 years after high school',
@@ -597,12 +583,6 @@ export default function CareerRoadmapView({ careers, studentData }: CareerRoadma
         leadershipOpportunities: ['Team leadership', 'Project management'],
         salaryProgression: ['Steady salary increases with experience']
       }
-    },
-    personalizedRecommendations: {
-      strengthsToLeverage: ['Academic preparation', 'Interest in field'],
-      areasForImprovement: ['Continue developing relevant skills'],
-      specificActions: ['Research career requirements', 'Explore educational options'],
-      timelineAdjustments: ['Follow standard timeline for career preparation']
     },
     localContext: {
       nearbySchools: ['Local colleges and universities'],
