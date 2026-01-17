@@ -155,7 +155,7 @@ Apply comprehensive pathway analysis using these 7 critical factors:
    - Map most efficient route from current grade to career entry
    - Consider student's education commitment level and support system
    - Account for prerequisite sequencing and timing
-   - Suggest AP courses and catagories of elective courses the student can take if their school offers it
+   - Suggest AP courses and possible elective courses (ex. robotics, thermodynamics, organic chemistry, etc.)
 
 3. SKILL DEVELOPMENT SEQUENCING:
    - Identify core competencies needed for ${career.title}
@@ -164,24 +164,29 @@ Apply comprehensive pathway analysis using these 7 critical factors:
    - Make sure the suggested internship opportunities are in the same area as the student
    - Provide links to applications for internships or programs
    - Include summer programs as well
+  
+4. PROGRAM SPECIFICITY
+   - Have specific acccesible programs and prefer local over others
+   - Include links for applications into any programs, colleges, or internshps provided
+   - Ensure programs are real through searching internet
 
-4. REGIONAL OPPORTUNITY ANALYSIS:
+5. REGIONAL OPPORTUNITY ANALYSIS:
    - Research education options near ZIP ${studentData.zipCode}
    - Identify local employers and internship opportunities
    - Consider regional salary variations and cost of living
 
-5. TIMELINE PERSONALIZATION:
+6. TIMELINE PERSONALIZATION:
    - Adjust standard timelines based on student's current preparation level
    - Account for support system and education commitment
    - Provide realistic milestones and checkpoints
    - Divide the plan into sections (ex. high school, college, entry to career)
 
-6. COST-BENEFIT OPTIMIZATION:
+7. COST-BENEFIT OPTIMIZATION:
    - Estimate total education costs and potential ROI
    - Suggest cost-effective education pathways
    - Consider financial aid and scholarship opportunities
 
-7. RISK MITIGATION PLANNING:
+8. RISK MITIGATION PLANNING:
    - Identify potential obstacles and alternative pathways
    - Provide backup options and transferable skills
    - Include market trend considerations
@@ -244,7 +249,7 @@ Generate a detailed JSON roadmap with specific, actionable steps. Ensure all rec
 
 STOPPING:
 Ensure your roadmap meets these quality criteria:
-1. SPECIFICITY: All recommendations include specific names, programs, and actionable steps
+1. SPECIFICITY: All recommendations include specific names, programs, links, and actionable steps
 2. PERSONALIZATION: Every section reflects this student's unique situation and preparation
 3. REALISM: Timeline and costs are accurate and achievable
 4. COMPLETENESS: All phases from current grade through career advancement are covered
