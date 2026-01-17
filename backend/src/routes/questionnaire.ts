@@ -24,6 +24,25 @@ router.get('/', (req, res) => {
   }
 });
 
+// GET /api/questionnaire/test-profiles - Get test profiles
+router.get('/test-profiles', (req, res) => {
+  try {
+    const testProfiles = QuestionnaireService.getTestProfiles();
+    
+    res.json({
+      success: true,
+      data: testProfiles,
+      message: 'Test profiles retrieved successfully'
+    } as ApiResponse);
+  } catch (error) {
+    console.error('❌ Error getting test profiles:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve test profiles'
+    } as ApiResponse);
+  }
+});
+
 // GET /api/questionnaire/question/:questionId - Get a specific question
 router.get('/question/:questionId', (req, res) => {
   try {

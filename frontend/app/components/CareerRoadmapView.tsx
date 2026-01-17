@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 interface CareerRoadmapOverview {
   totalTimeToCareer: string;
@@ -66,18 +66,21 @@ interface CareerRoadmapCardProps {
   roadmap?: CareerRoadmapData;
   onGenerateRoadmap: (career: any) => void;
   isGenerating: boolean;
+  error?: string;
 }
 
-function CareerRoadmapCard({ career, roadmap, onGenerateRoadmap, isGenerating }: CareerRoadmapCardProps) {
+function CareerRoadmapCard({ career, roadmap, onGenerateRoadmap, isGenerating, error }: CareerRoadmapCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activePhase, setActivePhase] = useState<'highSchool' | 'postSecondary' | 'earlyCareer' | 'advancement'>('highSchool');
+  const [hasTriedGeneration, setHasTriedGeneration] = useState(false);
 
-  // Auto-generate roadmap when component mounts
+  // Auto-generate roadmap when component mounts (only once)
   useEffect(() => {
-    if (!roadmap && !isGenerating) {
+    if (!roadmap && !isGenerating && !hasTriedGeneration) {
+      setHasTriedGeneration(true);
       onGenerateRoadmap(career);
     }
-  }, [career, roadmap, isGenerating, onGenerateRoadmap]);
+  }, [career.title, roadmap, isGenerating, hasTriedGeneration]); // Remove onGenerateRoadmap from deps
 
   const getDifficultyColor = (level: string) => {
     switch (level) {
@@ -266,6 +269,18 @@ function CareerRoadmapCard({ career, roadmap, onGenerateRoadmap, isGenerating }:
           </div>
         )}
 
+        {/* Error State */}
+        {error && (
+          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="flex items-center">
+              <svg className="w-4 h-4 text-yellow-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+              <span className="text-yellow-800 text-sm">{error}</span>
+            </div>
+          </div>
+        )}
+
         {/* Action Button - Only show expand/collapse when roadmap is ready */}
         {roadmap && (
           <div className="mt-4">
@@ -372,12 +387,74 @@ interface CareerRoadmapViewProps {
 export default function CareerRoadmapView({ careers, studentData }: CareerRoadmapViewProps) {
   const [roadmaps, setRoadmaps] = useState<{ [careerTitle: string]: CareerRoadmapData }>({});
   const [generatingRoadmaps, setGeneratingRoadmaps] = useState<{ [careerTitle: string]: boolean }>({});
+  const [errors, setErrors] = useState<{ [careerTitle: string]: string }>({});
 
-  const generateRoadmap = async (career: any) => {
+  // Create fallback roadmap data
+  const createFallbackRoadmap = (career: any): CareerRoadmapData => ({
+    careerTitle: career.title,
+    overview: {
+      totalTimeToCareer: '4-6 years',
+      estimatedTotalCost: 50000,
+      educationLevel: career.requiredEducation || 'Post-secondary education',
+      difficultyLevel: 'Intermediate',
+      jobAvailability: 'Medium'
+    },
+    detailedPath: {
+      highSchoolPhase: {
+        timeframe: 'Grade 9-12',
+        requiredCourses: ['English', 'Mathematics', 'Science'],
+        recommendedCourses: ['Electives related to career field'],
+        skillsToFocus: ['Communication', 'Problem-solving', 'Critical thinking'],
+        milestones: ['Maintain good grades', 'Explore career through activities']
+      },
+      postSecondaryPhase: {
+        timeframe: '2-4 years after high school',
+        educationType: career.requiredEducation || 'Post-secondary education',
+        specificPrograms: [`Programs related to ${career.title}`],
+        estimatedCost: 40000,
+        keyRequirements: ['High school diploma', 'Good academic standing'],
+        internshipOpportunities: ['Industry-related internships']
+      },
+      earlyCareerPhase: {
+        timeframe: 'Years 1-3 in career',
+        entryLevelPositions: [`Entry-level ${career.title} positions`],
+        certifications: ['Relevant professional certifications'],
+        skillDevelopment: ['Industry-specific skills', 'Professional communication'],
+        networkingTips: ['Join professional associations', 'Attend industry events']
+      },
+      advancementPhase: {
+        timeframe: 'Years 4-10 in career',
+        careerProgression: ['Senior positions', 'Specialized roles', 'Management opportunities'],
+        advancedCertifications: ['Advanced professional certifications'],
+        leadershipOpportunities: ['Team leadership', 'Project management'],
+        salaryProgression: ['Steady salary increases with experience']
+      }
+    },
+    personalizedRecommendations: {
+      strengthsToLeverage: ['Academic preparation', 'Interest in field'],
+      areasForImprovement: ['Continue developing relevant skills'],
+      specificActions: ['Research career requirements', 'Explore educational options'],
+      timelineAdjustments: ['Follow standard timeline for career preparation']
+    },
+    localContext: {
+      nearbySchools: ['Local colleges and universities'],
+      localEmployers: ['Regional employers in the field'],
+      regionalOpportunities: ['Local job market opportunities'],
+      costOfLivingImpact: 'Consider local cost of living when planning'
+    }
+  });
+
+  const generateRoadmap = useCallback(async (career: any) => {
+    // Prevent multiple simultaneous requests for the same career
+    if (generatingRoadmaps[career.title] || roadmaps[career.title]) {
+      return;
+    }
+
     setGeneratingRoadmaps(prev => ({ ...prev, [career.title]: true }));
+    setErrors(prev => ({ ...prev, [career.title]: '' }));
 
     try {
-      const response = await fetch('/api/career-roadmap/generate', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/career-roadmap/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -400,16 +477,25 @@ export default function CareerRoadmapView({ careers, studentData }: CareerRoadma
           setRoadmaps(prev => ({ ...prev, [career.title]: data.data }));
         } else {
           console.error('Failed to generate roadmap:', data.error);
+          // Use fallback data
+          setRoadmaps(prev => ({ ...prev, [career.title]: createFallbackRoadmap(career) }));
+          setErrors(prev => ({ ...prev, [career.title]: 'Using fallback roadmap data' }));
         }
       } else {
         console.error('Failed to generate roadmap:', response.statusText);
+        // Use fallback data
+        setRoadmaps(prev => ({ ...prev, [career.title]: createFallbackRoadmap(career) }));
+        setErrors(prev => ({ ...prev, [career.title]: 'API unavailable - using fallback data' }));
       }
     } catch (error) {
       console.error('Error generating roadmap:', error);
+      // Use fallback data
+      setRoadmaps(prev => ({ ...prev, [career.title]: createFallbackRoadmap(career) }));
+      setErrors(prev => ({ ...prev, [career.title]: 'Network error - using fallback data' }));
     } finally {
       setGeneratingRoadmaps(prev => ({ ...prev, [career.title]: false }));
     }
-  };
+  }, [studentData, generatingRoadmaps, roadmaps]);
 
   return (
     <div className="space-y-6">
@@ -428,6 +514,7 @@ export default function CareerRoadmapView({ careers, studentData }: CareerRoadma
             roadmap={roadmaps[career.title]}
             onGenerateRoadmap={generateRoadmap}
             isGenerating={generatingRoadmaps[career.title] || false}
+            error={errors[career.title]}
           />
         ))}
       </div>

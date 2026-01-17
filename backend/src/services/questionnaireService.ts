@@ -31,6 +31,14 @@ export class QuestionnaireService {
   }
 
   /**
+   * Get test profiles from questionnaire data
+   */
+  static getTestProfiles(): any[] {
+    const questionnaire = questionnaireData as any;
+    return questionnaire.test_profiles || [];
+  }
+
+  /**
    * Get a specific question by ID
    */
   static getQuestion(questionId: string): Question | null {

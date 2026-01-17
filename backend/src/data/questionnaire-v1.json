@@ -477,5 +477,464 @@
       "maxLength": 1000,
       "required": true
     }
+  ],
+  "test_profiles": [
+    {
+      "profile_id": "D1_trade_electrician",
+      "name": "D1 Trade Electrician",
+      "q1_grade_zip": { 
+        "grade": "11", 
+        "zipCode": "78735" 
+      },
+      "q3_career_knowledge": "yes",
+      "q3a_career_categories": "trade",
+      "q3a1_trade_careers": "electrician",
+      "q4_academic_performance": {
+        "Math": "Good",
+        "Science (Biology, Chemistry, Physics)": "Average",
+        "English / Language Arts": "Average",
+        "Social Studies / History": "Average",
+        "Art / Creative Subjects": "Average",
+        "Physical Education / Health": "Good",
+        "Technology / Computer Science": "Average",
+        "Foreign Languages": "Haven't taken yet",
+        "Business / Economics": "Average"
+      },
+      "q4b_course_history": {
+        "Math": "Geometry Honors",
+        "Science (Biology, Chemistry, Physics)": "Physical Science",
+        "Technology / Computer Science": "Intro to Engineering/Shop"
+      },
+      "q5_education_willingness": "short_training",
+      "q14_constraints": ["earn_money_soon", "predictable_hours"],
+      "q17_support_confidence": "some_support",
+      "q19_20_impact_inspiration": "I want to build things that last and help people by making homes safer. I'm inspired by people who can fix anything and stay calm under pressure."
+    },
+    {
+      "profile_id": "D2_healthcare_registered_nurse",
+      "name": "D2 Healthcare Registered Nurse",
+      "q1_grade_zip": { 
+        "grade": "10", 
+        "zipCode": "75001" 
+      },
+      "q3_career_knowledge": "yes",
+      "q3a_career_categories": "healthcare",
+      "q3a6_healthcare_careers": "registered_nurse",
+      "q4_academic_performance": {
+        "Math": "Average",
+        "Science (Biology, Chemistry, Physics)": "Excellent",
+        "English / Language Arts": "Good",
+        "Social Studies / History": "Average",
+        "Art / Creative Subjects": "Average",
+        "Physical Education / Health": "Good",
+        "Technology / Computer Science": "Haven't taken yet",
+        "Foreign Languages": "Average",
+        "Business / Economics": "Average"
+      },
+      "q4b_course_history": {
+        "Science (Biology, Chemistry, Physics)": "Honors Biology",
+        "English / Language Arts": "Honors English"
+      },
+      "q5_education_willingness": "advanced_degree",
+      "q14_constraints": ["predictable_hours"],
+      "q17_support_confidence": "strong_support",
+      "q19_20_impact_inspiration": "I want to be someone families trust in tough moments. I'm inspired by nurses who stay kind and steady even when things are stressful."
+    },
+    {
+      "profile_id": "D3_engineering_mechanical_engineer",
+      "name": "D3 Engineering Mechanical Engineer",
+      "q1_grade_zip": { 
+        "grade": "12", 
+        "zipCode": "30301" 
+      },
+      "q3_career_knowledge": "yes",
+      "q3a_career_categories": "engineering",
+      "q3a2_engineering_careers": "mechanical_engineer",
+      "q4_academic_performance": {
+        "Math": "Excellent",
+        "Science (Biology, Chemistry, Physics)": "Good",
+        "English / Language Arts": "Average",
+        "Social Studies / History": "Average",
+        "Art / Creative Subjects": "Average",
+        "Physical Education / Health": "Average",
+        "Technology / Computer Science": "Good",
+        "Foreign Languages": "Average",
+        "Business / Economics": "Average"
+      },
+      "q4b_course_history": {
+        "Math": "AP Calculus AB, Honors Pre-Calculus",
+        "Science (Biology, Chemistry, Physics)": "Honors Physics",
+        "Technology / Computer Science": "Robotics, CAD"
+      },
+      "q5_education_willingness": "advanced_degree",
+      "q14_constraints": ["open_relocating"],
+      "q17_support_confidence": "some_support",
+      "q19_20_impact_inspiration": "I want to design machines that solve real problems and improve everyday life. I'm inspired by engineers who build practical solutions and keep improving them."
+    },
+    {
+      "profile_id": "D4_artist_ux_ui_designer",
+      "name": "D4 Artist UX UI Designer",
+      "q1_grade_zip": { 
+        "grade": "9", 
+        "zipCode": "94110" 
+      },
+      "q3_career_knowledge": "yes",
+      "q3a_career_categories": "artist",
+      "q3a9_artist_careers": "ux_ui_designer",
+      "q4_academic_performance": {
+        "Math": "Average",
+        "Science (Biology, Chemistry, Physics)": "Average",
+        "English / Language Arts": "Good",
+        "Social Studies / History": "Good",
+        "Art / Creative Subjects": "Excellent",
+        "Physical Education / Health": "Good",
+        "Technology / Computer Science": "Average",
+        "Foreign Languages": "Haven't taken yet",
+        "Business / Economics": "Haven't taken yet"
+      },
+      "q4b_course_history": {
+        "Art / Creative Subjects": "Digital Art",
+        "Technology / Computer Science": "Intro to Programming (if available)"
+      },
+      "q5_education_willingness": "college_technical",
+      "q14_constraints": ["flexible_hours"],
+      "q17_support_confidence": "some_support",
+      "q19_20_impact_inspiration": "I want to design things that feel easy and inclusive for everyone. I'm inspired by creators who make apps and products that are beautiful and simple."
+    },
+    {
+      "profile_id": "D5_law_paralegal",
+      "name": "D5 Law Paralegal",
+      "q1_grade_zip": { 
+        "grade": "11", 
+        "zipCode": "60614" 
+      },
+      "q3_career_knowledge": "yes",
+      "q3a_career_categories": "law",
+      "q3a10_law_careers": "paralegal",
+      "q4_academic_performance": {
+        "Math": "Average",
+        "Science (Biology, Chemistry, Physics)": "Average",
+        "English / Language Arts": "Good",
+        "Social Studies / History": "Excellent",
+        "Art / Creative Subjects": "Average",
+        "Physical Education / Health": "Average",
+        "Technology / Computer Science": "Average",
+        "Foreign Languages": "Average",
+        "Business / Economics": "Average"
+      },
+      "q4b_course_history": {
+        "Social Studies / History": "AP U.S. Government, Debate",
+        "English / Language Arts": "Honors English"
+      },
+      "q5_education_willingness": "college_technical",
+      "q14_constraints": ["predictable_hours", "stay_close_home"],
+      "q17_support_confidence": "some_support",
+      "q19_20_impact_inspiration": "I want to help people understand their rights and make fair decisions. I'm inspired by people who speak up and use facts to solve problems."
+    },
+    {
+      "profile_id": "U1_undecided_hands_on_builder",
+      "name": "U1 Undecided Hands On Builder",
+      "q1_grade_zip": { 
+        "grade": "9", 
+        "zipCode": "73301" 
+      },
+      "q3_career_knowledge": "no",
+      "q10_traits": ["hands_on", "patient", "detail_oriented"],
+      "q8_interests_text": "I like building LEGO sets, fixing bikes, and watching videos about how engines work.",
+      "q9_experience_text": "Helped my family with small home repairs and took care of tools in a garage.",
+      "q4_academic_performance": {
+        "Math": "Average",
+        "Science (Biology, Chemistry, Physics)": "Average",
+        "English / Language Arts": "Average",
+        "Social Studies / History": "Average",
+        "Art / Creative Subjects": "Average",
+        "Physical Education / Health": "Good",
+        "Technology / Computer Science": "Haven't taken yet",
+        "Foreign Languages": "Haven't taken yet",
+        "Business / Economics": "Haven't taken yet"
+      },
+      "q4b_course_history": {},
+      "q5_education_willingness": "short_training",
+      "q14_constraints": ["earn_money_soon"],
+      "q17_support_confidence": "some_support",
+      "q19_20_impact_inspiration": "I want to be useful and dependable. I'm inspired by people who can fix problems quickly and do quality work."
+    },
+    {
+      "profile_id": "U2_undecided_helping_people",
+      "name": "U2 Undecided Helping People",
+      "q1_grade_zip": { 
+        "grade": "10", 
+        "zipCode": "10001" 
+      },
+      "q3_career_knowledge": "no",
+      "q10_traits": ["compassionate", "collaborative", "patient"],
+      "q8_interests_text": "I like volunteering, working with kids, and learning about health and the human body.",
+      "q9_experience_text": "Volunteer at a community center and help with tutoring younger students.",
+      "q4_academic_performance": {
+        "Math": "Average",
+        "Science (Biology, Chemistry, Physics)": "Good",
+        "English / Language Arts": "Good",
+        "Social Studies / History": "Average",
+        "Art / Creative Subjects": "Average",
+        "Physical Education / Health": "Good",
+        "Technology / Computer Science": "Haven't taken yet",
+        "Foreign Languages": "Average",
+        "Business / Economics": "Haven't taken yet"
+      },
+      "q4b_course_history": {
+        "Science (Biology, Chemistry, Physics)": "Biology",
+        "English / Language Arts": "Honors English"
+      },
+      "q5_education_willingness": "advanced_degree",
+      "q14_constraints": ["predictable_hours"],
+      "q17_support_confidence": "strong_support",
+      "q19_20_impact_inspiration": "I want to support people when they're struggling. I'm inspired by mentors and healthcare workers who stay calm and kind."
+    },
+    {
+      "profile_id": "U3_undecided_tech_problem_solver",
+      "name": "U3 Undecided Tech Problem Solver",
+      "q1_grade_zip": { 
+        "grade": "11", 
+        "zipCode": "02139" 
+      },
+      "q3_career_knowledge": "no",
+      "q10_traits": ["analytical", "curious", "independent"],
+      "q8_interests_text": "I like coding small projects, solving puzzles, and learning how apps and networks work.",
+      "q9_experience_text": "Built a simple website and helped friends troubleshoot laptops and Wi-Fi.",
+      "q4_academic_performance": {
+        "Math": "Good",
+        "Science (Biology, Chemistry, Physics)": "Average",
+        "English / Language Arts": "Average",
+        "Social Studies / History": "Average",
+        "Art / Creative Subjects": "Average",
+        "Physical Education / Health": "Average",
+        "Technology / Computer Science": "Good",
+        "Foreign Languages": "Average",
+        "Business / Economics": "Average"
+      },
+      "q4b_course_history": {
+        "Math": "Pre-Calculus",
+        "Technology / Computer Science": "AP Computer Science Principles"
+      },
+      "q5_education_willingness": "college_technical",
+      "q14_constraints": ["flexible_hours"],
+      "q17_support_confidence": "some_support",
+      "q19_20_impact_inspiration": "I want to build tools that make life easier and safer online. I'm inspired by people who solve hard technical problems."
+    },
+    {
+      "profile_id": "U4_undecided_creative_communicator",
+      "name": "U4 Undecided Creative Communicator",
+      "q1_grade_zip": { 
+        "grade": "12", 
+        "zipCode": "90001" 
+      },
+      "q3_career_knowledge": "no",
+      "q10_traits": ["creative", "outgoing", "leadership"],
+      "q8_interests_text": "I enjoy making videos, designing posters, and talking to people. I like social media and storytelling.",
+      "q9_experience_text": "Managed a club's Instagram and edited videos for school events.",
+      "q4_academic_performance": {
+        "Math": "Average",
+        "Science (Biology, Chemistry, Physics)": "Average",
+        "English / Language Arts": "Good",
+        "Social Studies / History": "Average",
+        "Art / Creative Subjects": "Excellent",
+        "Physical Education / Health": "Average",
+        "Technology / Computer Science": "Average",
+        "Foreign Languages": "Average",
+        "Business / Economics": "Good"
+      },
+      "q4b_course_history": {
+        "Art / Creative Subjects": "Digital Media / Film",
+        "Business / Economics": "Marketing elective"
+      },
+      "q5_education_willingness": "college_technical",
+      "q14_constraints": ["earn_money_soon", "flexible_hours"],
+      "q17_support_confidence": "limited_support",
+      "q19_20_impact_inspiration": "I want to inspire people and create messages that matter. I'm inspired by creators who build communities and tell great stories."
+    },
+    {
+      "profile_id": "U5_undecided_public_service_minded",
+      "name": "U5 Undecided Public Service Minded",
+      "q1_grade_zip": { 
+        "grade": "10", 
+        "zipCode": "80202" 
+      },
+      "q3_career_knowledge": "no",
+      "q10_traits": ["leadership", "detail_oriented", "collaborative"],
+      "q8_interests_text": "I'm interested in government, fairness, and how communities work. I like organizing events and debates.",
+      "q9_experience_text": "Student council and helped run a school fundraiser; volunteered at a local food bank.",
+      "q4_academic_performance": {
+        "Math": "Average",
+        "Science (Biology, Chemistry, Physics)": "Average",
+        "English / Language Arts": "Good",
+        "Social Studies / History": "Good",
+        "Art / Creative Subjects": "Average",
+        "Physical Education / Health": "Average",
+        "Technology / Computer Science": "Average",
+        "Foreign Languages": "Average",
+        "Business / Economics": "Average"
+      },
+      "q4b_course_history": {
+        "Social Studies / History": "Civics / Government",
+        "English / Language Arts": "Speech & Debate"
+      },
+      "q5_education_willingness": "advanced_degree",
+      "q14_constraints": ["stay_close_home"],
+      "q17_support_confidence": "some_support",
+      "q19_20_impact_inspiration": "I want to help make rules and systems fair. I'm inspired by leaders who improve their communities through service."
+    },
+    {
+      "profile_id": "P1_business_path_unknown_specific",
+      "name": "P1 Business Path Unknown Specific",
+      "q1_grade_zip": { 
+        "grade": "11", 
+        "zipCode": "33101" 
+      },
+      "q3_career_knowledge": "yes",
+      "q3a_career_categories": "business_management",
+      "q3a3_business_careers": "other",
+      "q3a3_business_other": "I know I want a business/management career, but I'm not sure which role fits me best (maybe analytics, management, or finance).",
+      "q4_academic_performance": {
+        "Math": "Good",
+        "Science (Biology, Chemistry, Physics)": "Average",
+        "English / Language Arts": "Good",
+        "Social Studies / History": "Average",
+        "Art / Creative Subjects": "Average",
+        "Physical Education / Health": "Average",
+        "Technology / Computer Science": "Average",
+        "Foreign Languages": "Average",
+        "Business / Economics": "Good"
+      },
+      "q4b_course_history": {
+        "Business / Economics": "Intro to Business, Accounting elective",
+        "Math": "Statistics elective (if available)"
+      },
+      "q5_education_willingness": "college_technical",
+      "q14_constraints": ["earn_money_soon"],
+      "q17_support_confidence": "some_support",
+      "q19_20_impact_inspiration": "I want to build a stable career and lead teams well. I'm inspired by people who create opportunities and run organizations responsibly."
+    },
+    {
+      "profile_id": "P2_technology_path_unknown_specific",
+      "name": "P2 Technology Path Unknown Specific",
+      "q1_grade_zip": { 
+        "grade": "10", 
+        "zipCode": "98101" 
+      },
+      "q3_career_knowledge": "yes",
+      "q3a_career_categories": "technology",
+      "q3a4_technology_careers": "other",
+      "q3a4_technology_other": "I want a technology career but I'm not sure whether I should focus on cybersecurity, software, or data.",
+      "q4_academic_performance": {
+        "Math": "Good",
+        "Science (Biology, Chemistry, Physics)": "Average",
+        "English / Language Arts": "Average",
+        "Social Studies / History": "Average",
+        "Art / Creative Subjects": "Average",
+        "Physical Education / Health": "Average",
+        "Technology / Computer Science": "Good",
+        "Foreign Languages": "Average",
+        "Business / Economics": "Average"
+      },
+      "q4b_course_history": {
+        "Technology / Computer Science": "Intro to Programming",
+        "Math": "Algebra II"
+      },
+      "q5_education_willingness": "college_technical",
+      "q14_constraints": ["flexible_hours"],
+      "q17_support_confidence": "some_support",
+      "q19_20_impact_inspiration": "I want to build technology that protects people and solves problems. I'm inspired by people who create useful tools and keep learning."
+    },
+    {
+      "profile_id": "P3_educator_path_unknown_specific",
+      "name": "P3 Educator Path Unknown Specific",
+      "q1_grade_zip": { 
+        "grade": "12", 
+        "zipCode": "15213" 
+      },
+      "q3_career_knowledge": "yes",
+      "q3a_career_categories": "educator",
+      "q3a5_educator_careers": "other",
+      "q3a5_educator_other": "I know I want to work in education, but I'm not sure if I should teach, counsel, or work in curriculum/administration.",
+      "q4_academic_performance": {
+        "Math": "Average",
+        "Science (Biology, Chemistry, Physics)": "Average",
+        "English / Language Arts": "Good",
+        "Social Studies / History": "Good",
+        "Art / Creative Subjects": "Average",
+        "Physical Education / Health": "Average",
+        "Technology / Computer Science": "Average",
+        "Foreign Languages": "Average",
+        "Business / Economics": "Average"
+      },
+      "q4b_course_history": {
+        "English / Language Arts": "AP English Language",
+        "Social Studies / History": "Psychology elective"
+      },
+      "q5_education_willingness": "advanced_degree",
+      "q14_constraints": ["stay_close_home", "predictable_hours"],
+      "q17_support_confidence": "some_support",
+      "q19_20_impact_inspiration": "I want to help students feel supported and confident. I'm inspired by teachers and counselors who make school feel safe and meaningful."
+    },
+    {
+      "profile_id": "P4_public_safety_path_unknown_specific",
+      "name": "P4 Public Safety Path Unknown Specific",
+      "q1_grade_zip": { 
+        "grade": "9", 
+        "zipCode": "85001" 
+      },
+      "q3_career_knowledge": "yes",
+      "q3a_career_categories": "public_safety",
+      "q3a7_public_safety_careers": "other",
+      "q3a7_public_safety_other": "I want a public safety career, but I'm not sure whether EMT, firefighter, or law enforcement fits me best.",
+      "q4_academic_performance": {
+        "Math": "Average",
+        "Science (Biology, Chemistry, Physics)": "Average",
+        "English / Language Arts": "Average",
+        "Social Studies / History": "Average",
+        "Art / Creative Subjects": "Average",
+        "Physical Education / Health": "Good",
+        "Technology / Computer Science": "Haven't taken yet",
+        "Foreign Languages": "Haven't taken yet",
+        "Business / Economics": "Haven't taken yet"
+      },
+      "q4b_course_history": {
+        "Physical Education / Health": "Health class"
+      },
+      "q5_education_willingness": "short_training",
+      "q14_constraints": ["earn_money_soon"],
+      "q17_support_confidence": "some_support",
+      "q19_20_impact_inspiration": "I want to protect people and be helpful in emergencies. I'm inspired by first responders who stay brave and calm."
+    },
+    {
+      "profile_id": "P5_other_path_unknown_specific",
+      "name": "P5 Other Path Unknown Specific",
+      "q1_grade_zip": { 
+        "grade": "11", 
+        "zipCode": "20001" 
+      },
+      "q3_career_knowledge": "yes",
+      "q3a_career_categories": "other",
+      "q3a11_other_career": "I know I want a career in sports and fitness or athletic performance, but I'm not sure what job that would be.",
+      "q4_academic_performance": {
+        "Math": "Average",
+        "Science (Biology, Chemistry, Physics)": "Good",
+        "English / Language Arts": "Average",
+        "Social Studies / History": "Average",
+        "Art / Creative Subjects": "Average",
+        "Physical Education / Health": "Excellent",
+        "Technology / Computer Science": "Average",
+        "Foreign Languages": "Average",
+        "Business / Economics": "Average"
+      },
+      "q4b_course_history": {
+        "Physical Education / Health": "Sports Medicine elective (if available)",
+        "Science (Biology, Chemistry, Physics)": "Biology"
+      },
+      "q5_education_willingness": "college_technical",
+      "q14_constraints": ["predictable_hours"],
+      "q17_support_confidence": "some_support",
+      "q19_20_impact_inspiration": "I want to help people improve their health and performance. I'm inspired by coaches and trainers who motivate others to reach goals."
+    }
   ]
 }
