@@ -110,6 +110,7 @@ export interface CounselorRecommendation {
     strengths: string[];
     interests: string[];
     careerReadiness: string;
+    courseHistory?: { [subject: string]: string };
   };
   topJobMatches: JobRecommendation[];
   careerRoadmap: CareerRoadmap;
@@ -249,7 +250,7 @@ CRITICAL: Return ONLY the JSON object. No additional text, explanations, or form
       
       // Parse AI response
       console.log('\n🔍 PARSING AI RESPONSE...');
-      const parsedResponse = this.parseUndecidedAIResponse(aiResponse, grade, zipCode);
+      const parsedResponse = this.parseUndecidedAIResponse(aiResponse, grade, zipCode, responses);
       
       console.log('✅ Undecided career matching completed');
       console.log('📊 Result summary:');
@@ -283,7 +284,7 @@ CRITICAL: Return ONLY the JSON object. No additional text, explanations, or form
   /**
    * Parse the AI response for undecided students into the expected format
    */
-  private static parseUndecidedAIResponse(aiResponse: string, grade: string, zipCode: string): any {
+  private static parseUndecidedAIResponse(aiResponse: string, grade: string, zipCode: string, responses: any): any {
     try {
       // Clean the response to extract JSON
       let cleanResponse = aiResponse.trim();
@@ -352,7 +353,8 @@ CRITICAL: Return ONLY the JSON object. No additional text, explanations, or form
           grade: parseInt(grade),
           location: zipCode,
           careerReadiness: 'Exploring Options',
-          pathType: 'undecided'
+          pathType: 'undecided',
+          courseHistory: this.extractCourseHistory(responses)
         },
         topJobMatches: careerMatches,
         selectionRationale: parsed.selectionRationale || 'These careers were selected based on your interests and assessment responses',
@@ -384,7 +386,8 @@ CRITICAL: Return ONLY the JSON object. No additional text, explanations, or form
           grade: parseInt(grade),
           location: zipCode,
           careerReadiness: 'Exploring Options',
-          pathType: 'undecided'
+          pathType: 'undecided',
+          courseHistory: this.extractCourseHistory(responses)
         },
         topJobMatches: [
           {
@@ -1566,7 +1569,7 @@ CRITICAL: Return ONLY the JSON object. No additional text.`;
       
       // Parse AI response
       console.log('\n🔍 PARSING AI RESPONSE...');
-      const parsedResponse = this.parseDecidedAIResponse(aiResponse, grade, zipCode);
+      const parsedResponse = this.parseDecidedAIResponse(aiResponse, grade, zipCode, responses);
       
       console.log('✅ Direct counselor recommendations completed');
       console.log('📊 Result summary:');
@@ -1590,14 +1593,14 @@ CRITICAL: Return ONLY the JSON object. No additional text.`;
       
       // Return basic fallback
       console.log('🔄 USING BASIC FALLBACK (no AI)...');
-      return this.generateBasicFallback(grade, zipCode);
+      return this.generateBasicFallback(grade, zipCode, responses);
     }
   }
 
   /**
    * Parse AI response for decided students
    */
-  private static parseDecidedAIResponse(aiResponse: string, grade: string, zipCode: string): any {
+  private static parseDecidedAIResponse(aiResponse: string, grade: string, zipCode: string, responses: any): any {
     try {
       let cleanResponse = aiResponse.trim();
       cleanResponse = cleanResponse.replace(/```json\s*/g, '').replace(/```\s*$/g, '');
@@ -1642,7 +1645,8 @@ CRITICAL: Return ONLY the JSON object. No additional text.`;
         studentProfile: {
           grade: parseInt(grade),
           location: zipCode,
-          careerReadiness: 'Developing'
+          careerReadiness: 'Developing',
+          courseHistory: this.extractCourseHistory(responses)
         },
         topJobMatches: careerMatches,
         parentSummary: this.generateDynamicParentSummary(careerMatches, parseInt(grade), zipCode, parsed),
@@ -1692,21 +1696,22 @@ CRITICAL: Return ONLY the JSON object. No additional text.`;
       };
     } catch (parseError) {
       console.error('❌ Failed to parse decided AI response:', parseError);
-      return this.generateBasicFallback(grade, zipCode);
+      return this.generateBasicFallback(grade, zipCode, responses);
     }
   }
 
   /**
    * Basic fallback when AI completely fails
    */
-  private static generateBasicFallback(grade: string, zipCode: string): any {
+  private static generateBasicFallback(grade: string, zipCode: string, responses?: any): any {
     return {
       studentProfile: {
         grade: parseInt(grade),
         location: zipCode,
         strengths: ['Academic performance', 'Communication skills'],
         interests: ['Career exploration'],
-        careerReadiness: 'Developing'
+        careerReadiness: 'Developing',
+        courseHistory: responses ? this.extractCourseHistory(responses) : undefined
       },
       topJobMatches: [
         {
@@ -1752,5 +1757,27 @@ CRITICAL: Return ONLY the JSON object. No additional text.`;
       },
       fallbackMode: true // Flag to indicate this is fallback, not real AI
     };
+  }
+
+  /**
+   * Extract course history from assessment responses
+   */
+  private static extractCourseHistory(responses: any): { [subject: string]: string } | undefined {
+    const courseHistory = responses.q4b_course_history;
+    
+    if (!courseHistory || typeof courseHistory !== 'object') {
+      return undefined;
+    }
+
+    // Filter out empty entries and return clean course history
+    const cleanHistory: { [subject: string]: string } = {};
+    
+    Object.entries(courseHistory).forEach(([subject, courses]: [string, any]) => {
+      if (courses && typeof courses === 'string' && courses.trim()) {
+        cleanHistory[subject] = courses.trim();
+      }
+    });
+
+    return Object.keys(cleanHistory).length > 0 ? cleanHistory : undefined;
   }
 }

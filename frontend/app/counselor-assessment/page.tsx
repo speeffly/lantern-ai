@@ -11,10 +11,11 @@ interface CounselorQuestion {
   text: string;
   type: string;
   category: string;
+  description?: string;
   options?: (string | { key: string; label: string })[];
   subjects?: string[];
   rows?: string[];
-  columns?: string[];
+  columns?: (string | { key: string; label: string; placeholder?: string })[];
   fields?: {
     [key: string]: {
       type: string;
@@ -1522,7 +1523,7 @@ function CounselorAssessmentContent() {
                   </th>
                   {question.columns?.map((column, index) => (
                     <th key={index} className="text-center p-3 font-medium text-gray-700 min-w-[250px] border-b border-gray-200">
-                      <div className="text-sm">{column.label}</div>
+                      <div className="text-sm">{typeof column === 'string' ? column : column.label}</div>
                     </th>
                   ))}
                 </tr>
@@ -1536,14 +1537,15 @@ function CounselorAssessmentContent() {
                     {question.columns?.map((column, columnIndex) => (
                       <td key={columnIndex} className="p-3 border-b border-gray-200">
                         <textarea
-                          placeholder={column.placeholder || ''}
-                          value={currentAnswer[subject]?.[column.key] || ''}
+                          placeholder={typeof column === 'string' ? '' : (column.placeholder || '')}
+                          value={currentAnswer[subject]?.[typeof column === 'string' ? column : column.key] || ''}
                           onChange={(e) => {
+                            const columnKey = typeof column === 'string' ? column : column.key;
                             const newAnswer = {
                               ...currentAnswer,
                               [subject]: {
                                 ...currentAnswer[subject],
-                                [column.key]: e.target.value
+                                [columnKey]: e.target.value
                               }
                             };
                             handleAnswerChange(question.id, newAnswer);
