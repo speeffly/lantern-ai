@@ -9,6 +9,7 @@ export default function JobsPage() {
   const [searchKeywords, setSearchKeywords] = useState('');
   const [selectedCareer, setSelectedCareer] = useState('');
   const [showResults, setShowResults] = useState(false);
+  const [willingToRelocate, setWillingToRelocate] = useState(false);
 
   useEffect(() => {
     // Load saved ZIP code
@@ -113,6 +114,24 @@ export default function JobsPage() {
               </div>
             </div>
 
+            {/* Relocation Preference */}
+            <div className="mb-6">
+              <label className="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  checked={willingToRelocate}
+                  onChange={(e) => setWillingToRelocate(e.target.checked)}
+                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                />
+                <span className="text-sm font-medium text-gray-700">
+                  🚚 I'm willing to relocate for the right opportunity
+                </span>
+              </label>
+              <p className="text-xs text-gray-500 ml-7 mt-1">
+                This will show jobs in nearby cities and indicate distance/relocation requirements
+              </p>
+            </div>
+
             <div className="flex flex-col md:flex-row md:items-end gap-4">
               <button
                 onClick={handleSearch}
@@ -189,7 +208,8 @@ export default function JobsPage() {
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-semibold">Job Results</h2>
                 <div className="text-sm text-gray-500">
-                  Showing jobs within 40 miles of {zipCode}
+                  Showing jobs within {willingToRelocate ? '100' : '40'} miles of {zipCode}
+                  {willingToRelocate && ' (including relocation opportunities)'}
                   {searchKeywords && ` • Keywords: "${searchKeywords}"`}
                   {selectedCareer && ` • Career: ${selectedCareer}`}
                 </div>
@@ -201,6 +221,7 @@ export default function JobsPage() {
                 keywords={searchKeywords || undefined}
                 limit={20}
                 showTitle={false}
+                willingToRelocate={willingToRelocate}
               />
             </div>
           ) : (

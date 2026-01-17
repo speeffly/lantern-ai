@@ -15,6 +15,9 @@ export interface JobListing {
   experienceLevel: 'entry' | 'mid' | 'senior';
   educationRequired: string;
   distanceFromStudent?: number;
+  requiresRelocation?: boolean;
+  originalSearchRadius?: number;
+  nearbyCity?: string;
 }
 
 export class JobListingService {
@@ -25,27 +28,91 @@ export class JobListingService {
     careerTitle: string,
     zipCode: string,
     radiusMiles: number = 40,
-    limit: number = 10
+    limit: number = 10,
+    willingToRelocate: boolean = false
   ): Promise<JobListing[]> {
     try {
-      // Prefer real jobs when enabled and available
-      const realJobs = await RealJobProvider.searchJobs({
+      // First, try to get real jobs in the immediate area
+      const localJobs = await RealJobProvider.searchJobs({
         careerTitle,
         zipCode,
         radiusMiles,
         limit
       });
 
-      if (realJobs.length > 0) {
-        // console.log(`🟢 Using real jobs for career "${careerTitle}" in ${zipCode}: ${realJobs.length} found`);
-        return realJobs.slice(0, limit);
+      if (localJobs.length > 0) {
+        // console.log(`🟢 Using real jobs for career "${careerTitle}" in ${zipCode}: ${localJobs.length} found`);
+        return localJobs.slice(0, limit);
       }
 
-      // Otherwise, return mock data that looks realistic
-      // console.log(`🟠 Falling back to mock jobs for career "${careerTitle}" in ${zipCode}`);
-      const mockJobs = this.generateMockJobs(careerTitle, zipCode);
+      // If no local jobs found and user is willing to relocate, expand search
+      if (willingToRelocate && localJobs.length === 0) {
+        console.log(`🔍 No local jobs found, expanding search for willing-to-relocate user`);
+        
+        // Try expanded radius first (up to 100 miles)
+        const expandedJobs = await RealJobProvider.searchJobs({
+          careerTitle,
+          zipCode,
+          radiusMiles: 100,
+          limit
+        });
+
+        if (expandedJobs.length > 0) {
+          // Mark jobs as requiring relocation if they're beyond original radius
+          const markedJobs = expandedJobs.map(job => ({
+            ...job,
+            requiresRelocation: (job.distanceFromStudent || 0) > radiusMiles,
+            originalSearchRadius: radiusMiles
+          }));
+          console.log(`🟢 Found ${expandedJobs.length} jobs in expanded area`);
+          return markedJobs.slice(0, limit);
+        }
+
+        // Try nearby major cities/zip codes
+        const nearbyZipCodes = this.getNearbyZipCodes(zipCode);
+        const nearbyJobs: JobListing[] = [];
+
+        for (const nearbyZip of nearbyZipCodes) {
+          if (nearbyJobs.length >= limit) break;
+          
+          const jobs = await RealJobProvider.searchJobs({
+            careerTitle,
+            zipCode: nearbyZip.zipCode,
+            radiusMiles: 25, // Smaller radius for nearby cities
+            limit: Math.max(3, limit - nearbyJobs.length)
+          });
+
+          // Add location context to jobs from other cities
+          const contextualJobs = jobs.map(job => ({
+            ...job,
+            location: `${job.location} (${nearbyZip.city})`,
+            distanceFromStudent: nearbyZip.distanceMiles,
+            requiresRelocation: true,
+            originalSearchRadius: radiusMiles,
+            nearbyCity: nearbyZip.city
+          }));
+
+          nearbyJobs.push(...contextualJobs);
+        }
+
+        if (nearbyJobs.length > 0) {
+          console.log(`🟢 Found ${nearbyJobs.length} jobs in nearby cities`);
+          return nearbyJobs.slice(0, limit);
+        }
+      }
+
+      // If still no real jobs, fall back to mock data (but avoid junk links for non-relocating users)
+      if (!willingToRelocate) {
+        // For users not willing to relocate, return empty instead of junk mock jobs
+        console.log(`🔴 No local jobs found and user not willing to relocate`);
+        return [];
+      }
+
+      // For willing-to-relocate users, generate realistic mock jobs with proper context
+      console.log(`🟠 Falling back to contextual mock jobs for career "${careerTitle}"`);
+      const mockJobs = this.generateRelocatingMockJobs(careerTitle, zipCode);
       return mockJobs
-        .filter(job => (job.distanceFromStudent || 0) <= radiusMiles)
+        .filter(job => (job.distanceFromStudent || 0) <= 100) // Expanded radius for relocating users
         .sort((a, b) => (a.distanceFromStudent || 0) - (b.distanceFromStudent || 0))
         .slice(0, limit);
         
@@ -73,6 +140,24 @@ export class JobListingService {
   }
 
   /**
+   * Generate nearby locations based on ZIP code
+   */
+  private static generateNearbyLocations(zipCode: string): string[] {
+    // Simple location generation based on ZIP code prefix
+    const prefix = zipCode.substring(0, 2);
+    const locationMap: {[key: string]: string[]} = {
+      '78': ['Austin, TX', 'Round Rock, TX', 'Cedar Park, TX'],
+      '94': ['San Francisco, CA', 'Oakland, CA', 'San Jose, CA'],
+      '10': ['New York, NY', 'Brooklyn, NY', 'Queens, NY'],
+      '60': ['Chicago, IL', 'Evanston, IL', 'Naperville, IL'],
+      '33': ['Miami, FL', 'Fort Lauderdale, FL', 'Hollywood, FL'],
+      'default': ['Local Area', 'Nearby City', 'Metro Area']
+    };
+    
+    return locationMap[prefix] || locationMap['default'];
+  }
+
+  /**
    * Get job templates based on career type
    */
   private static getJobTemplates(careerTitle: string): Omit<JobListing, 'id' | 'location' | 'distanceFromStudent' | 'postedDate' | 'applicationUrl'>[] {
@@ -93,20 +178,139 @@ export class JobListingService {
   }
 
   /**
-   * Generate nearby locations based on ZIP code
+   * Get nearby major cities/zip codes for expanded job search
    */
-  private static generateNearbyLocations(zipCode: string): string[] {
-    // In a real implementation, this would use geocoding APIs
-    return [
-      'Downtown Medical District',
-      'Westside Industrial Park',
-      'County Hospital Campus',
-      'Main Street Business District',
-      'Regional Shopping Center',
-      'University Medical Center',
-      'North County Facility',
-      'Southside Community Center'
-    ];
+  private static getNearbyZipCodes(zipCode: string): Array<{zipCode: string, city: string, distanceMiles: number}> {
+    // This is a simplified implementation. In production, you'd use a geocoding service
+    // or a comprehensive zip code database with actual distances
+    const zipToRegion: {[key: string]: Array<{zipCode: string, city: string, distanceMiles: number}>} = {
+      // Texas (Austin area - 78xxx)
+      '78': [
+        { zipCode: '75201', city: 'Dallas', distanceMiles: 195 },
+        { zipCode: '77001', city: 'Houston', distanceMiles: 165 },
+        { zipCode: '78201', city: 'San Antonio', distanceMiles: 80 }
+      ],
+      // California (San Francisco area - 94xxx)
+      '94': [
+        { zipCode: '90210', city: 'Los Angeles', distanceMiles: 380 },
+        { zipCode: '95101', city: 'San Jose', distanceMiles: 50 },
+        { zipCode: '92101', city: 'San Diego', distanceMiles: 500 }
+      ],
+      // New York (NYC area - 10xxx)
+      '10': [
+        { zipCode: '19101', city: 'Philadelphia', distanceMiles: 95 },
+        { zipCode: '02101', city: 'Boston', distanceMiles: 215 },
+        { zipCode: '20001', city: 'Washington DC', distanceMiles: 225 }
+      ],
+      // Illinois (Chicago area - 60xxx)
+      '60': [
+        { zipCode: '53201', city: 'Milwaukee', distanceMiles: 90 },
+        { zipCode: '46201', city: 'Indianapolis', distanceMiles: 185 },
+        { zipCode: '63101', city: 'St. Louis', distanceMiles: 300 }
+      ],
+      // Florida (Miami area - 33xxx)
+      '33': [
+        { zipCode: '32801', city: 'Orlando', distanceMiles: 235 },
+        { zipCode: '33601', city: 'Tampa', distanceMiles: 280 },
+        { zipCode: '32301', city: 'Tallahassee', distanceMiles: 470 }
+      ],
+      // Default major cities for other areas
+      'default': [
+        { zipCode: '10001', city: 'New York', distanceMiles: 250 },
+        { zipCode: '90210', city: 'Los Angeles', distanceMiles: 300 },
+        { zipCode: '60601', city: 'Chicago', distanceMiles: 200 }
+      ]
+    };
+
+    const prefix = zipCode.substring(0, 2);
+    return zipToRegion[prefix] || zipToRegion['default'];
+  }
+
+  /**
+   * Generate realistic mock jobs for users willing to relocate
+   */
+  private static generateRelocatingMockJobs(careerTitle: string, zipCode: string): JobListing[] {
+    const nearbyAreas = this.getNearbyZipCodes(zipCode);
+    const jobs: JobListing[] = [];
+
+    nearbyAreas.forEach((area, index) => {
+      const job: JobListing = {
+        id: `relocate_${Date.now()}_${index}`,
+        title: `${careerTitle} - ${area.city} Opportunity`,
+        company: `${area.city} Employer`,
+        location: `${area.city} Metro Area`,
+        salary: this.generateRealisticSalary(careerTitle),
+        description: `Exciting ${careerTitle} opportunity in ${area.city}. This position offers growth potential in a dynamic market.`,
+        requirements: this.getCareerRequirements(careerTitle),
+        postedDate: this.getRandomRecentDate(),
+        applicationUrl: `https://jobs.${area.city.toLowerCase().replace(/\s+/g, '')}.gov/careers/${careerTitle.toLowerCase().replace(/\s+/g, '-')}`,
+        source: 'local',
+        experienceLevel: 'entry',
+        educationRequired: this.getEducationRequirement(careerTitle),
+        distanceFromStudent: area.distanceMiles,
+        requiresRelocation: true,
+        nearbyCity: area.city
+      };
+      jobs.push(job);
+    });
+
+    return jobs;
+  }
+
+  /**
+   * Generate realistic salary ranges based on career type
+   */
+  private static generateRealisticSalary(careerTitle: string): string {
+    const salaryRanges: {[key: string]: {min: number, max: number}} = {
+      'registered nurse': { min: 65000, max: 85000 },
+      'electrician': { min: 45000, max: 70000 },
+      'software developer': { min: 70000, max: 120000 },
+      'medical assistant': { min: 35000, max: 45000 },
+      'construction worker': { min: 35000, max: 55000 },
+      'teacher': { min: 40000, max: 60000 },
+      'mechanic': { min: 40000, max: 65000 },
+      'default': { min: 35000, max: 55000 }
+    };
+
+    const key = careerTitle.toLowerCase();
+    const range = salaryRanges[key] || salaryRanges['default'];
+    return `$${range.min.toLocaleString()} - $${range.max.toLocaleString()}`;
+  }
+
+  /**
+   * Get realistic requirements based on career type
+   */
+  private static getCareerRequirements(careerTitle: string): string[] {
+    const requirements: {[key: string]: string[]} = {
+      'registered nurse': ['RN License', 'BSN Preferred', 'CPR Certification'],
+      'electrician': ['Electrical License', 'OSHA 10', 'Trade School Certificate'],
+      'software developer': ['Programming Skills', 'Computer Science Degree', 'Portfolio'],
+      'medical assistant': ['Medical Assistant Certification', 'CPR Certification'],
+      'construction worker': ['Physical Fitness', 'Safety Training', 'Reliable Transportation'],
+      'teacher': ['Teaching License', 'Education Degree', 'Background Check'],
+      'mechanic': ['ASE Certification', 'Technical Training', 'Tool Proficiency'],
+      'default': ['High School Diploma', 'Reliable Transportation', 'Good Communication']
+    };
+
+    return requirements[careerTitle.toLowerCase()] || requirements['default'];
+  }
+
+  /**
+   * Get education requirements based on career type
+   */
+  private static getEducationRequirement(careerTitle: string): string {
+    const education: {[key: string]: string} = {
+      'registered nurse': 'Associate or Bachelor\'s Degree in Nursing',
+      'electrician': 'Trade School or Apprenticeship',
+      'software developer': 'Bachelor\'s Degree in Computer Science',
+      'medical assistant': 'Certificate or Associate Degree',
+      'construction worker': 'High School Diploma',
+      'teacher': 'Bachelor\'s Degree + Teaching License',
+      'mechanic': 'Technical Certificate or Associate Degree',
+      'default': 'High School Diploma or Equivalent'
+    };
+
+    return education[careerTitle.toLowerCase()] || education['default'];
   }
 
   /**
@@ -151,7 +355,8 @@ export class JobListingService {
     keywords: string,
     zipCode: string,
     radiusMiles: number = 40,
-    limit: number = 20
+    limit: number = 20,
+    willingToRelocate: boolean = false
   ): Promise<JobListing[]> {
     // Prefer real jobs when enabled and available (try keyword-first)
     const realJobs = await RealJobProvider.searchJobs({
@@ -166,6 +371,25 @@ export class JobListingService {
       return realJobs.slice(0, limit);
     }
 
+    // If no keyword hits and user willing to relocate, try expanded search
+    if (willingToRelocate) {
+      const expandedResults = await RealJobProvider.searchJobs({
+        keywords,
+        zipCode,
+        radiusMiles: 100,
+        limit
+      });
+
+      if (expandedResults.length > 0) {
+        const markedJobs = expandedResults.map(job => ({
+          ...job,
+          requiresRelocation: (job.distanceFromStudent || 0) > radiusMiles,
+          originalSearchRadius: radiusMiles
+        }));
+        return markedJobs.slice(0, limit);
+      }
+    }
+
     // If no keyword hits, try AI-expanded keywords to broaden real-job search
     const expandedKeywords = await this.expandKeywords(keywords);
     const expandedResults: JobListing[] = [];
@@ -173,7 +397,7 @@ export class JobListingService {
       const extra = await RealJobProvider.searchJobs({
         keywords: kw,
         zipCode,
-        radiusMiles,
+        radiusMiles: willingToRelocate ? 100 : radiusMiles,
         limit
       });
       expandedResults.push(...extra);
@@ -182,7 +406,12 @@ export class JobListingService {
 
     if (expandedResults.length > 0) {
       // console.log(`🟢 Using real jobs for expanded search "${keywords}" -> [${expandedKeywords.join(', ')}] in ${zipCode}: ${expandedResults.length} found`);
-      return this.dedup(expandedResults).slice(0, limit);
+      const markedJobs = expandedResults.map(job => ({
+        ...job,
+        requiresRelocation: willingToRelocate && (job.distanceFromStudent || 0) > radiusMiles,
+        originalSearchRadius: radiusMiles
+      }));
+      return this.dedup(markedJobs).slice(0, limit);
     }
 
     // If still empty, try inferring careers and searching those (may still hit real jobs inside getJobListings)
@@ -190,7 +419,7 @@ export class JobListingService {
     const allJobs: JobListing[] = [];
 
     for (const career of relevantCareers) {
-      const jobs = await this.getJobListings(career, zipCode, radiusMiles, 5);
+      const jobs = await this.getJobListings(career, zipCode, radiusMiles, 5, willingToRelocate);
       allJobs.push(...jobs);
     }
 

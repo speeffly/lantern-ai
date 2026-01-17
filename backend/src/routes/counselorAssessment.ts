@@ -544,6 +544,7 @@ router.post('/submit', upload.single('transcriptFile'), async (req, res) => {
       data: {
         assessmentSessionId,
         recommendations: counselorRecommendation,
+        assessmentResponses: responses, // Include the original responses
         summary: {
           totalJobMatches: counselorRecommendation.topJobMatches.length,
           topCareer: counselorRecommendation.topJobMatches[0]?.career.title,
@@ -588,6 +589,21 @@ router.get('/results/:sessionId', authenticateToken, async (req, res) => {
       } as ApiResponse);
     }
 
+    // Get assessment answers/responses
+    const assessmentAnswers = await AssessmentServiceDB.getAnswers(session.session_token);
+    
+    // Convert answers array back to responses object
+    const assessmentResponses: any = {};
+    assessmentAnswers.forEach(answer => {
+      try {
+        // Try to parse as JSON first (for complex answers)
+        assessmentResponses[answer.questionId] = JSON.parse(answer.answer as string);
+      } catch {
+        // If not JSON, use as string
+        assessmentResponses[answer.questionId] = answer.answer;
+      }
+    });
+
     // Get career recommendations (which now includes full_recommendations)
     const recommendations = await CareerPlanService.getUserCareerRecommendations(userId);
     
@@ -602,6 +618,7 @@ router.get('/results/:sessionId', authenticateToken, async (req, res) => {
         data: {
           session,
           recommendations: sessionRecommendation.full_recommendations,
+          assessmentResponses, // Include the assessment responses
           actionPlans: [] // Can be populated if needed
         },
         message: 'Assessment results retrieved successfully'
@@ -617,6 +634,7 @@ router.get('/results/:sessionId', authenticateToken, async (req, res) => {
       data: {
         session,
         recommendations,
+        assessmentResponses, // Include the assessment responses
         actionPlans
       },
       message: 'Assessment results retrieved successfully'

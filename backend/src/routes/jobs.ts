@@ -12,7 +12,8 @@ router.get('/search', async (req, res) => {
       zipCode, 
       radius = 40, 
       limit = 10,
-      keywords 
+      keywords,
+      willingToRelocate = 'false'
     } = req.query;
 
     if (!zipCode) {
@@ -22,6 +23,7 @@ router.get('/search', async (req, res) => {
       } as ApiResponse);
     }
 
+    const isWillingToRelocate = willingToRelocate === 'true' || willingToRelocate === '1';
     let jobs;
     
     if (keywords) {
@@ -30,7 +32,8 @@ router.get('/search', async (req, res) => {
         keywords as string,
         zipCode as string,
         parseInt(radius as string),
-        parseInt(limit as string)
+        parseInt(limit as string),
+        isWillingToRelocate
       );
     } else if (career) {
       // Search by specific career
@@ -38,7 +41,8 @@ router.get('/search', async (req, res) => {
         career as string,
         zipCode as string,
         parseInt(radius as string),
-        parseInt(limit as string)
+        parseInt(limit as string),
+        isWillingToRelocate
       );
     } else {
       // Get entry-level jobs
@@ -67,7 +71,12 @@ router.get('/search', async (req, res) => {
 router.get('/career/:careerTitle', async (req, res) => {
   try {
     const { careerTitle } = req.params;
-    const { zipCode, radius = 40, limit = 10 } = req.query;
+    const { 
+      zipCode, 
+      radius = 40, 
+      limit = 10,
+      willingToRelocate = 'false'
+    } = req.query;
 
     if (!zipCode) {
       return res.status(400).json({
@@ -76,11 +85,14 @@ router.get('/career/:careerTitle', async (req, res) => {
       } as ApiResponse);
     }
 
+    const isWillingToRelocate = willingToRelocate === 'true' || willingToRelocate === '1';
+
     const jobs = await JobListingService.getJobListings(
       decodeURIComponent(careerTitle),
       zipCode as string,
       parseInt(radius as string),
-      parseInt(limit as string)
+      parseInt(limit as string),
+      isWillingToRelocate
     );
 
     res.json({

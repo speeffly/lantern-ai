@@ -53,6 +53,7 @@ interface UnifiedCareerOptionsProps {
   isUndecidedPath?: boolean;
   title?: string;
   subtitle?: string;
+  willingToRelocate?: boolean;
 }
 
 export default function UnifiedCareerOptions({ 
@@ -63,7 +64,8 @@ export default function UnifiedCareerOptions({
   onCareerSelect,
   isUndecidedPath = false,
   title,
-  subtitle
+  subtitle,
+  willingToRelocate = false
 }: UnifiedCareerOptionsProps) {
   const router = useRouter();
   const [selectedCareer, setSelectedCareer] = useState<string | null>(null);
@@ -439,6 +441,7 @@ export default function UnifiedCareerOptions({
             zipCode={zipCode}
             limit={5}
             showTitle={false}
+            willingToRelocate={willingToRelocate}
           />
           
           <div className="mt-6 pt-4 border-t border-gray-200">

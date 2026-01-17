@@ -16,6 +16,9 @@ interface JobListing {
   experienceLevel: 'entry' | 'mid' | 'senior';
   educationRequired: string;
   distanceFromStudent?: number;
+  requiresRelocation?: boolean;
+  originalSearchRadius?: number;
+  nearbyCity?: string;
 }
 
 interface JobListingsProps {
@@ -24,6 +27,7 @@ interface JobListingsProps {
   keywords?: string;
   limit?: number;
   showTitle?: boolean;
+  willingToRelocate?: boolean;
 }
 
 export default function JobListings({ 
@@ -31,7 +35,8 @@ export default function JobListings({
   zipCode, 
   keywords,
   limit = 5, 
-  showTitle = true 
+  showTitle = true,
+  willingToRelocate = false
 }: JobListingsProps) {
   const [jobs, setJobs] = useState<JobListing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -41,7 +46,7 @@ export default function JobListings({
     if (zipCode) {
       fetchJobs();
     }
-  }, [careerTitle, zipCode, keywords, limit]);
+  }, [careerTitle, zipCode, keywords, limit, willingToRelocate]);
 
   const fetchJobs = async () => {
     try {
@@ -49,6 +54,11 @@ export default function JobListings({
       setError(null);
 
       let url = `${process.env.NEXT_PUBLIC_API_URL}/api/jobs/search?zipCode=${zipCode}&limit=${limit}`;
+      
+      // Add willingness to relocate parameter
+      if (willingToRelocate) {
+        url += '&willingToRelocate=true';
+      }
       
       // Priority: keywords > careerTitle
       if (keywords && keywords.trim()) {
@@ -181,10 +191,20 @@ export default function JobListings({
                 <div className="flex items-center gap-2 mb-1">
                   <h4 className="font-semibold text-gray-900">{job.title}</h4>
                   <span className="text-lg">{getSourceIcon(job.source)}</span>
+                  {job.requiresRelocation && (
+                    <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full">
+                      📍 Relocation
+                    </span>
+                  )}
                 </div>
                 <p className="text-gray-600 text-sm">{job.company} • {job.location}</p>
                 {job.distanceFromStudent && (
-                  <p className="text-gray-500 text-xs">{job.distanceFromStudent} miles away</p>
+                  <p className="text-gray-500 text-xs">
+                    {job.distanceFromStudent} miles away
+                    {job.requiresRelocation && job.nearbyCity && (
+                      <span className="text-orange-600"> • {job.nearbyCity} area</span>
+                    )}
+                  </p>
                 )}
               </div>
               <div className="text-right">
@@ -196,6 +216,12 @@ export default function JobListings({
             </div>
 
             <p className="text-gray-700 text-sm mb-3 line-clamp-2">{job.description}</p>
+
+            {job.requiresRelocation && (
+              <div className="mb-3 p-2 bg-orange-50 border border-orange-200 rounded text-xs text-orange-700">
+                💡 This position is outside your local area and may require relocation or a longer commute.
+              </div>
+            )}
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
