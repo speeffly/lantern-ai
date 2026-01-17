@@ -124,7 +124,7 @@ export class CareerRoadmapService {
     return `RTCROS PERSONALIZED CAREER ROADMAP GENERATOR
 
 ROLE:
-You are a Senior Career Counselor AI specializing in creating detailed, personalized career roadmaps for high school students. Your expertise includes education pathway planning, skill development sequencing, and regional career market analysis.
+You are a Senior Career Counselor specializing in creating detailed, personalized career roadmaps for high school students. Your expertise includes education pathway planning, skill development sequencing, and regional career market analysis.
 
 TASK:
 Create a comprehensive, step-by-step career roadmap for a Grade ${studentData.grade} student pursuing a career as a ${career.title}. The roadmap must be personalized based on their current academic preparation, course history, and local context.
@@ -144,7 +144,7 @@ Student Profile:
 
 Academic Preparation Analysis:
 Course History (Advanced/Specialized Courses Taken):
-${courseHistoryText || '  No advanced courses reported'}
+${courseHistoryText || '  No advanced or specialized courses reported'}
 
 Academic Performance Self-Assessment:
 ${academicPerformanceText}
@@ -161,11 +161,15 @@ Apply comprehensive pathway analysis using these 7 critical factors:
    - Map most efficient route from current grade to career entry
    - Consider student's education commitment level and support system
    - Account for prerequisite sequencing and timing
+   - Suggest AP courses and catagories of elective courses the student can take if their school offers it
 
 3. SKILL DEVELOPMENT SEQUENCING:
    - Identify core competencies needed for ${career.title}
    - Create logical skill-building progression from high school through career entry
    - Prioritize skills based on student's current strengths and interests
+   - Make sure the suggested internship opportunities are in the same area as the student
+   - Provide links to applications for internships or programs
+   - Include summer programs as well
 
 4. REGIONAL OPPORTUNITY ANALYSIS:
    - Research education options near ZIP ${studentData.zipCode}
@@ -176,6 +180,7 @@ Apply comprehensive pathway analysis using these 7 critical factors:
    - Adjust standard timelines based on student's current preparation level
    - Account for support system and education commitment
    - Provide realistic milestones and checkpoints
+   - Divide the plan into sections (ex. high school, college, entry to career)
 
 6. COST-BENEFIT OPTIMIZATION:
    - Estimate total education costs and potential ROI
@@ -186,13 +191,6 @@ Apply comprehensive pathway analysis using these 7 critical factors:
    - Identify potential obstacles and alternative pathways
    - Provide backup options and transferable skills
    - Include market trend considerations
-
-CRITICAL PERSONALIZATION FACTORS:
-- Current Grade ${studentData.grade} means ${12 - studentData.grade} years until high school graduation
-- Course history shows: ${courseHistoryText ? 'Advanced preparation in multiple areas' : 'Standard preparation level'}
-- Academic performance indicates: ${this.analyzeAcademicStrength(studentData.academicPerformance)}
-- Support level (${studentData.supportLevel}) affects pathway feasibility and timeline
-- Education commitment (${studentData.educationCommitment}) determines post-secondary options
 
 OUTPUT:
 Generate a detailed JSON roadmap with specific, actionable steps. Ensure all recommendations are:
