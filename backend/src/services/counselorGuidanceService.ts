@@ -4,6 +4,7 @@ import { CleanAIRecommendationService } from './cleanAIRecommendationService';
 import { DynamicSalaryService } from './dynamicSalaryService';
 import { EnhancedCareerService } from './enhancedCareerService';
 import { CareerMatchingService, EnhancedCareerMatch } from './careerMatchingService';
+import { CareerRoadmapService, CareerRoadmapInput } from './careerRoadmapService';
 
 export interface CounselorAssessmentResponse {
   grade?: number;
@@ -1779,5 +1780,82 @@ CRITICAL: Return ONLY the JSON object. No additional text.`;
     });
 
     return Object.keys(cleanHistory).length > 0 ? cleanHistory : undefined;
+  }
+
+  /**
+   * Generate enhanced career roadmaps for all recommended careers
+   */
+  static async generateEnhancedCareerRoadmaps(
+    careerMatches: any[], 
+    responses: any, 
+    grade: number, 
+    zipCode: string
+  ): Promise<any[]> {
+    console.log(`🗺️ Generating enhanced roadmaps for ${careerMatches.length} careers`);
+    
+    const roadmaps = [];
+    
+    // Extract student data from responses
+    const studentData = {
+      grade: grade,
+      zipCode: zipCode,
+      courseHistory: this.extractCourseHistory(responses) || {},
+      academicPerformance: responses.q4_academic_performance || {},
+      supportLevel: this.extractSupportLevel(responses),
+      educationCommitment: responses.q7_education_commitment || 'bachelors'
+    };
+
+    // Generate roadmap for each career (limit to top 5 to avoid rate limits)
+    const topCareers = careerMatches.slice(0, 5);
+    
+    for (const match of topCareers) {
+      try {
+        const roadmapInput: CareerRoadmapInput = {
+          career: {
+            title: match.career.title,
+            sector: match.career.sector || 'general',
+            requiredEducation: match.career.requiredEducation || 'High school diploma',
+            averageSalary: match.career.averageSalary || 50000,
+            description: match.career.description || `Career in ${match.career.title}`
+          },
+          studentData: studentData
+        };
+
+        const roadmap = await CareerRoadmapService.generateCareerRoadmap(roadmapInput);
+        roadmaps.push({
+          careerTitle: match.career.title,
+          matchScore: match.matchScore,
+          roadmap: roadmap
+        });
+        
+        console.log(`✅ Generated enhanced roadmap for ${match.career.title}`);
+        
+        // Add delay to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+      } catch (error) {
+        console.error(`❌ Failed to generate roadmap for ${match.career.title}:`, error);
+        // Continue with other careers
+      }
+    }
+
+    console.log(`✅ Generated ${roadmaps.length} enhanced career roadmaps`);
+    return roadmaps;
+  }
+
+  /**
+   * Extract support level from responses
+   */
+  private static extractSupportLevel(responses: any): string {
+    // Look for support-related questions in responses
+    if (responses.q6_helping_others) {
+      const helpingLevel = responses.q6_helping_others;
+      if (helpingLevel === 'very_important') return 'high';
+      if (helpingLevel === 'somewhat_important') return 'moderate';
+      return 'low';
+    }
+    
+    // Default to moderate support
+    return 'moderate';
   }
 }

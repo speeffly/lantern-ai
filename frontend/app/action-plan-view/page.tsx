@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Header from '../components/Header';
+import CareerRoadmapView from '../components/CareerRoadmapView';
 
 interface ActionStep {
   id: string;
@@ -23,21 +24,54 @@ interface ActionPlan {
 
 function ActionPlanContent() {
   const searchParams = useSearchParams();
-  const careerTitle = searchParams.get('career') || 'Registered Nurse';
+  const sessionId = searchParams.get('sessionId');
   
   const [actionPlan, setActionPlan] = useState<ActionPlan | null>(null);
+  const [assessmentData, setAssessmentData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'immediate' | 'short-term' | 'long-term'>('all');
+  const [activeTab, setActiveTab] = useState<'roadmaps' | 'action-plan'>('roadmaps');
 
   useEffect(() => {
-    loadActionPlan();
-  }, [careerTitle]);
+    if (sessionId) {
+      loadAssessmentData();
+    } else {
+      loadActionPlan();
+    }
+  }, [sessionId]);
+
+  const loadAssessmentData = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`/api/counselor-assessment/results/${sessionId}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setAssessmentData(data.data);
+          console.log('Assessment data loaded:', data.data);
+        } else {
+          console.error('Failed to load assessment data:', data.error);
+          loadActionPlan(); // Fallback to mock data
+        }
+      } else {
+        console.error('Failed to load assessment data:', response.statusText);
+        loadActionPlan(); // Fallback to mock data
+      }
+    } catch (error) {
+      console.error('Error loading assessment data:', error);
+      loadActionPlan(); // Fallback to mock data
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const loadActionPlan = async () => {
     try {
+      setIsLoading(true);
       // Create a mock action plan for demo
       const mockPlan: ActionPlan = {
-        careerTitle: careerTitle,
+        careerTitle: 'Sample Career',
         estimatedTimeToCareer: '2-4 years',
         steps: [
           {
@@ -131,26 +165,105 @@ function ActionPlanContent() {
     }
   };
 
+  // Prepare data for roadmap view
+  const getCareersFromAssessment = () => {
+    if (!assessmentData?.recommendations?.topJobMatches) {
+      return [];
+    }
+
+    return assessmentData.recommendations.topJobMatches.map((match: any) => ({
+      title: match.career.title,
+      sector: match.career.sector,
+      matchScore: match.matchScore,
+      averageSalary: match.career.averageSalary || match.localOpportunities?.averageLocalSalary || 50000,
+      requiredEducation: match.career.requiredEducation,
+      description: match.career.description
+    }));
+  };
+
+  const getStudentDataFromAssessment = () => {
+    if (!assessmentData) {
+      return {
+        grade: 11,
+        zipCode: '12345',
+        courseHistory: {},
+        academicPerformance: {},
+        supportLevel: 'moderate',
+        educationCommitment: 'bachelors'
+      };
+    }
+
+    return {
+      grade: assessmentData.recommendations?.studentProfile?.grade || 11,
+      zipCode: assessmentData.recommendations?.studentProfile?.location || '12345',
+      courseHistory: assessmentData.recommendations?.studentProfile?.courseHistory || {},
+      academicPerformance: assessmentData.session?.responses?.q4_academic_performance || {},
+      supportLevel: 'moderate', // Could be extracted from responses
+      educationCommitment: assessmentData.session?.responses?.q7_education_commitment || 'bachelors'
+    };
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header title="Action Plan" />
+        <Header title="Career Roadmaps" />
         <div className="flex items-center justify-center pt-20">
-          <div className="text-xl">Loading action plan...</div>
+          <div className="text-xl">Loading career roadmaps...</div>
         </div>
       </div>
     );
   }
 
+  // If we have assessment data, show roadmaps; otherwise show action plan
+  if (assessmentData) {
+    const careers = getCareersFromAssessment();
+    const studentData = getStudentDataFromAssessment();
+
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header title="Career Roadmaps" />
+        
+        {/* Header */}
+        <div className="bg-white shadow">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <Link href="/results" className="text-blue-600 hover:underline mb-4 inline-block">
+              ← Back to Results
+            </Link>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Your Personalized Career Roadmaps
+            </h1>
+            <p className="text-gray-600">
+              Detailed step-by-step paths to achieve your career goals based on your assessment
+            </p>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {careers.length > 0 ? (
+            <CareerRoadmapView careers={careers} studentData={studentData} />
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-xl text-gray-600 mb-4">No career recommendations found</p>
+              <Link href="/counselor-assessment" className="text-blue-600 hover:underline">
+                Take Assessment
+              </Link>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback to action plan view
   if (!actionPlan) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header title="Action Plan" />
         <div className="flex items-center justify-center pt-20">
           <div className="text-center">
-            <p className="text-xl text-red-600 mb-4">Action plan not found</p>
-            <Link href="/results" className="text-blue-600 hover:underline">
-              Back to Results
+            <p className="text-xl text-red-600 mb-4">No data found</p>
+            <Link href="/counselor-assessment" className="text-blue-600 hover:underline">
+              Take Assessment
             </Link>
           </div>
         </div>

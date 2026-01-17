@@ -22,6 +22,7 @@ import dynamicSalaryRoutes from './routes/dynamicSalary';
 import counselorRoutes from './routes/counselor';
 import studentRoutes from './routes/student';
 import parentRoutes from './routes/parent';
+import careerRoadmapRoutes from './routes/careerRoadmap';
 import { DatabaseAdapter } from './services/databaseAdapter';
 
 // Load environment variables
@@ -230,6 +231,7 @@ app.use('/api/dynamic-salary', dynamicSalaryRoutes); // Dynamic salary calculati
 app.use('/api/counselor', counselorRoutes); // Counselor functionality for student management
 app.use('/api/parent', parentRoutes); // Parent functionality for viewing child progress
 app.use('/api/student', studentRoutes); // Student functionality for assignments and progress
+app.use('/api/career-roadmap', careerRoadmapRoutes); // Personalized career roadmap generation
 app.use('/api/debug', debugRoutes); // Environment and configuration debugging
 app.use('/api/test', testAIRoutes); // AI recommendation testing
 
