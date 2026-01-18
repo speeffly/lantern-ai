@@ -43,67 +43,128 @@ interface TestProfile {
 const getProfileDisplayInfo = (profile: TestProfile) => {
   const profileId = profile.profile_id;
   
-  // Extract category from profile ID
-  const category = profileId.split('_')[0];
-  
   // Use the name from the profile
   let name = profile.name || 'Unknown Profile';
   let description = 'Test profile';
   let icon = '🎓';
   
+  // Handle new profile categories (S01-S05, B01-B05, R01-R05, U01-U05, RU01-RU05)
+  if (profileId.startsWith('S0')) {
+    // Skills-based profiles
+    icon = '🛠️';
+    if (profileId === 'S01') {
+      description = 'Hands-on builder who likes fixing and creating things';
+    } else if (profileId === 'S02') {
+      description = 'Analytical problem solver interested in STEM fields';
+    } else if (profileId === 'S03') {
+      description = 'Compassionate helper focused on supporting others';
+    } else if (profileId === 'S04') {
+      description = 'Creative communicator interested in arts and media';
+    } else if (profileId === 'S05') {
+      description = 'Business leader with entrepreneurial interests';
+    }
+  } else if (profileId.startsWith('B0')) {
+    // Background-based profiles
+    icon = '🌟';
+    if (profileId === 'B01') {
+      description = 'Rural/agricultural background with outdoor interests';
+    } else if (profileId === 'B02') {
+      description = 'Academic/research oriented with strong study habits';
+    } else if (profileId === 'B03') {
+      description = 'International/travel background with cultural awareness';
+    } else if (profileId === 'B04') {
+      description = 'Social justice focused with community service experience';
+    } else if (profileId === 'B05') {
+      description = 'Financial/business oriented with organizational skills';
+    }
+  } else if (profileId.startsWith('R0')) {
+    // Race/ethnicity-based profiles
+    icon = '🤝';
+    if (profileId === 'R01') {
+      description = 'Community leader focused on social impact and representation';
+    } else if (profileId === 'R02') {
+      description = 'Cultural preservationist interested in heritage and traditions';
+    } else if (profileId === 'R03') {
+      description = 'STEM-focused student addressing health disparities';
+    } else if (profileId === 'R04') {
+      description = 'Skilled trades student with hands-on mechanical interests';
+    } else if (profileId === 'R05') {
+      description = 'Education/community bridge-builder helping diverse populations';
+    }
+  } else if (profileId.startsWith('U0')) {
+    // Urban profiles
+    icon = '🏙️';
+    if (profileId === 'U01') {
+      description = 'Fashion/social media focused urban student';
+    } else if (profileId === 'U02') {
+      description = 'Urban planning and sustainability interested student';
+    } else if (profileId === 'U03') {
+      description = 'Music/entertainment industry focused creative student';
+    } else if (profileId === 'U04') {
+      description = 'Community health and social work oriented student';
+    } else if (profileId === 'U05') {
+      description = 'Technology/cybersecurity focused urban student';
+    }
+  } else if (profileId.startsWith('RU0')) {
+    // Rural profiles
+    icon = '🌾';
+    if (profileId === 'RU01') {
+      description = 'Agricultural/farming focused rural student';
+    } else if (profileId === 'RU02') {
+      description = 'Rural healthcare focused student serving communities';
+    } else if (profileId === 'RU03') {
+      description = 'Outdoor recreation/conservation focused student';
+    } else if (profileId === 'RU04') {
+      description = 'Energy/engineering student interested in sustainability';
+    } else if (profileId === 'RU05') {
+      description = 'Rural community leadership and education focused student';
+    }
+  }
+  
+  // Handle legacy profiles (D_, U_, P_ prefixes)
+  const category = profileId.split('_')[0];
+  
   if (category === 'D') {
     // Decided profiles
+    icon = '🎯';
     if (profile.q3a1_trade_careers === 'electrician') {
       description = 'Student focused on electrical trade work with hands-on skills';
-      icon = '⚡';
     } else if (profile.q3a6_healthcare_careers === 'registered_nurse') {
       description = 'Student interested in nursing and patient care';
-      icon = '🏥';
     } else if (profile.q3a2_engineering_careers === 'mechanical_engineer') {
       description = 'Student focused on engineering and mechanical systems';
-      icon = '⚙️';
     } else if (profile.q3a9_artist_careers === 'ux_ui_designer') {
       description = 'Student interested in digital design and user experience';
-      icon = '🎨';
     } else if (profile.q3a10_law_careers === 'paralegal') {
       description = 'Student interested in legal work and paralegal career';
-      icon = '⚖️';
     }
-  } else if (category === 'U') {
-    // Undecided profiles
+  } else if (category === 'U' && !profileId.startsWith('U0')) {
+    // Legacy undecided profiles
+    icon = '❓';
     if (profileId.includes('hands_on_builder')) {
       description = 'Undecided student who likes building and fixing things';
-      icon = '🔨';
     } else if (profileId.includes('helping_people')) {
       description = 'Undecided student interested in helping and caring for others';
-      icon = '🤝';
     } else if (profileId.includes('tech_problem_solver')) {
       description = 'Undecided student interested in technology and problem-solving';
-      icon = '💻';
     } else if (profileId.includes('creative_communicator')) {
       description = 'Undecided student interested in creativity and communication';
-      icon = '🎭';
     } else if (profileId.includes('public_service_minded')) {
       description = 'Undecided student interested in government and community service';
-      icon = '🏛️';
     }
   } else if (category === 'P') {
     // Path-known profiles
+    icon = '🎯';
     if (profileId.includes('business_path')) {
       description = 'Student knows they want business but unsure of specific role';
-      icon = '💼';
     } else if (profileId.includes('technology_path')) {
       description = 'Student knows they want tech but unsure of specific area';
-      icon = '💻';
     } else if (profileId.includes('educator_path')) {
       description = 'Student knows they want education but unsure of specific role';
-      icon = '📚';
     } else if (profileId.includes('public_safety_path')) {
       description = 'Student knows they want public safety but unsure of specific role';
-      icon = '🚨';
     } else if (profileId.includes('other_path')) {
       description = 'Student interested in sports/fitness but unsure of specific career';
-      icon = '🏃';
     }
   }
   
@@ -336,7 +397,7 @@ export default function TestProfilesPage() {
                   <li>• Clicking "Generate Career Plan" will immediately process the assessment</li>
                   <li>• You'll see personalized career recommendations based on the profile</li>
                   <li>• Perfect for testing the system or seeing example results</li>
-                  <li>• Profiles include: Decided (D), Undecided (U), and Path-Known (P) students</li>
+                  <li>• Profile categories: Skills-based (S), Background-based (B), Race/Ethnicity (R), Urban (U), Rural (RU), plus legacy Decided (D), Undecided (U), and Path-Known (P) students</li>
                 </ul>
               </div>
             </div>
