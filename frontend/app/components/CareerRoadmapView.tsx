@@ -65,15 +65,6 @@ interface CareerRoadmapCardProps {
 function CareerRoadmapCard({ career, roadmap, onGenerateRoadmap, isGenerating, error }: CareerRoadmapCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activePhase, setActivePhase] = useState<'highSchool' | 'postSecondary' | 'earlyCareer' | 'advancement'>('highSchool');
-  const [hasTriedGeneration, setHasTriedGeneration] = useState(false);
-
-  // Auto-generate roadmap when component mounts (only once)
-  useEffect(() => {
-    if (!roadmap && !isGenerating && !hasTriedGeneration) {
-      setHasTriedGeneration(true);
-      onGenerateRoadmap(career);
-    }
-  }, [career.title, roadmap, isGenerating, hasTriedGeneration]); // Remove onGenerateRoadmap from deps
 
   const getDifficultyColor = (level: string) => {
     switch (level) {
@@ -526,6 +517,22 @@ export default function CareerRoadmapView({ careers, studentData }: CareerRoadma
   const [roadmaps, setRoadmaps] = useState<{ [careerTitle: string]: CareerRoadmapData }>({});
   const [generatingRoadmaps, setGeneratingRoadmaps] = useState<{ [careerTitle: string]: boolean }>({});
   const [errors, setErrors] = useState<{ [careerTitle: string]: string }>({});
+  const [hasStartedGeneration, setHasStartedGeneration] = useState(false);
+
+  // Auto-generate all roadmaps when component mounts
+  useEffect(() => {
+    if (!hasStartedGeneration && careers.length > 0) {
+      setHasStartedGeneration(true);
+      console.log('🚀 Starting background roadmap generation for all careers');
+      
+      // Generate roadmaps for all careers in parallel
+      careers.forEach(career => {
+        if (!roadmaps[career.title] && !generatingRoadmaps[career.title]) {
+          generateRoadmap(career);
+        }
+      });
+    }
+  }, [careers, hasStartedGeneration]); // Remove roadmaps and generatingRoadmaps from deps to avoid loops
 
   // Create fallback roadmap data
   const createFallbackRoadmap = (career: any): CareerRoadmapData => ({
