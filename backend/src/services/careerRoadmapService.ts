@@ -161,14 +161,12 @@ Apply comprehensive pathway analysis using these 7 critical factors:
    - Identify core competencies needed for ${career.title}
    - Create logical skill-building progression from high school through career entry
    - Prioritize skills based on student's current strengths and interests
-   - Make sure the suggested internship opportunities are in the same area as the student
-   - Provide links to applications for internships or programs
+   - Suggest the catagory of internships and programs students should apply for
    - Include summer programs as well
   
 4. PROGRAM SPECIFICITY
    - Have specific acccesible programs and prefer local over others
-   - Include links for applications into any programs, colleges, or internshps provided
-   - Ensure programs are real through searching internet
+   - Include types of interships and programs student should look for
 
 5. REGIONAL OPPORTUNITY ANALYSIS:
    - Research education options near ZIP ${studentData.zipCode}
@@ -214,7 +212,7 @@ Generate a detailed JSON roadmap with specific, actionable steps. Ensure all rec
       "extracurriculars": ["Relevant clubs, activities, competitions"],
       "skillsToFocus": ["Key skills to develop during high school"],
       "milestones": ["Specific achievements to aim for each year"],
-      "interships and summer program": ["Internship programs or summer opportunities. Include links for applying"]
+      "interships and summer program": ["Provide catagories or identifiers for summer programs or internships"]
     },
     "postSecondaryPhase": {
       "timeframe": "X (based on career) years after high school",
@@ -222,17 +220,17 @@ Generate a detailed JSON roadmap with specific, actionable steps. Ensure all rec
       "specificPrograms": ["Colleges/schools/programs to consider"],
       "estimatedCost": $#####,
       "keyRequirements": ["Key Prerequisites from High school"],
-      "internshipOpportunities": ["Specific internship programs or companies. Include links for applying"]
+      "internshipOpportunities": ["Provide catagories or identifiers for summer programs or internships"]
     },
     "earlyCareerPhase": {
-      "timeframe": "Years 1-3 in career",
+      "timeframe": "X (1-3) Years in career",
       "entryLevelPositions": ["Specific job titles to target"],
       "certifications": ["Professional certifications to pursue"],
       "skillDevelopment": ["Skills to focus on early in career"],
       "networkingTips": ["Industry-specific networking strategies"]
     },
     "advancementPhase": {
-      "timeframe": "Years 4-10 in career",
+      "timeframe": "X (4-10) Years in career",
       "careerProgression": ["Typical advancement path and timeline"],
       "advancedCertifications": ["Senior-level certifications"],
       "leadershipOpportunities": ["Management and leadership roles"],
