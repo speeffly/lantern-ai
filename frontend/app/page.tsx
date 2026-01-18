@@ -20,7 +20,7 @@ export default function Home() {
             Discover Your Future Career Path
           </p>
           <p className="text-lg text-gray-500 max-w-2xl mx-auto">
-            AI-powered career guidance for students careers
+            AI-powered career guidance for high school students 
           </p>
         </div>
 
@@ -110,7 +110,7 @@ export default function Home() {
         {/* Footer Info */}
         <div className="mt-16 text-center text-gray-600">
           <p className="text-sm">
-            Helping students explore careers
+            Helping high school students explore careers
           </p>
         </div>
         </div>

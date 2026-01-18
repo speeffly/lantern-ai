@@ -48,113 +48,99 @@ const getProfileDisplayInfo = (profile: TestProfile) => {
   let description = 'Bias testing profile';
   let icon = '🎓';
   
-  // Handle Sex Bias profiles (SB)
-  if (profileId.startsWith('SB0')) {
+  // Handle Sex Bias profiles (BT_SEX)
+  if (profileId.startsWith('BT_SEX0')) {
     icon = '⚖️';
-    if (profileId === 'SB01_male_engineering') {
-      description = 'Male engineering student - tests for gender bias in STEM recommendations';
-    } else if (profileId === 'SB02_female_engineering') {
-      description = 'Female engineering student - tests for gender bias in STEM recommendations';
-    } else if (profileId === 'SB03_male_healthcare') {
-      description = 'Male healthcare student - tests for gender bias in care profession recommendations';
-    } else if (profileId === 'SB04_female_healthcare') {
-      description = 'Female healthcare student - tests for gender bias in care profession recommendations';
-    } else if (profileId === 'SB05_male_business') {
-      description = 'Male business student - tests for gender bias in leadership recommendations';
-    } else if (profileId === 'SB06_female_business') {
-      description = 'Female business student - tests for gender bias in leadership recommendations';
-    } else if (profileId === 'SB07_male_education') {
-      description = 'Male education student - tests for gender bias in teaching recommendations';
-    } else if (profileId === 'SB08_female_education') {
-      description = 'Female education student - tests for gender bias in teaching recommendations';
+    if (profileId.includes('female') && profileId.includes('softwaredev')) {
+      description = 'Female software developer - tests for gender bias in tech recommendations';
+    } else if (profileId.includes('male') && profileId.includes('softwaredev')) {
+      description = 'Male software developer - tests for gender bias in tech recommendations';
+    } else if (profileId.includes('female') && profileId.includes('registerednurse')) {
+      description = 'Female registered nurse - tests for gender bias in healthcare recommendations';
+    } else if (profileId.includes('male') && profileId.includes('registerednurse')) {
+      description = 'Male registered nurse - tests for gender bias in healthcare recommendations';
+    } else if (profileId.includes('female') && profileId.includes('paralegal')) {
+      description = 'Female undecided legal - tests for gender bias in legal career recommendations';
+    } else if (profileId.includes('male') && profileId.includes('paralegal')) {
+      description = 'Male undecided legal - tests for gender bias in legal career recommendations';
+    } else if (profileId.includes('female') && profileId.includes('electrician')) {
+      description = 'Female undecided trades - tests for gender bias in skilled trades recommendations';
+    } else if (profileId.includes('male') && profileId.includes('electrician')) {
+      description = 'Male undecided trades - tests for gender bias in skilled trades recommendations';
+    } else {
+      description = 'Gender bias testing profile - tests for bias in career recommendations based on sex';
     }
   }
   
-  // Handle Social Background Bias profiles (SOB)
-  else if (profileId.startsWith('SOB0')) {
-    icon = '🏛️';
-    if (profileId === 'SOB01_upper_middle_class') {
-      description = 'Upper middle class student - tests for socioeconomic bias in career recommendations';
-    } else if (profileId === 'SOB02_working_class') {
-      description = 'Working class student - tests for socioeconomic bias in career recommendations';
-    } else if (profileId === 'SOB03_first_generation_college') {
-      description = 'First-generation college student - tests for educational background bias';
-    } else if (profileId === 'SOB04_legacy_student') {
-      description = 'Legacy student - tests for privilege bias in career recommendations';
-    } else if (profileId === 'SOB05_rural_background') {
-      description = 'Rural background student - tests for geographic bias in opportunities';
-    } else if (profileId === 'SOB06_urban_background') {
-      description = 'Urban background student - tests for geographic bias in opportunities';
-    } else if (profileId === 'SOB07_immigrant_family') {
-      description = 'Immigrant family student - tests for cultural background bias';
-    } else if (profileId === 'SOB08_military_family') {
-      description = 'Military family student - tests for family background bias';
-    }
-  }
-  
-  // Handle Race Bias profiles (RB)
-  else if (profileId.startsWith('RB0')) {
+  // Handle Race Bias profiles (BT_RACE)
+  else if (profileId.startsWith('BT_RACE0')) {
     icon = '🤝';
-    if (profileId === 'RB01_african_american_male') {
-      description = 'African American male student - tests for racial bias in law career recommendations';
-    } else if (profileId === 'RB02_white_male') {
-      description = 'White male student - tests for racial bias in law career recommendations';
-    } else if (profileId === 'RB03_latina_female') {
-      description = 'Latina female student - tests for racial bias in healthcare recommendations';
-    } else if (profileId === 'RB04_white_female') {
-      description = 'White female student - tests for racial bias in healthcare recommendations';
-    } else if (profileId === 'RB05_asian_american_male') {
-      description = 'Asian American male student - tests for racial bias in tech recommendations';
-    } else if (profileId === 'RB06_white_male_tech') {
-      description = 'White male tech student - tests for racial bias in tech recommendations';
-    } else if (profileId === 'RB07_native_american_female') {
-      description = 'Native American female student - tests for racial bias in education recommendations';
-    } else if (profileId === 'RB08_white_female_education') {
-      description = 'White female education student - tests for racial bias in education recommendations';
+    if (profileId.includes('black') && profileId.includes('registerednurse')) {
+      description = 'Black registered nurse - tests for racial bias in healthcare recommendations';
+    } else if (profileId.includes('white') && profileId.includes('registerednurse')) {
+      description = 'White registered nurse - tests for racial bias in healthcare recommendations';
+    } else if (profileId.includes('latino') && profileId.includes('electrician')) {
+      description = 'Latino electrician - tests for racial bias in trades recommendations';
+    } else if (profileId.includes('white') && profileId.includes('electrician')) {
+      description = 'White electrician - tests for racial bias in trades recommendations';
+    } else if (profileId.includes('asian') && profileId.includes('softwaredev')) {
+      description = 'Asian software developer - tests for racial bias in tech recommendations';
+    } else if (profileId.includes('white') && profileId.includes('softwaredev')) {
+      description = 'White software developer - tests for racial bias in tech recommendations';
+    } else if (profileId.includes('native') && profileId.includes('paralegal')) {
+      description = 'Native American paralegal - tests for racial bias in legal recommendations';
+    } else if (profileId.includes('white') && profileId.includes('paralegal')) {
+      description = 'White paralegal - tests for racial bias in legal recommendations';
+    } else {
+      description = 'Racial bias testing profile - tests for bias in career recommendations based on race/ethnicity';
     }
   }
   
-  // Handle Urban Bias profiles (UB)
-  else if (profileId.startsWith('UB0')) {
-    icon = '🏙️';
-    if (profileId === 'UB01_urban_entrepreneurship') {
-      description = 'Urban entrepreneurship student - tests for geographic bias in business opportunities';
-    } else if (profileId === 'UB02_urban_social_work') {
-      description = 'Urban social work student - tests for geographic bias in service recommendations';
-    } else if (profileId === 'UB03_urban_arts') {
-      description = 'Urban arts student - tests for geographic bias in creative career recommendations';
-    } else if (profileId === 'UB04_urban_technology') {
-      description = 'Urban technology student - tests for geographic bias in tech opportunities';
-    } else if (profileId === 'UB05_urban_healthcare') {
-      description = 'Urban healthcare student - tests for geographic bias in medical recommendations';
-    } else if (profileId === 'UB06_urban_education') {
-      description = 'Urban education student - tests for geographic bias in teaching opportunities';
-    } else if (profileId === 'UB07_urban_law_enforcement') {
-      description = 'Urban law enforcement student - tests for geographic bias in public safety careers';
-    } else if (profileId === 'UB08_urban_finance') {
-      description = 'Urban finance student - tests for geographic bias in financial career recommendations';
+  // Handle Social Background Bias profiles (BT_SOC)
+  else if (profileId.startsWith('BT_SOC0')) {
+    icon = '🏛️';
+    if (profileId.includes('firstgen_lowincome') && profileId.includes('softwaredev')) {
+      description = 'First-gen low-income software developer - tests for socioeconomic bias in tech recommendations';
+    } else if (profileId.includes('affluent') && profileId.includes('softwaredev')) {
+      description = 'Affluent software developer - tests for socioeconomic bias in tech recommendations';
+    } else if (profileId.includes('firstgen_lowincome') && profileId.includes('registerednurse')) {
+      description = 'First-gen low-income registered nurse - tests for socioeconomic bias in healthcare recommendations';
+    } else if (profileId.includes('affluent') && profileId.includes('registerednurse')) {
+      description = 'Affluent registered nurse - tests for socioeconomic bias in healthcare recommendations';
+    } else if (profileId.includes('firstgen_lowincome') && profileId.includes('paralegal')) {
+      description = 'First-gen low-income paralegal - tests for socioeconomic bias in legal recommendations';
+    } else if (profileId.includes('affluent') && profileId.includes('paralegal')) {
+      description = 'Affluent paralegal - tests for socioeconomic bias in legal recommendations';
+    } else if (profileId.includes('firstgen_lowincome') && profileId.includes('electrician')) {
+      description = 'First-gen low-income electrician - tests for socioeconomic bias in trades recommendations';
+    } else if (profileId.includes('affluent') && profileId.includes('electrician')) {
+      description = 'Affluent electrician - tests for socioeconomic bias in trades recommendations';
+    } else {
+      description = 'Social background bias testing profile - tests for bias based on socioeconomic background';
     }
   }
   
-  // Handle Rural Bias profiles (RUB)
-  else if (profileId.startsWith('RUB0')) {
-    icon = '🌾';
-    if (profileId === 'RUB01_rural_agriculture') {
-      description = 'Rural agriculture student - tests for geographic bias in agricultural recommendations';
-    } else if (profileId === 'RUB02_rural_healthcare') {
-      description = 'Rural healthcare student - tests for geographic bias in medical opportunities';
-    } else if (profileId === 'RUB03_rural_education') {
-      description = 'Rural education student - tests for geographic bias in teaching recommendations';
-    } else if (profileId === 'RUB04_rural_engineering') {
-      description = 'Rural engineering student - tests for geographic bias in STEM opportunities';
-    } else if (profileId === 'RUB05_rural_business') {
-      description = 'Rural business student - tests for geographic bias in entrepreneurship recommendations';
-    } else if (profileId === 'RUB06_rural_conservation') {
-      description = 'Rural conservation student - tests for geographic bias in environmental careers';
-    } else if (profileId === 'RUB07_rural_technology') {
-      description = 'Rural technology student - tests for geographic bias in tech accessibility';
-    } else if (profileId === 'RUB08_rural_trades') {
-      description = 'Rural trades student - tests for geographic bias in skilled labor recommendations';
+  // Handle Urban vs Rural Bias profiles (BT_UR)
+  else if (profileId.startsWith('BT_UR0')) {
+    icon = '🏙️🌾';
+    if (profileId.includes('urban') && profileId.includes('softwaredev')) {
+      description = 'Urban software developer - tests for geographic bias in tech opportunities';
+    } else if (profileId.includes('rural') && profileId.includes('softwaredev')) {
+      description = 'Rural software developer - tests for geographic bias in tech opportunities';
+    } else if (profileId.includes('urban') && profileId.includes('registerednurse')) {
+      description = 'Urban registered nurse - tests for geographic bias in healthcare opportunities';
+    } else if (profileId.includes('rural') && profileId.includes('registerednurse')) {
+      description = 'Rural registered nurse - tests for geographic bias in healthcare opportunities';
+    } else if (profileId.includes('urban') && profileId.includes('paralegal')) {
+      description = 'Urban paralegal - tests for geographic bias in legal opportunities';
+    } else if (profileId.includes('rural') && profileId.includes('paralegal')) {
+      description = 'Rural paralegal - tests for geographic bias in legal opportunities';
+    } else if (profileId.includes('urban') && profileId.includes('electrician')) {
+      description = 'Urban electrician - tests for geographic bias in trades opportunities';
+    } else if (profileId.includes('rural') && profileId.includes('electrician')) {
+      description = 'Rural electrician - tests for geographic bias in trades opportunities';
+    } else {
+      description = 'Urban vs Rural bias testing profile - tests for bias based on geographic location';
     }
   }
   
@@ -163,7 +149,7 @@ const getProfileDisplayInfo = (profile: TestProfile) => {
     // Decided profiles
     icon = '🎯';
     description = 'Legacy decided student profile for baseline testing';
-  } else if (profileId.startsWith('U') && !profileId.startsWith('UB')) {
+  } else if (profileId.startsWith('U') && !profileId.startsWith('BT_UR')) {
     // Legacy undecided profiles
     icon = '❓';
     description = 'Legacy undecided student profile for baseline testing';
@@ -392,16 +378,16 @@ export default function TestProfilesPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <div>
-                <h4 className="text-lg font-semibold text-blue-900 mb-2">Bias Testing Suite</h4>
+                <h4 className="text-lg font-semibold text-blue-900 mb-2">Comprehensive Bias Testing Suite</h4>
                 <ul className="text-blue-800 space-y-1">
-                  <li>• <strong>Sex Bias (SB):</strong> 8 profiles testing gender bias in engineering, healthcare, business, and education</li>
-                  <li>• <strong>Social Background Bias (SOB):</strong> 8 profiles testing socioeconomic and family background bias</li>
-                  <li>• <strong>Race Bias (RB):</strong> 8 profiles testing racial bias across law, healthcare, technology, and education</li>
-                  <li>• <strong>Urban Bias (UB):</strong> 8 profiles testing geographic bias in urban career opportunities</li>
-                  <li>• <strong>Rural Bias (RUB):</strong> 8 profiles testing geographic bias in rural career opportunities</li>
+                  <li>• <strong>Sex Bias (BT_SEX):</strong> 8 profiles testing gender bias across software development, nursing, legal, and trades careers</li>
+                  <li>• <strong>Race Bias (BT_RACE):</strong> 8 profiles testing racial bias across nursing, trades, technology, and legal careers</li>
+                  <li>• <strong>Social Background Bias (BT_SOC):</strong> 8 profiles testing socioeconomic bias between first-gen/low-income vs affluent backgrounds</li>
+                  <li>• <strong>Urban vs Rural Bias (BT_UR):</strong> 8 profiles testing geographic bias across software development, nursing, legal, and trades</li>
                   <li>• <strong>Legacy Profiles (D/U):</strong> 4 baseline profiles for comparison testing</li>
                   <li>• Each profile pair has identical qualifications with only demographic cues changed</li>
                   <li>• Designed to evaluate AI fairness and identify potential bias in career recommendations</li>
+                  <li>• Total of 32 profiles: 28 bias testing + 4 legacy baseline profiles</li>
                 </ul>
               </div>
             </div>

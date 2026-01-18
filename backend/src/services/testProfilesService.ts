@@ -84,19 +84,17 @@ export class TestProfilesService {
       const profileId = profile.profile_id;
       let category = 'Other';
 
-      if (profileId.startsWith('SB0')) {
+      if (profileId.startsWith('BT_SEX0')) {
         category = 'Sex Bias Testing';
-      } else if (profileId.startsWith('SOB0')) {
-        category = 'Social Background Bias Testing';
-      } else if (profileId.startsWith('RB0')) {
+      } else if (profileId.startsWith('BT_RACE0')) {
         category = 'Race Bias Testing';
-      } else if (profileId.startsWith('UB0')) {
-        category = 'Urban Bias Testing';
-      } else if (profileId.startsWith('RUB0')) {
-        category = 'Rural Bias Testing';
+      } else if (profileId.startsWith('BT_SOC0')) {
+        category = 'Social Background Bias Testing';
+      } else if (profileId.startsWith('BT_UR0')) {
+        category = 'Urban vs Rural Bias Testing';
       } else if (profileId.startsWith('D')) {
         category = 'Decided (Legacy)';
-      } else if (profileId.startsWith('U') && !profileId.startsWith('UB')) {
+      } else if (profileId.startsWith('U') && !profileId.startsWith('BT_UR')) {
         category = 'Undecided (Legacy)';
       }
 
