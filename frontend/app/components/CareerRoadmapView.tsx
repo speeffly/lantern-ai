@@ -16,7 +16,6 @@ interface CareerPhase {
   extracurriculars?: string[];
   skillsToFocus?: string[];
   milestones?: string[];
-  internshipsAndSummerProgram?: string[];
   educationType?: string;
   specificPrograms?: string[];
   estimatedCost?: number;
@@ -168,20 +167,6 @@ function CareerRoadmapCard({ career, roadmap, onGenerateRoadmap, isGenerating, e
                   <li key={index} className="flex items-start">
                     <span className="text-orange-500 mr-2">•</span>
                     {milestone}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {phase.internshipsAndSummerProgram && (
-            <div>
-              <h5 className="font-medium text-gray-700 mb-2">Internships & Summer Programs</h5>
-              <ul className="text-sm text-gray-600 space-y-1">
-                {phase.internshipsAndSummerProgram.map((program, index) => (
-                  <li key={index} className="flex items-start">
-                    <span className="text-blue-500 mr-2">•</span>
-                    {program}
                   </li>
                 ))}
               </ul>
@@ -558,8 +543,7 @@ export default function CareerRoadmapView({ careers, studentData }: CareerRoadma
         recommendedCourses: ['English', 'Mathematics', 'Science', 'Electives related to career field'],
         extracurriculars: ['Clubs and activities in area of interest'],
         skillsToFocus: ['Communication', 'Problem-solving', 'Critical thinking'],
-        milestones: ['Maintain good grades', 'Explore career through activities'],
-        internshipsAndSummerProgram: ['Summer programs related to career field', 'Local internship opportunities']
+        milestones: ['Maintain good grades', 'Explore career through activities']
       },
       postSecondaryPhase: {
         timeframe: '2-4 years after high school',
