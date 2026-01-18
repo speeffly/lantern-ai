@@ -179,7 +179,7 @@ Generate a comprehensive career guidance response in the following JSON structur
 
 STOPPING:
 Validate your response meets these 6 quality criteria before finalizing:
-1. ACCURACY: All career information is factually correct and realistic
+1. ACCURACY: All career information is factually correct and realistic. Ensure if the student chose a specific career, that it is real
 2. PERSONALIZATION: Recommendations directly reference the student's specific assessment responses
 3. SPECIFICITY: Avoid generic advice - provide concrete, actionable steps
 4. COMPLETENESS: All required JSON fields are populated with meaningful content

@@ -84,22 +84,20 @@ export class TestProfilesService {
       const profileId = profile.profile_id;
       let category = 'Other';
 
-      if (profileId.startsWith('S0')) {
-        category = 'Skills-based';
-      } else if (profileId.startsWith('B0')) {
-        category = 'Background-based';
-      } else if (profileId.startsWith('R0')) {
-        category = 'Race/Ethnicity';
-      } else if (profileId.startsWith('U0')) {
-        category = 'Urban';
-      } else if (profileId.startsWith('RU0')) {
-        category = 'Rural';
+      if (profileId.startsWith('SB0')) {
+        category = 'Sex Bias Testing';
+      } else if (profileId.startsWith('SOB0')) {
+        category = 'Social Background Bias Testing';
+      } else if (profileId.startsWith('RB0')) {
+        category = 'Race Bias Testing';
+      } else if (profileId.startsWith('UB0')) {
+        category = 'Urban Bias Testing';
+      } else if (profileId.startsWith('RUB0')) {
+        category = 'Rural Bias Testing';
       } else if (profileId.startsWith('D')) {
         category = 'Decided (Legacy)';
-      } else if (profileId.startsWith('U_')) {
+      } else if (profileId.startsWith('U') && !profileId.startsWith('UB')) {
         category = 'Undecided (Legacy)';
-      } else if (profileId.startsWith('P')) {
-        category = 'Path-Known (Legacy)';
       }
 
       if (!categories[category]) {

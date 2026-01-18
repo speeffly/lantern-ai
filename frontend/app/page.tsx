@@ -20,7 +20,7 @@ export default function Home() {
             Discover Your Future Career Path
           </p>
           <p className="text-lg text-gray-500 max-w-2xl mx-auto">
-            AI-powered career guidance for rural students exploring healthcare and infrastructure careers
+            AI-powered career guidance for students careers
           </p>
         </div>
 
@@ -36,7 +36,7 @@ export default function Home() {
                   </svg>
                 </div>
                 <h3 className="font-semibold text-gray-900 mb-2">Comprehensive Assessment</h3>
-                <p className="text-sm text-gray-600">15 strategic questions about your interests, values, and goals</p>
+                <p className="text-sm text-gray-600">9-11 strategic questions about your interests, values, and goals</p>
               </div>
 
               <div className="text-center">
@@ -79,7 +79,7 @@ export default function Home() {
                     <h4 className="text-xl font-semibold text-gray-900 mb-2">Career Assessment</h4>
                     <p className="text-gray-700 text-sm mb-4">Professional-grade career guidance powered by AI</p>
                     <ul className="text-sm text-gray-600 mb-6 space-y-2">
-                      <li>• 8-10 comprehensive questions</li>
+                      <li>• 9-11 comprehensive questions</li>
                       <li>• Detailed Career Roadmap</li>
                       <li>• Personalized career matches</li>
                       <li>• Local job opportunities</li>
@@ -110,7 +110,7 @@ export default function Home() {
         {/* Footer Info */}
         <div className="mt-16 text-center text-gray-600">
           <p className="text-sm">
-            Helping rural students explore careers in healthcare and infrastructure
+            Helping students explore careers
           </p>
         </div>
         </div>

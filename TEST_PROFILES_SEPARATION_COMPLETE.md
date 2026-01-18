@@ -1,108 +1,107 @@
-# Test Profiles Separation - Implementation Complete
+# Test Profiles Bias Testing Suite Implementation - COMPLETE
 
 ## Overview
-Successfully moved test profiles out of the questionnaire JSON into their own separate file and reworked the configuration to use a dedicated service.
+Successfully replaced all test profiles (except D and U legacy profiles) with a comprehensive bias testing suite designed to evaluate AI fairness across demographic dimensions.
 
-## Changes Made
+## Implementation Details
 
-### 1. File Structure Changes
-- **Created**: `backend/src/data/test-profiles.json` - Dedicated file for all test profiles
-- **Modified**: `backend/src/data/questionnaire-v1.json` - Removed test_profiles section
-- **Created**: `backend/src/services/testProfilesService.ts` - New service for test profile management
-- **Modified**: `backend/src/services/questionnaireService.ts` - Removed test profiles method
-- **Modified**: `backend/src/routes/questionnaire.ts` - Updated to use new test profiles service
+### 1. New Profile Structure
+- **Total Profiles**: 44 profiles (4 legacy + 40 bias testing)
+- **File**: `backend/src/data/test-profiles.json`
+- **Version**: Updated to v2 "Lantern AI Bias Testing Suite"
 
-### 2. New Test Profiles File Structure
-```json
-{
-  "version": "v1",
-  "title": "Lantern AI Test Profiles",
-  "description": "Pre-filled student profiles for testing the career assessment system",
-  "profiles": [
-    // 40 test profiles with bias-inducing descriptors
-  ]
-}
-```
+### 2. Bias Testing Categories
 
-### 3. New TestProfilesService Features
-- `getTestProfiles()` - Get all test profiles
-- `getTestProfile(profileId)` - Get specific profile by ID
-- `getTestProfilesByCategory()` - Get profiles organized by category
-- `getStatistics()` - Get profile statistics and distributions
-- `getMetadata()` - Get file metadata
-- `validateTestProfile()` - Validate profile structure
+#### Sex Bias (SB01-SB08) - 8 Profiles
+- **SB01/SB02**: Male/Female Engineering Students (identical qualifications)
+- **SB03/SB04**: Male/Female Healthcare Students (identical qualifications)  
+- **SB05/SB06**: Male/Female Business Students (identical qualifications)
+- **SB07/SB08**: Male/Female Education Students (identical qualifications)
 
-### 4. Enhanced API Endpoints
-- `GET /api/questionnaire/test-profiles` - Get all test profiles
-- `GET /api/questionnaire/test-profiles/categories` - Get categorized profiles
-- `GET /api/questionnaire/test-profiles/stats` - Get profile statistics
-- `GET /api/questionnaire/test-profiles/:profileId` - Get specific profile
+#### Social Background Bias (SOB01-SOB08) - 8 Profiles
+- **SOB01**: Upper Middle Class Student
+- **SOB02**: Working Class Student
+- **SOB03**: First Generation College Student
+- **SOB04**: Legacy Student
+- **SOB05**: Rural Background Student
+- **SOB06**: Urban Background Student
+- **SOB07**: Immigrant Family Student
+- **SOB08**: Military Family Student
 
-### 5. Profile Categories
-The system now organizes 40 test profiles into 8 categories:
-- **Skills-based (S01-S05)**: 5 profiles - Different skill sets and abilities
-- **Background-based (B01-B05)**: 5 profiles - Diverse socioeconomic backgrounds
-- **Race/Ethnicity (R01-R05)**: 5 profiles - Different ethnic and cultural identities
-- **Urban (U01-U05)**: 5 profiles - Urban student experiences
-- **Rural (RU01-RU05)**: 5 profiles - Rural student experiences
-- **Decided (Legacy)**: 5 profiles - Students with clear career goals
-- **Undecided (Legacy)**: 5 profiles - Students exploring options
-- **Path-Known (Legacy)**: 5 profiles - Students with general direction
+#### Race Bias (RB01-RB08) - 8 Profiles
+- **RB01/RB02**: African American/White Male Law Students (identical qualifications)
+- **RB03/RB04**: Latina/White Female Healthcare Students (identical qualifications)
+- **RB05/RB06**: Asian American/White Male Tech Students (identical qualifications)
+- **RB07/RB08**: Native American/White Female Education Students (identical qualifications)
 
-### 6. Bias-Inducing Profile Names
-Updated profile display names to highlight potential bias factors:
-- "Boy Scout Builder" (gender/organization bias)
-- "African American Leader" (racial identity bias)
-- "4-H Farm Kid" (rural/agricultural bias)
-- "Hip-Hop Producer" (cultural/musical bias)
-- "Math Competition Winner" (academic achievement bias)
-- And 35 more with similar descriptive elements
+#### Urban Bias (UB01-UB08) - 8 Profiles
+- **UB01**: Urban Entrepreneurship Student
+- **UB02**: Urban Social Work Student
+- **UB03**: Urban Arts Student
+- **UB04**: Urban Technology Student
+- **UB05**: Urban Healthcare Student
+- **UB06**: Urban Education Student
+- **UB07**: Urban Law Enforcement Student
+- **UB08**: Urban Finance Student
 
-## Benefits of Separation
+#### Rural Bias (RUB01-RUB08) - 8 Profiles
+- **RUB01**: Rural Agriculture Student
+- **RUB02**: Rural Healthcare Student
+- **RUB03**: Rural Education Student
+- **RUB04**: Rural Engineering Student
+- **RUB05**: Rural Business Student
+- **RUB06**: Rural Conservation Student
+- **RUB07**: Rural Technology Student
+- **RUB08**: Rural Trades Student
 
-### 1. Better Organization
-- Clean separation of concerns
-- Questionnaire focuses on questions only
-- Test profiles have dedicated management
+### 3. Legacy Profiles Preserved (4 Profiles)
+- **D1**: Trade Electrician (Decided)
+- **D2**: Healthcare Registered Nurse (Decided)
+- **U1**: Undecided Hands On Builder
+- **U2**: Undecided Helping People
 
-### 2. Enhanced Functionality
-- Category-based organization
-- Statistical analysis capabilities
-- Individual profile retrieval
-- Validation and metadata support
+### 4. Frontend Updates
 
-### 3. Improved Maintainability
-- Easier to add/modify test profiles
-- Dedicated service for profile operations
-- Better type safety and validation
+#### Updated Display Logic (`frontend/app/test-profiles/page.tsx`)
+- New `getProfileDisplayInfo()` function handles bias testing profile naming
+- Updated icons and descriptions for each bias category:
+  - ⚖️ Sex Bias profiles
+  - 🏛️ Social Background Bias profiles
+  - 🤝 Race Bias profiles
+  - 🏙️ Urban Bias profiles
+  - 🌾 Rural Bias profiles
+- Updated page title to "AI Bias Testing Suite"
+- Enhanced info box explaining bias testing methodology
 
-### 4. API Enhancement
-- More granular endpoints
-- Better data organization
-- Statistical insights available
+#### Updated Service Logic (`backend/src/services/testProfilesService.ts`)
+- Updated `getTestProfilesByCategory()` to handle new profile prefixes
+- New categories: "Sex Bias Testing", "Social Background Bias Testing", "Race Bias Testing", "Urban Bias Testing", "Rural Bias Testing"
 
-## Testing Results
-✅ All 40 test profiles successfully migrated
-✅ TypeScript compilation successful
-✅ API endpoints functional
-✅ Category organization working
-✅ Statistics generation working
-✅ Individual profile retrieval working
+### 5. Bias Testing Methodology
+- **Matched Pairs**: Profiles designed in pairs with identical qualifications but different demographic cues
+- **Comprehensive Coverage**: Tests across gender, race, socioeconomic status, and geographic dimensions
+- **Realistic Data**: All profiles contain realistic academic performance, course history, and career interests
+- **Consistent Structure**: All profiles follow the same questionnaire format for fair comparison
 
-## Frontend Compatibility
-The frontend test profiles page continues to work without changes as it uses the same API endpoint (`/api/questionnaire/test-profiles`) which now returns data from the new service.
+### 6. Key Features
+- **40 Bias Testing Profiles**: Organized into 5 categories with 8 profiles each
+- **Demographic Diversity**: Covers major demographic dimensions that could introduce AI bias
+- **Career Diversity**: Tests bias across multiple career fields (STEM, healthcare, business, education, trades)
+- **Geographic Diversity**: Tests urban vs rural bias in career opportunities
+- **Socioeconomic Diversity**: Tests bias based on family background and economic status
 
-## File Sizes
-- `questionnaire-v1.json`: Reduced from ~1156 lines to ~482 lines
-- `test-profiles.json`: ~674 lines with all 40 profiles
-- Total: Better organized and more maintainable structure
+## Files Modified
+1. `backend/src/data/test-profiles.json` - Complete replacement with bias testing suite
+2. `frontend/app/test-profiles/page.tsx` - Updated display logic and UI
+3. `backend/src/services/testProfilesService.ts` - Updated category handling
 
-## Next Steps
-The system is now ready for:
-1. Easy addition of new test profile categories
-2. Enhanced profile management features
-3. Statistical analysis and reporting
-4. Better bias testing capabilities
-5. Profile validation and quality assurance
+## Testing Capabilities
+This bias testing suite enables comprehensive evaluation of:
+- Gender bias in STEM and care professions
+- Racial bias across multiple career fields
+- Socioeconomic bias in career recommendations
+- Geographic bias between urban and rural opportunities
+- Family background influence on career suggestions
 
-The separation provides a solid foundation for future enhancements while maintaining full backward compatibility.
+## Status: COMPLETE ✅
+The comprehensive bias testing suite has been successfully implemented, replacing all non-legacy profiles with scientifically designed bias testing profiles that enable systematic evaluation of AI fairness in career recommendations.
