@@ -450,19 +450,6 @@ export default function UnifiedCareerOptions({
                 onClick={() => {
                   const selectedOption = careerOptions.find(opt => opt.career.id === selectedCareer);
                   if (selectedOption) {
-                    const searchQuery = encodeURIComponent(`${selectedOption.career.title} jobs ${zipCode}`);
-                    router.push(`/jobs?search=${searchQuery}`);
-                  }
-                }}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
-              >
-                🔍 View More Jobs
-              </button>
-              
-              <button
-                onClick={() => {
-                  const selectedOption = careerOptions.find(opt => opt.career.id === selectedCareer);
-                  if (selectedOption) {
                     const searchQuery = encodeURIComponent(`${selectedOption.career.title} salary ${zipCode}`);
                     window.open(`https://www.glassdoor.com/Salaries/index.htm?keyword=${searchQuery}`, '_blank');
                   }
@@ -476,7 +463,8 @@ export default function UnifiedCareerOptions({
                 onClick={() => {
                   const selectedOption = careerOptions.find(opt => opt.career.id === selectedCareer);
                   if (selectedOption) {
-                    const searchQuery = encodeURIComponent(`${selectedOption.career.title} career path requirements`);
+                    // Enhanced search query that includes career research and path requirements
+                    const searchQuery = encodeURIComponent(`${selectedOption.career.title} career path requirements education research`);
                     window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
                   }
                 }}
@@ -500,37 +488,6 @@ export default function UnifiedCareerOptions({
             </p>
           </div>
         )}
-        
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <button
-            onClick={() => router.push('/jobs')}
-            className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
-          >
-            🔍 Explore Job Opportunities
-          </button>
-          
-          <button
-            onClick={() => router.push('/counselor-assessment?retake=true')}
-            className="px-8 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium"
-          >
-            🔄 Retake Assessment
-          </button>
-          
-          <button
-            onClick={() => {
-              const selectedOption = careerOptions.find(opt => opt.career.id === selectedCareer);
-              if (selectedOption) {
-                const searchQuery = encodeURIComponent(`${selectedOption.career.title} career information`);
-                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
-              } else {
-                window.open('https://www.google.com/search?q=career+exploration+resources', '_blank');
-              }
-            }}
-            className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
-          >
-            📚 Research Careers
-          </button>
-        </div>
       </div>
     </div>
   );
