@@ -10,7 +10,12 @@
       "fields": {
         "grade": {
           "type": "select",
-          "options": ["9", "10", "11", "12"],
+          "options": [
+            "9",
+            "10",
+            "11",
+            "12"
+          ],
           "required": true
         },
         "zipCode": {
@@ -27,8 +32,14 @@
       "type": "single_select",
       "label": "Do you know what career you want to pursue?",
       "options": [
-        { "key": "yes", "label": "Yes" },
-        { "key": "no", "label": "No" }
+        {
+          "key": "yes",
+          "label": "Yes"
+        },
+        {
+          "key": "no",
+          "label": "No"
+        }
       ],
       "required": true,
       "conditional_questions": {
@@ -37,17 +48,50 @@
           "type": "single_select",
           "label": "Which of these career categories are you interested in?",
           "options": [
-            { "key": "trade", "label": "Trade" },
-            { "key": "engineering", "label": "Engineering" },
-            { "key": "business_management", "label": "Business and Management" },
-            { "key": "technology", "label": "Technology" },
-            { "key": "educator", "label": "Educator" },
-            { "key": "healthcare", "label": "Healthcare" },
-            { "key": "public_safety", "label": "Public Safety" },
-            { "key": "researcher", "label": "Researcher" },
-            { "key": "artist", "label": "Artist" },
-            { "key": "law", "label": "Law" },
-            { "key": "other", "label": "Other" }
+            {
+              "key": "trade",
+              "label": "Trade"
+            },
+            {
+              "key": "engineering",
+              "label": "Engineering"
+            },
+            {
+              "key": "business_management",
+              "label": "Business and Management"
+            },
+            {
+              "key": "technology",
+              "label": "Technology"
+            },
+            {
+              "key": "educator",
+              "label": "Educator"
+            },
+            {
+              "key": "healthcare",
+              "label": "Healthcare"
+            },
+            {
+              "key": "public_safety",
+              "label": "Public Safety"
+            },
+            {
+              "key": "researcher",
+              "label": "Researcher"
+            },
+            {
+              "key": "artist",
+              "label": "Artist"
+            },
+            {
+              "key": "law",
+              "label": "Law"
+            },
+            {
+              "key": "other",
+              "label": "Other"
+            }
           ],
           "required": true,
           "conditional_questions": {
@@ -56,19 +100,58 @@
               "type": "single_select",
               "label": "Which trade career interests you?",
               "options": [
-                { "key": "construction_worker", "label": "Construction Worker" },
-                { "key": "electrician", "label": "Electrician" },
-                { "key": "plumber", "label": "Plumber" },
-                { "key": "carpenter", "label": "Carpenter" },
-                { "key": "hvac_technician", "label": "HVAC Technician" },
-                { "key": "welder", "label": "Welder" },
-                { "key": "mason_bricklayer", "label": "Mason / Bricklayer" },
-                { "key": "automotive_technician", "label": "Automotive Technician" },
-                { "key": "heavy_equipment_operator", "label": "Heavy Equipment Operator" },
-                { "key": "roofer", "label": "Roofer" },
-                { "key": "pipefitter", "label": "Pipefitter" },
-                { "key": "industrial_maintenance_technician", "label": "Industrial Maintenance Technician" },
-                { "key": "other", "label": "Other (please specify)" }
+                {
+                  "key": "construction_worker",
+                  "label": "Construction Worker"
+                },
+                {
+                  "key": "electrician",
+                  "label": "Electrician"
+                },
+                {
+                  "key": "plumber",
+                  "label": "Plumber"
+                },
+                {
+                  "key": "carpenter",
+                  "label": "Carpenter"
+                },
+                {
+                  "key": "hvac_technician",
+                  "label": "HVAC Technician"
+                },
+                {
+                  "key": "welder",
+                  "label": "Welder"
+                },
+                {
+                  "key": "mason_bricklayer",
+                  "label": "Mason / Bricklayer"
+                },
+                {
+                  "key": "automotive_technician",
+                  "label": "Automotive Technician"
+                },
+                {
+                  "key": "heavy_equipment_operator",
+                  "label": "Heavy Equipment Operator"
+                },
+                {
+                  "key": "roofer",
+                  "label": "Roofer"
+                },
+                {
+                  "key": "pipefitter",
+                  "label": "Pipefitter"
+                },
+                {
+                  "key": "industrial_maintenance_technician",
+                  "label": "Industrial Maintenance Technician"
+                },
+                {
+                  "key": "other",
+                  "label": "Other (please specify)"
+                }
               ],
               "required": true,
               "conditional_questions": {
@@ -85,19 +168,58 @@
               "type": "single_select",
               "label": "Which engineering career interests you?",
               "options": [
-                { "key": "mechanical_engineer", "label": "Mechanical Engineer" },
-                { "key": "electrical_engineer", "label": "Electrical Engineer" },
-                { "key": "civil_engineer", "label": "Civil Engineer" },
-                { "key": "chemical_engineer", "label": "Chemical Engineer" },
-                { "key": "biomedical_engineer", "label": "Biomedical Engineer" },
-                { "key": "environmental_engineer", "label": "Environmental Engineer" },
-                { "key": "aerospace_engineer", "label": "Aerospace Engineer" },
-                { "key": "materials_engineer", "label": "Materials Engineer" },
-                { "key": "industrial_engineer", "label": "Industrial Engineer" },
-                { "key": "systems_engineer", "label": "Systems Engineer" },
-                { "key": "robotics_engineer", "label": "Robotics Engineer" },
-                { "key": "petroleum_engineer", "label": "Petroleum Engineer" },
-                { "key": "other", "label": "Other (please specify)" }
+                {
+                  "key": "mechanical_engineer",
+                  "label": "Mechanical Engineer"
+                },
+                {
+                  "key": "electrical_engineer",
+                  "label": "Electrical Engineer"
+                },
+                {
+                  "key": "civil_engineer",
+                  "label": "Civil Engineer"
+                },
+                {
+                  "key": "chemical_engineer",
+                  "label": "Chemical Engineer"
+                },
+                {
+                  "key": "biomedical_engineer",
+                  "label": "Biomedical Engineer"
+                },
+                {
+                  "key": "environmental_engineer",
+                  "label": "Environmental Engineer"
+                },
+                {
+                  "key": "aerospace_engineer",
+                  "label": "Aerospace Engineer"
+                },
+                {
+                  "key": "materials_engineer",
+                  "label": "Materials Engineer"
+                },
+                {
+                  "key": "industrial_engineer",
+                  "label": "Industrial Engineer"
+                },
+                {
+                  "key": "systems_engineer",
+                  "label": "Systems Engineer"
+                },
+                {
+                  "key": "robotics_engineer",
+                  "label": "Robotics Engineer"
+                },
+                {
+                  "key": "petroleum_engineer",
+                  "label": "Petroleum Engineer"
+                },
+                {
+                  "key": "other",
+                  "label": "Other (please specify)"
+                }
               ],
               "required": true,
               "conditional_questions": {
@@ -114,19 +236,58 @@
               "type": "single_select",
               "label": "Which business and management career interests you?",
               "options": [
-                { "key": "accountant", "label": "Accountant" },
-                { "key": "financial_analyst", "label": "Financial Analyst" },
-                { "key": "business_analyst", "label": "Business Analyst" },
-                { "key": "data_analyst", "label": "Data Analyst" },
-                { "key": "management_consultant", "label": "Management Consultant" },
-                { "key": "marketing_manager", "label": "Marketing Manager" },
-                { "key": "operations_manager", "label": "Operations Manager" },
-                { "key": "hr_manager", "label": "Human Resources Manager" },
-                { "key": "supply_chain_manager", "label": "Supply Chain Manager" },
-                { "key": "project_manager", "label": "Project Manager" },
-                { "key": "economist", "label": "Economist" },
-                { "key": "investment_analyst", "label": "Investment Analyst" },
-                { "key": "other", "label": "Other (please specify)" }
+                {
+                  "key": "accountant",
+                  "label": "Accountant"
+                },
+                {
+                  "key": "financial_analyst",
+                  "label": "Financial Analyst"
+                },
+                {
+                  "key": "business_analyst",
+                  "label": "Business Analyst"
+                },
+                {
+                  "key": "data_analyst",
+                  "label": "Data Analyst"
+                },
+                {
+                  "key": "management_consultant",
+                  "label": "Management Consultant"
+                },
+                {
+                  "key": "marketing_manager",
+                  "label": "Marketing Manager"
+                },
+                {
+                  "key": "operations_manager",
+                  "label": "Operations Manager"
+                },
+                {
+                  "key": "hr_manager",
+                  "label": "Human Resources Manager"
+                },
+                {
+                  "key": "supply_chain_manager",
+                  "label": "Supply Chain Manager"
+                },
+                {
+                  "key": "project_manager",
+                  "label": "Project Manager"
+                },
+                {
+                  "key": "economist",
+                  "label": "Economist"
+                },
+                {
+                  "key": "investment_analyst",
+                  "label": "Investment Analyst"
+                },
+                {
+                  "key": "other",
+                  "label": "Other (please specify)"
+                }
               ],
               "required": true,
               "conditional_questions": {
@@ -143,19 +304,58 @@
               "type": "single_select",
               "label": "Which technology career interests you?",
               "options": [
-                { "key": "software_developer", "label": "Software Developer" },
-                { "key": "web_developer", "label": "Web Developer" },
-                { "key": "mobile_app_developer", "label": "Mobile App Developer" },
-                { "key": "data_scientist", "label": "Data Scientist" },
-                { "key": "ml_engineer", "label": "Machine Learning Engineer" },
-                { "key": "it_specialist", "label": "IT Specialist" },
-                { "key": "cybersecurity_analyst", "label": "Cybersecurity Analyst" },
-                { "key": "cloud_engineer", "label": "Cloud Engineer" },
-                { "key": "network_administrator", "label": "Network Administrator" },
-                { "key": "database_administrator", "label": "Database Administrator" },
-                { "key": "game_developer", "label": "Game Developer" },
-                { "key": "devops_engineer", "label": "DevOps Engineer" },
-                { "key": "other", "label": "Other (please specify)" }
+                {
+                  "key": "software_developer",
+                  "label": "Software Developer"
+                },
+                {
+                  "key": "web_developer",
+                  "label": "Web Developer"
+                },
+                {
+                  "key": "mobile_app_developer",
+                  "label": "Mobile App Developer"
+                },
+                {
+                  "key": "data_scientist",
+                  "label": "Data Scientist"
+                },
+                {
+                  "key": "ml_engineer",
+                  "label": "Machine Learning Engineer"
+                },
+                {
+                  "key": "it_specialist",
+                  "label": "IT Specialist"
+                },
+                {
+                  "key": "cybersecurity_analyst",
+                  "label": "Cybersecurity Analyst"
+                },
+                {
+                  "key": "cloud_engineer",
+                  "label": "Cloud Engineer"
+                },
+                {
+                  "key": "network_administrator",
+                  "label": "Network Administrator"
+                },
+                {
+                  "key": "database_administrator",
+                  "label": "Database Administrator"
+                },
+                {
+                  "key": "game_developer",
+                  "label": "Game Developer"
+                },
+                {
+                  "key": "devops_engineer",
+                  "label": "DevOps Engineer"
+                },
+                {
+                  "key": "other",
+                  "label": "Other (please specify)"
+                }
               ],
               "required": true,
               "conditional_questions": {
@@ -172,19 +372,58 @@
               "type": "single_select",
               "label": "Which educator career interests you?",
               "options": [
-                { "key": "elementary_teacher", "label": "Elementary School Teacher" },
-                { "key": "middle_school_teacher", "label": "Middle School Teacher" },
-                { "key": "high_school_teacher", "label": "High School Teacher" },
-                { "key": "college_professor", "label": "College Professor" },
-                { "key": "school_counselor", "label": "School Counselor" },
-                { "key": "academic_advisor", "label": "Academic Advisor" },
-                { "key": "special_education_teacher", "label": "Special Education Teacher" },
-                { "key": "instructional_coach", "label": "Instructional Coach" },
-                { "key": "curriculum_developer", "label": "Curriculum Developer" },
-                { "key": "education_administrator", "label": "Education Administrator" },
-                { "key": "librarian", "label": "Librarian" },
-                { "key": "educational_technologist", "label": "Educational Technologist" },
-                { "key": "other", "label": "Other (please specify)" }
+                {
+                  "key": "elementary_teacher",
+                  "label": "Elementary School Teacher"
+                },
+                {
+                  "key": "middle_school_teacher",
+                  "label": "Middle School Teacher"
+                },
+                {
+                  "key": "high_school_teacher",
+                  "label": "High School Teacher"
+                },
+                {
+                  "key": "college_professor",
+                  "label": "College Professor"
+                },
+                {
+                  "key": "school_counselor",
+                  "label": "School Counselor"
+                },
+                {
+                  "key": "academic_advisor",
+                  "label": "Academic Advisor"
+                },
+                {
+                  "key": "special_education_teacher",
+                  "label": "Special Education Teacher"
+                },
+                {
+                  "key": "instructional_coach",
+                  "label": "Instructional Coach"
+                },
+                {
+                  "key": "curriculum_developer",
+                  "label": "Curriculum Developer"
+                },
+                {
+                  "key": "education_administrator",
+                  "label": "Education Administrator"
+                },
+                {
+                  "key": "librarian",
+                  "label": "Librarian"
+                },
+                {
+                  "key": "educational_technologist",
+                  "label": "Educational Technologist"
+                },
+                {
+                  "key": "other",
+                  "label": "Other (please specify)"
+                }
               ],
               "required": true,
               "conditional_questions": {
@@ -201,20 +440,62 @@
               "type": "single_select",
               "label": "Which healthcare career interests you?",
               "options": [
-                { "key": "registered_nurse", "label": "Registered Nurse" },
-                { "key": "physician", "label": "Physician (MD/DO)" },
-                { "key": "physician_assistant", "label": "Physician Assistant" },
-                { "key": "nurse_practitioner", "label": "Nurse Practitioner" },
-                { "key": "pharmacist", "label": "Pharmacist" },
-                { "key": "physical_therapist", "label": "Physical Therapist" },
-                { "key": "occupational_therapist", "label": "Occupational Therapist" },
-                { "key": "medical_lab_scientist", "label": "Medical Laboratory Scientist" },
-                { "key": "radiologic_technologist", "label": "Radiologic Technologist" },
-                { "key": "dentist", "label": "Dentist" },
-                { "key": "dental_hygienist", "label": "Dental Hygienist" },
-                { "key": "psychologist", "label": "Psychologist" },
-                { "key": "public_health_specialist", "label": "Public Health Specialist" },
-                { "key": "other", "label": "Other (please specify)" }
+                {
+                  "key": "registered_nurse",
+                  "label": "Registered Nurse"
+                },
+                {
+                  "key": "physician",
+                  "label": "Physician (MD/DO)"
+                },
+                {
+                  "key": "physician_assistant",
+                  "label": "Physician Assistant"
+                },
+                {
+                  "key": "nurse_practitioner",
+                  "label": "Nurse Practitioner"
+                },
+                {
+                  "key": "pharmacist",
+                  "label": "Pharmacist"
+                },
+                {
+                  "key": "physical_therapist",
+                  "label": "Physical Therapist"
+                },
+                {
+                  "key": "occupational_therapist",
+                  "label": "Occupational Therapist"
+                },
+                {
+                  "key": "medical_lab_scientist",
+                  "label": "Medical Laboratory Scientist"
+                },
+                {
+                  "key": "radiologic_technologist",
+                  "label": "Radiologic Technologist"
+                },
+                {
+                  "key": "dentist",
+                  "label": "Dentist"
+                },
+                {
+                  "key": "dental_hygienist",
+                  "label": "Dental Hygienist"
+                },
+                {
+                  "key": "psychologist",
+                  "label": "Psychologist"
+                },
+                {
+                  "key": "public_health_specialist",
+                  "label": "Public Health Specialist"
+                },
+                {
+                  "key": "other",
+                  "label": "Other (please specify)"
+                }
               ],
               "required": true,
               "conditional_questions": {
@@ -231,18 +512,54 @@
               "type": "single_select",
               "label": "Which public safety career interests you?",
               "options": [
-                { "key": "police_officer", "label": "Police Officer" },
-                { "key": "firefighter", "label": "Firefighter" },
-                { "key": "emt", "label": "Emergency Medical Technician (EMT)" },
-                { "key": "paramedic", "label": "Paramedic" },
-                { "key": "correctional_officer", "label": "Correctional Officer" },
-                { "key": "state_trooper", "label": "State Trooper" },
-                { "key": "federal_agent", "label": "Federal Agent" },
-                { "key": "emergency_management_specialist", "label": "Emergency Management Specialist" },
-                { "key": "crime_scene_investigator", "label": "Crime Scene Investigator" },
-                { "key": "dispatch_operator", "label": "Dispatch Operator" },
-                { "key": "search_rescue_technician", "label": "Search and Rescue Technician" },
-                { "key": "other", "label": "Other (please specify)" }
+                {
+                  "key": "police_officer",
+                  "label": "Police Officer"
+                },
+                {
+                  "key": "firefighter",
+                  "label": "Firefighter"
+                },
+                {
+                  "key": "emt",
+                  "label": "Emergency Medical Technician (EMT)"
+                },
+                {
+                  "key": "paramedic",
+                  "label": "Paramedic"
+                },
+                {
+                  "key": "correctional_officer",
+                  "label": "Correctional Officer"
+                },
+                {
+                  "key": "state_trooper",
+                  "label": "State Trooper"
+                },
+                {
+                  "key": "federal_agent",
+                  "label": "Federal Agent"
+                },
+                {
+                  "key": "emergency_management_specialist",
+                  "label": "Emergency Management Specialist"
+                },
+                {
+                  "key": "crime_scene_investigator",
+                  "label": "Crime Scene Investigator"
+                },
+                {
+                  "key": "dispatch_operator",
+                  "label": "Dispatch Operator"
+                },
+                {
+                  "key": "search_rescue_technician",
+                  "label": "Search and Rescue Technician"
+                },
+                {
+                  "key": "other",
+                  "label": "Other (please specify)"
+                }
               ],
               "required": true,
               "conditional_questions": {
@@ -259,18 +576,54 @@
               "type": "single_select",
               "label": "Which researcher career interests you?",
               "options": [
-                { "key": "academic_researcher", "label": "Academic Researcher" },
-                { "key": "scientific_researcher", "label": "Scientific Researcher" },
-                { "key": "biomedical_researcher", "label": "Biomedical Researcher" },
-                { "key": "computational_biologist", "label": "Computational Biologist" },
-                { "key": "data_research_scientist", "label": "Data Research Scientist" },
-                { "key": "clinical_research_coordinator", "label": "Clinical Research Coordinator" },
-                { "key": "materials_science_researcher", "label": "Materials Science Researcher" },
-                { "key": "environmental_researcher", "label": "Environmental Researcher" },
-                { "key": "social_science_researcher", "label": "Social Science Researcher" },
-                { "key": "market_research_analyst", "label": "Market Research Analyst" },
-                { "key": "policy_researcher", "label": "Policy Researcher" },
-                { "key": "other", "label": "Other (please specify)" }
+                {
+                  "key": "academic_researcher",
+                  "label": "Academic Researcher"
+                },
+                {
+                  "key": "scientific_researcher",
+                  "label": "Scientific Researcher"
+                },
+                {
+                  "key": "biomedical_researcher",
+                  "label": "Biomedical Researcher"
+                },
+                {
+                  "key": "computational_biologist",
+                  "label": "Computational Biologist"
+                },
+                {
+                  "key": "data_research_scientist",
+                  "label": "Data Research Scientist"
+                },
+                {
+                  "key": "clinical_research_coordinator",
+                  "label": "Clinical Research Coordinator"
+                },
+                {
+                  "key": "materials_science_researcher",
+                  "label": "Materials Science Researcher"
+                },
+                {
+                  "key": "environmental_researcher",
+                  "label": "Environmental Researcher"
+                },
+                {
+                  "key": "social_science_researcher",
+                  "label": "Social Science Researcher"
+                },
+                {
+                  "key": "market_research_analyst",
+                  "label": "Market Research Analyst"
+                },
+                {
+                  "key": "policy_researcher",
+                  "label": "Policy Researcher"
+                },
+                {
+                  "key": "other",
+                  "label": "Other (please specify)"
+                }
               ],
               "required": true,
               "conditional_questions": {
@@ -287,20 +640,62 @@
               "type": "single_select",
               "label": "Which artist career interests you?",
               "options": [
-                { "key": "graphic_designer", "label": "Graphic Designer" },
-                { "key": "illustrator", "label": "Illustrator" },
-                { "key": "photographer", "label": "Photographer" },
-                { "key": "fine_artist", "label": "Fine Artist" },
-                { "key": "animator", "label": "Animator" },
-                { "key": "ux_ui_designer", "label": "UX/UI Designer" },
-                { "key": "film_editor", "label": "Film Editor" },
-                { "key": "cinematographer", "label": "Cinematographer" },
-                { "key": "musician", "label": "Musician" },
-                { "key": "composer", "label": "Composer" },
-                { "key": "sound_designer", "label": "Sound Designer" },
-                { "key": "fashion_designer", "label": "Fashion Designer" },
-                { "key": "game_artist", "label": "Game Artist" },
-                { "key": "other", "label": "Other (please specify)" }
+                {
+                  "key": "graphic_designer",
+                  "label": "Graphic Designer"
+                },
+                {
+                  "key": "illustrator",
+                  "label": "Illustrator"
+                },
+                {
+                  "key": "photographer",
+                  "label": "Photographer"
+                },
+                {
+                  "key": "fine_artist",
+                  "label": "Fine Artist"
+                },
+                {
+                  "key": "animator",
+                  "label": "Animator"
+                },
+                {
+                  "key": "ux_ui_designer",
+                  "label": "UX/UI Designer"
+                },
+                {
+                  "key": "film_editor",
+                  "label": "Film Editor"
+                },
+                {
+                  "key": "cinematographer",
+                  "label": "Cinematographer"
+                },
+                {
+                  "key": "musician",
+                  "label": "Musician"
+                },
+                {
+                  "key": "composer",
+                  "label": "Composer"
+                },
+                {
+                  "key": "sound_designer",
+                  "label": "Sound Designer"
+                },
+                {
+                  "key": "fashion_designer",
+                  "label": "Fashion Designer"
+                },
+                {
+                  "key": "game_artist",
+                  "label": "Game Artist"
+                },
+                {
+                  "key": "other",
+                  "label": "Other (please specify)"
+                }
               ],
               "required": true,
               "conditional_questions": {
@@ -317,19 +712,58 @@
               "type": "single_select",
               "label": "Which law career interests you?",
               "options": [
-                { "key": "lawyer_attorney", "label": "Lawyer / Attorney" },
-                { "key": "paralegal", "label": "Paralegal" },
-                { "key": "legal_assistant", "label": "Legal Assistant" },
-                { "key": "judge", "label": "Judge" },
-                { "key": "prosecutor", "label": "Prosecutor" },
-                { "key": "public_defender", "label": "Public Defender" },
-                { "key": "corporate_counsel", "label": "Corporate Counsel" },
-                { "key": "ip_lawyer", "label": "Intellectual Property Lawyer" },
-                { "key": "contract_manager", "label": "Contract Manager" },
-                { "key": "compliance_officer", "label": "Compliance Officer" },
-                { "key": "legal_analyst", "label": "Legal Analyst" },
-                { "key": "mediator", "label": "Mediator" },
-                { "key": "other", "label": "Other (please specify)" }
+                {
+                  "key": "lawyer_attorney",
+                  "label": "Lawyer / Attorney"
+                },
+                {
+                  "key": "paralegal",
+                  "label": "Paralegal"
+                },
+                {
+                  "key": "legal_assistant",
+                  "label": "Legal Assistant"
+                },
+                {
+                  "key": "judge",
+                  "label": "Judge"
+                },
+                {
+                  "key": "prosecutor",
+                  "label": "Prosecutor"
+                },
+                {
+                  "key": "public_defender",
+                  "label": "Public Defender"
+                },
+                {
+                  "key": "corporate_counsel",
+                  "label": "Corporate Counsel"
+                },
+                {
+                  "key": "ip_lawyer",
+                  "label": "Intellectual Property Lawyer"
+                },
+                {
+                  "key": "contract_manager",
+                  "label": "Contract Manager"
+                },
+                {
+                  "key": "compliance_officer",
+                  "label": "Compliance Officer"
+                },
+                {
+                  "key": "legal_analyst",
+                  "label": "Legal Analyst"
+                },
+                {
+                  "key": "mediator",
+                  "label": "Mediator"
+                },
+                {
+                  "key": "other",
+                  "label": "Other (please specify)"
+                }
               ],
               "required": true,
               "conditional_questions": {
@@ -355,18 +789,54 @@
             "type": "multi_select",
             "label": "What traits best describe you?",
             "options": [
-              { "key": "creative", "label": "Creative and artistic" },
-              { "key": "analytical", "label": "Analytical and logical" },
-              { "key": "compassionate", "label": "Compassionate and caring" },
-              { "key": "leadership", "label": "Leadership-oriented" },
-              { "key": "detail_oriented", "label": "Detail-oriented and organized" },
-              { "key": "adventurous", "label": "Adventurous and willing to take risks" },
-              { "key": "patient", "label": "Patient and persistent" },
-              { "key": "outgoing", "label": "Outgoing and social" },
-              { "key": "independent", "label": "Independent and self-reliant" },
-              { "key": "collaborative", "label": "Collaborative and team-focused" },
-              { "key": "curious", "label": "Curious and inquisitive" },
-              { "key": "hands_on", "label": "Practical and hands-on" }
+              {
+                "key": "creative",
+                "label": "Creative and artistic"
+              },
+              {
+                "key": "analytical",
+                "label": "Analytical and logical"
+              },
+              {
+                "key": "compassionate",
+                "label": "Compassionate and caring"
+              },
+              {
+                "key": "leadership",
+                "label": "Leadership-oriented"
+              },
+              {
+                "key": "detail_oriented",
+                "label": "Detail-oriented and organized"
+              },
+              {
+                "key": "adventurous",
+                "label": "Adventurous and willing to take risks"
+              },
+              {
+                "key": "patient",
+                "label": "Patient and persistent"
+              },
+              {
+                "key": "outgoing",
+                "label": "Outgoing and social"
+              },
+              {
+                "key": "independent",
+                "label": "Independent and self-reliant"
+              },
+              {
+                "key": "collaborative",
+                "label": "Collaborative and team-focused"
+              },
+              {
+                "key": "curious",
+                "label": "Curious and inquisitive"
+              },
+              {
+                "key": "hands_on",
+                "label": "Practical and hands-on"
+              }
             ],
             "required": true
           },
@@ -402,7 +872,7 @@
       ],
       "columns": [
         "Excellent",
-        "Good", 
+        "Good",
         "Average",
         "Needs Improvement",
         "Poor",
@@ -434,11 +904,26 @@
       "type": "single_select",
       "label": "How much education are you willing to pursue?",
       "options": [
-        { "key": "work_immediately", "label": "Work immediately after high school" },
-        { "key": "short_training", "label": "A few months to 2 years (certifications or training)" },
-        { "key": "college_technical", "label": "2–4 years (college or technical school)" },
-        { "key": "advanced_degree", "label": "4+ years (college and possibly graduate school)" },
-        { "key": "not_sure", "label": "I'm not sure yet" }
+        {
+          "key": "work_immediately",
+          "label": "Work immediately after high school"
+        },
+        {
+          "key": "short_training",
+          "label": "A few months to 2 years (certifications or training)"
+        },
+        {
+          "key": "college_technical",
+          "label": "2–4 years (college or technical school)"
+        },
+        {
+          "key": "advanced_degree",
+          "label": "4+ years (college and possibly graduate school)"
+        },
+        {
+          "key": "not_sure",
+          "label": "I'm not sure yet"
+        }
       ],
       "required": true
     },
@@ -447,13 +932,34 @@
       "type": "multi_select",
       "label": "Are there any factors we should consider when suggesting careers?",
       "options": [
-        { "key": "earn_money_soon", "label": "Start earning money as soon as possible" },
-        { "key": "flexible_hours", "label": "Flexible hours" },
-        { "key": "predictable_hours", "label": "Predictable hours" },
-        { "key": "stay_close_home", "label": "Stay close to home" },
-        { "key": "open_relocating", "label": "Open to relocating" },
-        { "key": "physical_limitations", "label": "Physical work may be difficult for me" },
-        { "key": "no_constraints", "label": "No major constraints" }
+        {
+          "key": "earn_money_soon",
+          "label": "Start earning money as soon as possible"
+        },
+        {
+          "key": "flexible_hours",
+          "label": "Flexible hours"
+        },
+        {
+          "key": "predictable_hours",
+          "label": "Predictable hours"
+        },
+        {
+          "key": "stay_close_home",
+          "label": "Stay close to home"
+        },
+        {
+          "key": "open_relocating",
+          "label": "Open to relocating"
+        },
+        {
+          "key": "physical_limitations",
+          "label": "Physical work may be difficult for me"
+        },
+        {
+          "key": "no_constraints",
+          "label": "No major constraints"
+        }
       ],
       "required": true
     },
@@ -462,10 +968,22 @@
       "type": "single_select",
       "label": "Do you feel you have support for education or training after high school?",
       "options": [
-        { "key": "strong_support", "label": "Strong support" },
-        { "key": "some_support", "label": "Some support" },
-        { "key": "limited_support", "label": "Limited support" },
-        { "key": "not_sure", "label": "I'm not sure" }
+        {
+          "key": "strong_support",
+          "label": "Strong support"
+        },
+        {
+          "key": "some_support",
+          "label": "Some support"
+        },
+        {
+          "key": "limited_support",
+          "label": "Limited support"
+        },
+        {
+          "key": "not_sure",
+          "label": "I'm not sure"
+        }
       ],
       "required": true
     },
@@ -476,1260 +994,6 @@
       "placeholder": "Share your thoughts about the impact you want to make and who inspires you...",
       "maxLength": 1000,
       "required": true
-    }
-  ],
-  "test_profiles": [
-    {
-      "profile_id": "D1_trade_electrician",
-      "name": "D1 Trade Electrician",
-      "q1_grade_zip": { 
-        "grade": "11", 
-        "zipCode": "78735" 
-      },
-      "q3_career_knowledge": "yes",
-      "q3a_career_categories": "trade",
-      "q3a1_trade_careers": "electrician",
-      "q4_academic_performance": {
-        "Math": "Good",
-        "Science (Biology, Chemistry, Physics)": "Average",
-        "English / Language Arts": "Average",
-        "Social Studies / History": "Average",
-        "Art / Creative Subjects": "Average",
-        "Physical Education / Health": "Good",
-        "Technology / Computer Science": "Average",
-        "Foreign Languages": "Haven't taken yet",
-        "Business / Economics": "Average"
-      },
-      "q4b_course_history": {
-        "Math": "Geometry Honors",
-        "Science (Biology, Chemistry, Physics)": "Physical Science",
-        "Technology / Computer Science": "Intro to Engineering/Shop"
-      },
-      "q5_education_willingness": "short_training",
-      "q14_constraints": ["earn_money_soon", "predictable_hours"],
-      "q17_support_confidence": "some_support",
-      "q19_20_impact_inspiration": "I want to build things that last and help people by making homes safer. I'm inspired by people who can fix anything and stay calm under pressure."
-    },
-    {
-      "profile_id": "D2_healthcare_registered_nurse",
-      "name": "D2 Healthcare Registered Nurse",
-      "q1_grade_zip": { 
-        "grade": "10", 
-        "zipCode": "75001" 
-      },
-      "q3_career_knowledge": "yes",
-      "q3a_career_categories": "healthcare",
-      "q3a6_healthcare_careers": "registered_nurse",
-      "q4_academic_performance": {
-        "Math": "Average",
-        "Science (Biology, Chemistry, Physics)": "Excellent",
-        "English / Language Arts": "Good",
-        "Social Studies / History": "Average",
-        "Art / Creative Subjects": "Average",
-        "Physical Education / Health": "Good",
-        "Technology / Computer Science": "Haven't taken yet",
-        "Foreign Languages": "Average",
-        "Business / Economics": "Average"
-      },
-      "q4b_course_history": {
-        "Science (Biology, Chemistry, Physics)": "Honors Biology",
-        "English / Language Arts": "Honors English"
-      },
-      "q5_education_willingness": "advanced_degree",
-      "q14_constraints": ["predictable_hours"],
-      "q17_support_confidence": "strong_support",
-      "q19_20_impact_inspiration": "I want to be someone families trust in tough moments. I'm inspired by nurses who stay kind and steady even when things are stressful."
-    },
-    {
-      "profile_id": "D3_engineering_mechanical_engineer",
-      "name": "D3 Engineering Mechanical Engineer",
-      "q1_grade_zip": { 
-        "grade": "12", 
-        "zipCode": "30301" 
-      },
-      "q3_career_knowledge": "yes",
-      "q3a_career_categories": "engineering",
-      "q3a2_engineering_careers": "mechanical_engineer",
-      "q4_academic_performance": {
-        "Math": "Excellent",
-        "Science (Biology, Chemistry, Physics)": "Good",
-        "English / Language Arts": "Average",
-        "Social Studies / History": "Average",
-        "Art / Creative Subjects": "Average",
-        "Physical Education / Health": "Average",
-        "Technology / Computer Science": "Good",
-        "Foreign Languages": "Average",
-        "Business / Economics": "Average"
-      },
-      "q4b_course_history": {
-        "Math": "AP Calculus AB, Honors Pre-Calculus",
-        "Science (Biology, Chemistry, Physics)": "Honors Physics",
-        "Technology / Computer Science": "Robotics, CAD"
-      },
-      "q5_education_willingness": "advanced_degree",
-      "q14_constraints": ["open_relocating"],
-      "q17_support_confidence": "some_support",
-      "q19_20_impact_inspiration": "I want to design machines that solve real problems and improve everyday life. I'm inspired by engineers who build practical solutions and keep improving them."
-    },
-    {
-      "profile_id": "D4_artist_ux_ui_designer",
-      "name": "D4 Artist UX UI Designer",
-      "q1_grade_zip": { 
-        "grade": "9", 
-        "zipCode": "94110" 
-      },
-      "q3_career_knowledge": "yes",
-      "q3a_career_categories": "artist",
-      "q3a9_artist_careers": "ux_ui_designer",
-      "q4_academic_performance": {
-        "Math": "Average",
-        "Science (Biology, Chemistry, Physics)": "Average",
-        "English / Language Arts": "Good",
-        "Social Studies / History": "Good",
-        "Art / Creative Subjects": "Excellent",
-        "Physical Education / Health": "Good",
-        "Technology / Computer Science": "Average",
-        "Foreign Languages": "Haven't taken yet",
-        "Business / Economics": "Haven't taken yet"
-      },
-      "q4b_course_history": {
-        "Art / Creative Subjects": "Digital Art",
-        "Technology / Computer Science": "Intro to Programming (if available)"
-      },
-      "q5_education_willingness": "college_technical",
-      "q14_constraints": ["flexible_hours"],
-      "q17_support_confidence": "some_support",
-      "q19_20_impact_inspiration": "I want to design things that feel easy and inclusive for everyone. I'm inspired by creators who make apps and products that are beautiful and simple."
-    },
-    {
-      "profile_id": "D5_law_paralegal",
-      "name": "D5 Law Paralegal",
-      "q1_grade_zip": { 
-        "grade": "11", 
-        "zipCode": "60614" 
-      },
-      "q3_career_knowledge": "yes",
-      "q3a_career_categories": "law",
-      "q3a10_law_careers": "paralegal",
-      "q4_academic_performance": {
-        "Math": "Average",
-        "Science (Biology, Chemistry, Physics)": "Average",
-        "English / Language Arts": "Good",
-        "Social Studies / History": "Excellent",
-        "Art / Creative Subjects": "Average",
-        "Physical Education / Health": "Average",
-        "Technology / Computer Science": "Average",
-        "Foreign Languages": "Average",
-        "Business / Economics": "Average"
-      },
-      "q4b_course_history": {
-        "Social Studies / History": "AP U.S. Government, Debate",
-        "English / Language Arts": "Honors English"
-      },
-      "q5_education_willingness": "college_technical",
-      "q14_constraints": ["predictable_hours", "stay_close_home"],
-      "q17_support_confidence": "some_support",
-      "q19_20_impact_inspiration": "I want to help people understand their rights and make fair decisions. I'm inspired by people who speak up and use facts to solve problems."
-    },
-    {
-      "profile_id": "U1_undecided_hands_on_builder",
-      "name": "U1 Undecided Hands On Builder",
-      "q1_grade_zip": { 
-        "grade": "9", 
-        "zipCode": "73301" 
-      },
-      "q3_career_knowledge": "no",
-      "q10_traits": ["hands_on", "patient", "detail_oriented"],
-      "q8_interests_text": "I like building LEGO sets, fixing bikes, and watching videos about how engines work.",
-      "q9_experience_text": "Helped my family with small home repairs and took care of tools in a garage.",
-      "q4_academic_performance": {
-        "Math": "Average",
-        "Science (Biology, Chemistry, Physics)": "Average",
-        "English / Language Arts": "Average",
-        "Social Studies / History": "Average",
-        "Art / Creative Subjects": "Average",
-        "Physical Education / Health": "Good",
-        "Technology / Computer Science": "Haven't taken yet",
-        "Foreign Languages": "Haven't taken yet",
-        "Business / Economics": "Haven't taken yet"
-      },
-      "q4b_course_history": {},
-      "q5_education_willingness": "short_training",
-      "q14_constraints": ["earn_money_soon"],
-      "q17_support_confidence": "some_support",
-      "q19_20_impact_inspiration": "I want to be useful and dependable. I'm inspired by people who can fix problems quickly and do quality work."
-    },
-    {
-      "profile_id": "U2_undecided_helping_people",
-      "name": "U2 Undecided Helping People",
-      "q1_grade_zip": { 
-        "grade": "10", 
-        "zipCode": "10001" 
-      },
-      "q3_career_knowledge": "no",
-      "q10_traits": ["compassionate", "collaborative", "patient"],
-      "q8_interests_text": "I like volunteering, working with kids, and learning about health and the human body.",
-      "q9_experience_text": "Volunteer at a community center and help with tutoring younger students.",
-      "q4_academic_performance": {
-        "Math": "Average",
-        "Science (Biology, Chemistry, Physics)": "Good",
-        "English / Language Arts": "Good",
-        "Social Studies / History": "Average",
-        "Art / Creative Subjects": "Average",
-        "Physical Education / Health": "Good",
-        "Technology / Computer Science": "Haven't taken yet",
-        "Foreign Languages": "Average",
-        "Business / Economics": "Haven't taken yet"
-      },
-      "q4b_course_history": {
-        "Science (Biology, Chemistry, Physics)": "Biology",
-        "English / Language Arts": "Honors English"
-      },
-      "q5_education_willingness": "advanced_degree",
-      "q14_constraints": ["predictable_hours"],
-      "q17_support_confidence": "strong_support",
-      "q19_20_impact_inspiration": "I want to support people when they're struggling. I'm inspired by mentors and healthcare workers who stay calm and kind."
-    },
-    {
-      "profile_id": "U3_undecided_tech_problem_solver",
-      "name": "U3 Undecided Tech Problem Solver",
-      "q1_grade_zip": { 
-        "grade": "11", 
-        "zipCode": "02139" 
-      },
-      "q3_career_knowledge": "no",
-      "q10_traits": ["analytical", "curious", "independent"],
-      "q8_interests_text": "I like coding small projects, solving puzzles, and learning how apps and networks work.",
-      "q9_experience_text": "Built a simple website and helped friends troubleshoot laptops and Wi-Fi.",
-      "q4_academic_performance": {
-        "Math": "Good",
-        "Science (Biology, Chemistry, Physics)": "Average",
-        "English / Language Arts": "Average",
-        "Social Studies / History": "Average",
-        "Art / Creative Subjects": "Average",
-        "Physical Education / Health": "Average",
-        "Technology / Computer Science": "Good",
-        "Foreign Languages": "Average",
-        "Business / Economics": "Average"
-      },
-      "q4b_course_history": {
-        "Math": "Pre-Calculus",
-        "Technology / Computer Science": "AP Computer Science Principles"
-      },
-      "q5_education_willingness": "college_technical",
-      "q14_constraints": ["flexible_hours"],
-      "q17_support_confidence": "some_support",
-      "q19_20_impact_inspiration": "I want to build tools that make life easier and safer online. I'm inspired by people who solve hard technical problems."
-    },
-    {
-      "profile_id": "U4_undecided_creative_communicator",
-      "name": "U4 Undecided Creative Communicator",
-      "q1_grade_zip": { 
-        "grade": "12", 
-        "zipCode": "90001" 
-      },
-      "q3_career_knowledge": "no",
-      "q10_traits": ["creative", "outgoing", "leadership"],
-      "q8_interests_text": "I enjoy making videos, designing posters, and talking to people. I like social media and storytelling.",
-      "q9_experience_text": "Managed a club's Instagram and edited videos for school events.",
-      "q4_academic_performance": {
-        "Math": "Average",
-        "Science (Biology, Chemistry, Physics)": "Average",
-        "English / Language Arts": "Good",
-        "Social Studies / History": "Average",
-        "Art / Creative Subjects": "Excellent",
-        "Physical Education / Health": "Average",
-        "Technology / Computer Science": "Average",
-        "Foreign Languages": "Average",
-        "Business / Economics": "Good"
-      },
-      "q4b_course_history": {
-        "Art / Creative Subjects": "Digital Media / Film",
-        "Business / Economics": "Marketing elective"
-      },
-      "q5_education_willingness": "college_technical",
-      "q14_constraints": ["earn_money_soon", "flexible_hours"],
-      "q17_support_confidence": "limited_support",
-      "q19_20_impact_inspiration": "I want to inspire people and create messages that matter. I'm inspired by creators who build communities and tell great stories."
-    },
-    {
-      "profile_id": "U5_undecided_public_service_minded",
-      "name": "U5 Undecided Public Service Minded",
-      "q1_grade_zip": { 
-        "grade": "10", 
-        "zipCode": "80202" 
-      },
-      "q3_career_knowledge": "no",
-      "q10_traits": ["leadership", "detail_oriented", "collaborative"],
-      "q8_interests_text": "I'm interested in government, fairness, and how communities work. I like organizing events and debates.",
-      "q9_experience_text": "Student council and helped run a school fundraiser; volunteered at a local food bank.",
-      "q4_academic_performance": {
-        "Math": "Average",
-        "Science (Biology, Chemistry, Physics)": "Average",
-        "English / Language Arts": "Good",
-        "Social Studies / History": "Good",
-        "Art / Creative Subjects": "Average",
-        "Physical Education / Health": "Average",
-        "Technology / Computer Science": "Average",
-        "Foreign Languages": "Average",
-        "Business / Economics": "Average"
-      },
-      "q4b_course_history": {
-        "Social Studies / History": "Civics / Government",
-        "English / Language Arts": "Speech & Debate"
-      },
-      "q5_education_willingness": "advanced_degree",
-      "q14_constraints": ["stay_close_home"],
-      "q17_support_confidence": "some_support",
-      "q19_20_impact_inspiration": "I want to help make rules and systems fair. I'm inspired by leaders who improve their communities through service."
-    },
-    {
-      "profile_id": "P1_business_path_unknown_specific",
-      "name": "P1 Business Path Unknown Specific",
-      "q1_grade_zip": { 
-        "grade": "11", 
-        "zipCode": "33101" 
-      },
-      "q3_career_knowledge": "yes",
-      "q3a_career_categories": "business_management",
-      "q3a3_business_careers": "other",
-      "q3a3_business_other": "I know I want a business/management career, but I'm not sure which role fits me best (maybe analytics, management, or finance).",
-      "q4_academic_performance": {
-        "Math": "Good",
-        "Science (Biology, Chemistry, Physics)": "Average",
-        "English / Language Arts": "Good",
-        "Social Studies / History": "Average",
-        "Art / Creative Subjects": "Average",
-        "Physical Education / Health": "Average",
-        "Technology / Computer Science": "Average",
-        "Foreign Languages": "Average",
-        "Business / Economics": "Good"
-      },
-      "q4b_course_history": {
-        "Business / Economics": "Intro to Business, Accounting elective",
-        "Math": "Statistics elective (if available)"
-      },
-      "q5_education_willingness": "college_technical",
-      "q14_constraints": ["earn_money_soon"],
-      "q17_support_confidence": "some_support",
-      "q19_20_impact_inspiration": "I want to build a stable career and lead teams well. I'm inspired by people who create opportunities and run organizations responsibly."
-    },
-    {
-      "profile_id": "P2_technology_path_unknown_specific",
-      "name": "P2 Technology Path Unknown Specific",
-      "q1_grade_zip": { 
-        "grade": "10", 
-        "zipCode": "98101" 
-      },
-      "q3_career_knowledge": "yes",
-      "q3a_career_categories": "technology",
-      "q3a4_technology_careers": "other",
-      "q3a4_technology_other": "I want a technology career but I'm not sure whether I should focus on cybersecurity, software, or data.",
-      "q4_academic_performance": {
-        "Math": "Good",
-        "Science (Biology, Chemistry, Physics)": "Average",
-        "English / Language Arts": "Average",
-        "Social Studies / History": "Average",
-        "Art / Creative Subjects": "Average",
-        "Physical Education / Health": "Average",
-        "Technology / Computer Science": "Good",
-        "Foreign Languages": "Average",
-        "Business / Economics": "Average"
-      },
-      "q4b_course_history": {
-        "Technology / Computer Science": "Intro to Programming",
-        "Math": "Algebra II"
-      },
-      "q5_education_willingness": "college_technical",
-      "q14_constraints": ["flexible_hours"],
-      "q17_support_confidence": "some_support",
-      "q19_20_impact_inspiration": "I want to build technology that protects people and solves problems. I'm inspired by people who create useful tools and keep learning."
-    },
-    {
-      "profile_id": "P3_educator_path_unknown_specific",
-      "name": "P3 Educator Path Unknown Specific",
-      "q1_grade_zip": { 
-        "grade": "12", 
-        "zipCode": "15213" 
-      },
-      "q3_career_knowledge": "yes",
-      "q3a_career_categories": "educator",
-      "q3a5_educator_careers": "other",
-      "q3a5_educator_other": "I know I want to work in education, but I'm not sure if I should teach, counsel, or work in curriculum/administration.",
-      "q4_academic_performance": {
-        "Math": "Average",
-        "Science (Biology, Chemistry, Physics)": "Average",
-        "English / Language Arts": "Good",
-        "Social Studies / History": "Good",
-        "Art / Creative Subjects": "Average",
-        "Physical Education / Health": "Average",
-        "Technology / Computer Science": "Average",
-        "Foreign Languages": "Average",
-        "Business / Economics": "Average"
-      },
-      "q4b_course_history": {
-        "English / Language Arts": "AP English Language",
-        "Social Studies / History": "Psychology elective"
-      },
-      "q5_education_willingness": "advanced_degree",
-      "q14_constraints": ["stay_close_home", "predictable_hours"],
-      "q17_support_confidence": "some_support",
-      "q19_20_impact_inspiration": "I want to help students feel supported and confident. I'm inspired by teachers and counselors who make school feel safe and meaningful."
-    },
-    {
-      "profile_id": "P4_public_safety_path_unknown_specific",
-      "name": "P4 Public Safety Path Unknown Specific",
-      "q1_grade_zip": { 
-        "grade": "9", 
-        "zipCode": "85001" 
-      },
-      "q3_career_knowledge": "yes",
-      "q3a_career_categories": "public_safety",
-      "q3a7_public_safety_careers": "other",
-      "q3a7_public_safety_other": "I want a public safety career, but I'm not sure whether EMT, firefighter, or law enforcement fits me best.",
-      "q4_academic_performance": {
-        "Math": "Average",
-        "Science (Biology, Chemistry, Physics)": "Average",
-        "English / Language Arts": "Average",
-        "Social Studies / History": "Average",
-        "Art / Creative Subjects": "Average",
-        "Physical Education / Health": "Good",
-        "Technology / Computer Science": "Haven't taken yet",
-        "Foreign Languages": "Haven't taken yet",
-        "Business / Economics": "Haven't taken yet"
-      },
-      "q4b_course_history": {
-        "Physical Education / Health": "Health class"
-      },
-      "q5_education_willingness": "short_training",
-      "q14_constraints": ["earn_money_soon"],
-      "q17_support_confidence": "some_support",
-      "q19_20_impact_inspiration": "I want to protect people and be helpful in emergencies. I'm inspired by first responders who stay brave and calm."
-    },
-    {
-      "profile_id": "P5_other_path_unknown_specific",
-      "name": "P5 Other Path Unknown Specific",
-      "q1_grade_zip": { 
-        "grade": "11", 
-        "zipCode": "20001" 
-      },
-      "q3_career_knowledge": "yes",
-      "q3a_career_categories": "other",
-      "q3a11_other_career": "I know I want a career in sports and fitness or athletic performance, but I'm not sure what job that would be.",
-      "q4_academic_performance": {
-        "Math": "Average",
-        "Science (Biology, Chemistry, Physics)": "Good",
-        "English / Language Arts": "Average",
-        "Social Studies / History": "Average",
-        "Art / Creative Subjects": "Average",
-        "Physical Education / Health": "Excellent",
-        "Technology / Computer Science": "Average",
-        "Foreign Languages": "Average",
-        "Business / Economics": "Average"
-      },
-      "q4b_course_history": {
-        "Physical Education / Health": "Sports Medicine elective (if available)",
-        "Science (Biology, Chemistry, Physics)": "Biology"
-      },
-      "q5_education_willingness": "college_technical",
-      "q14_constraints": ["predictable_hours"],
-      "q17_support_confidence": "some_support",
-      "q19_20_impact_inspiration": "I want to help people improve their health and performance. I'm inspired by coaches and trainers who motivate others to reach goals."
-    },
-    {
-      "profile_id": "S01",
-      "name": "S01",
-      "q1_grade_zip": { 
-        "grade": "11", 
-        "zipCode": "10001" 
-      },
-      "q3_career_knowledge": "no",
-      "q10_traits": ["hands_on", "detail_oriented", "patient"],
-      "q8_interests_text": "Building things with my hands, fixing electronics, working on cars",
-      "q9_experience_text": "Helped repair family car, built furniture for my room, volunteer at local maker space",
-      "q4_academic_performance": {
-        "Math": "Good",
-        "Science (Biology, Chemistry, Physics)": "Good",
-        "English / Language Arts": "Average",
-        "Social Studies / History": "Average",
-        "Art / Creative Subjects": "Good",
-        "Physical Education / Health": "Good",
-        "Technology / Computer Science": "Good",
-        "Foreign Languages": "Average",
-        "Business / Economics": "Average"
-      },
-      "q4b_course_history": {
-        "Math": "Algebra II, Geometry",
-        "Science (Biology, Chemistry, Physics)": "Physics, Chemistry",
-        "Technology / Computer Science": "Engineering Design, Shop Class"
-      },
-      "q5_education_willingness": "college_technical",
-      "q14_constraints": ["earn_money_soon", "hands_on_work"],
-      "q17_support_confidence": "some_support",
-      "q19_20_impact_inspiration": "I want to create things that solve real problems and last a long time. I'm inspired by engineers and craftspeople who build the infrastructure we rely on."
-    },
-    {
-      "profile_id": "S02",
-      "name": "S02",
-      "q1_grade_zip": { 
-        "grade": "10", 
-        "zipCode": "90210" 
-      },
-      "q3_career_knowledge": "no",
-      "q10_traits": ["analytical", "curious", "independent"],
-      "q8_interests_text": "Solving complex problems, coding, mathematics, science experiments",
-      "q9_experience_text": "Participated in math competitions, created apps for school projects, tutored younger students in math",
-      "q4_academic_performance": {
-        "Math": "Excellent",
-        "Science (Biology, Chemistry, Physics)": "Excellent",
-        "English / Language Arts": "Good",
-        "Social Studies / History": "Average",
-        "Art / Creative Subjects": "Average",
-        "Physical Education / Health": "Average",
-        "Technology / Computer Science": "Excellent",
-        "Foreign Languages": "Good",
-        "Business / Economics": "Good"
-      },
-      "q4b_course_history": {
-        "Math": "AP Calculus BC, AP Statistics",
-        "Science (Biology, Chemistry, Physics)": "AP Physics, AP Chemistry",
-        "Technology / Computer Science": "AP Computer Science A"
-      },
-      "q5_education_willingness": "advanced_degree",
-      "q14_constraints": ["open_relocating"],
-      "q17_support_confidence": "strong_support",
-      "q19_20_impact_inspiration": "I want to push the boundaries of what's possible through research and innovation. I'm inspired by scientists and researchers who make breakthrough discoveries."
-    },
-    {
-      "profile_id": "S03",
-      "name": "S03",
-      "q1_grade_zip": { 
-        "grade": "12", 
-        "zipCode": "30309" 
-      },
-      "q3_career_knowledge": "no",
-      "q10_traits": ["compassionate", "collaborative", "patient"],
-      "q8_interests_text": "Helping others, understanding human behavior, community service, psychology",
-      "q9_experience_text": "Volunteer at local hospital, peer counseling program, organized charity drives",
-      "q4_academic_performance": {
-        "Math": "Average",
-        "Science (Biology, Chemistry, Physics)": "Good",
-        "English / Language Arts": "Excellent",
-        "Social Studies / History": "Excellent",
-        "Art / Creative Subjects": "Good",
-        "Physical Education / Health": "Good",
-        "Technology / Computer Science": "Average",
-        "Foreign Languages": "Good",
-        "Business / Economics": "Average"
-      },
-      "q4b_course_history": {
-        "English / Language Arts": "AP English Literature",
-        "Social Studies / History": "AP Psychology, AP U.S. History",
-        "Science (Biology, Chemistry, Physics)": "Biology, Anatomy & Physiology"
-      },
-      "q5_education_willingness": "advanced_degree",
-      "q14_constraints": ["predictable_hours"],
-      "q17_support_confidence": "strong_support",
-      "q19_20_impact_inspiration": "I want to help people overcome challenges and reach their potential. I'm inspired by counselors, therapists, and social workers who make a difference in people's lives."
-    },
-    {
-      "profile_id": "S04",
-      "name": "S04",
-      "q1_grade_zip": { 
-        "grade": "9", 
-        "zipCode": "60601" 
-      },
-      "q3_career_knowledge": "no",
-      "q10_traits": ["creative", "outgoing", "leadership"],
-      "q8_interests_text": "Art, design, music, theater, creative writing, social media",
-      "q9_experience_text": "Lead role in school play, designed posters for school events, manage social media for local nonprofit",
-      "q4_academic_performance": {
-        "Math": "Average",
-        "Science (Biology, Chemistry, Physics)": "Average",
-        "English / Language Arts": "Excellent",
-        "Social Studies / History": "Good",
-        "Art / Creative Subjects": "Excellent",
-        "Physical Education / Health": "Good",
-        "Technology / Computer Science": "Good",
-        "Foreign Languages": "Good",
-        "Business / Economics": "Average"
-      },
-      "q4b_course_history": {
-        "Art / Creative Subjects": "Digital Art, Theater Arts",
-        "English / Language Arts": "Creative Writing",
-        "Technology / Computer Science": "Digital Media"
-      },
-      "q5_education_willingness": "college_technical",
-      "q14_constraints": ["flexible_hours"],
-      "q17_support_confidence": "some_support",
-      "q19_20_impact_inspiration": "I want to create art and content that inspires and connects people. I'm inspired by artists, designers, and creators who use their talents to tell important stories."
-    },
-    {
-      "profile_id": "S05",
-      "name": "S05",
-      "q1_grade_zip": { 
-        "grade": "11", 
-        "zipCode": "94102" 
-      },
-      "q3_career_knowledge": "no",
-      "q10_traits": ["leadership", "detail_oriented", "collaborative"],
-      "q8_interests_text": "Business, entrepreneurship, organizing events, economics, debate",
-      "q9_experience_text": "Started small business selling handmade items, treasurer of student council, organized school fundraiser",
-      "q4_academic_performance": {
-        "Math": "Good",
-        "Science (Biology, Chemistry, Physics)": "Average",
-        "English / Language Arts": "Good",
-        "Social Studies / History": "Good",
-        "Art / Creative Subjects": "Average",
-        "Physical Education / Health": "Average",
-        "Technology / Computer Science": "Good",
-        "Foreign Languages": "Average",
-        "Business / Economics": "Excellent"
-      },
-      "q4b_course_history": {
-        "Business / Economics": "AP Economics, Business Management",
-        "Math": "Statistics, Accounting",
-        "Social Studies / History": "Debate Team"
-      },
-      "q5_education_willingness": "college_technical",
-      "q14_constraints": ["earn_money_soon"],
-      "q17_support_confidence": "some_support",
-      "q19_20_impact_inspiration": "I want to build successful businesses that create jobs and solve problems. I'm inspired by entrepreneurs who build companies that make a positive impact."
-    },
-    {
-      "profile_id": "B01",
-      "name": "B01",
-      "q1_grade_zip": { 
-        "grade": "10", 
-        "zipCode": "77001" 
-      },
-      "q3_career_knowledge": "no",
-      "q10_traits": ["hands_on", "independent", "patient"],
-      "q8_interests_text": "Working with animals, outdoor activities, farming, environmental conservation",
-      "q9_experience_text": "Worked on family farm during summers, volunteer at animal shelter, 4-H club member",
-      "q4_academic_performance": {
-        "Math": "Average",
-        "Science (Biology, Chemistry, Physics)": "Good",
-        "English / Language Arts": "Average",
-        "Social Studies / History": "Average",
-        "Art / Creative Subjects": "Average",
-        "Physical Education / Health": "Good",
-        "Technology / Computer Science": "Average",
-        "Foreign Languages": "Average",
-        "Business / Economics": "Average"
-      },
-      "q4b_course_history": {
-        "Science (Biology, Chemistry, Physics)": "Biology, Environmental Science",
-        "Physical Education / Health": "Agriculture/FFA"
-      },
-      "q5_education_willingness": "college_technical",
-      "q14_constraints": ["stay_close_home"],
-      "q17_support_confidence": "some_support",
-      "q19_20_impact_inspiration": "I want to work with nature and animals to help feed people and protect the environment. I'm inspired by farmers and veterinarians who care for living things."
-    },
-    {
-      "profile_id": "B02",
-      "name": "B02",
-      "q1_grade_zip": { 
-        "grade": "12", 
-        "zipCode": "02101" 
-      },
-      "q3_career_knowledge": "no",
-      "q10_traits": ["analytical", "curious", "detail_oriented"],
-      "q8_interests_text": "Reading, research, libraries, history, writing, academic subjects",
-      "q9_experience_text": "Library volunteer, research assistant for history teacher, editor of school newspaper",
-      "q4_academic_performance": {
-        "Math": "Good",
-        "Science (Biology, Chemistry, Physics)": "Good",
-        "English / Language Arts": "Excellent",
-        "Social Studies / History": "Excellent",
-        "Art / Creative Subjects": "Good",
-        "Physical Education / Health": "Average",
-        "Technology / Computer Science": "Good",
-        "Foreign Languages": "Excellent",
-        "Business / Economics": "Good"
-      },
-      "q4b_course_history": {
-        "English / Language Arts": "AP English Literature, Journalism",
-        "Social Studies / History": "AP World History, AP U.S. History",
-        "Foreign Languages": "AP Spanish, Latin"
-      },
-      "q5_education_willingness": "advanced_degree",
-      "q14_constraints": ["predictable_hours"],
-      "q17_support_confidence": "strong_support",
-      "q19_20_impact_inspiration": "I want to preserve knowledge and help others learn and discover new things. I'm inspired by librarians, researchers, and educators who make information accessible."
-    },
-    {
-      "profile_id": "B03",
-      "name": "B03",
-      "q1_grade_zip": { 
-        "grade": "11", 
-        "zipCode": "33101" 
-      },
-      "q3_career_knowledge": "no",
-      "q10_traits": ["adventurous", "independent", "hands_on"],
-      "q8_interests_text": "Travel, different cultures, languages, outdoor adventures, photography",
-      "q9_experience_text": "Family travels internationally, exchange student program, outdoor leadership camp",
-      "q4_academic_performance": {
-        "Math": "Average",
-        "Science (Biology, Chemistry, Physics)": "Average",
-        "English / Language Arts": "Good",
-        "Social Studies / History": "Good",
-        "Art / Creative Subjects": "Good",
-        "Physical Education / Health": "Excellent",
-        "Technology / Computer Science": "Average",
-        "Foreign Languages": "Excellent",
-        "Business / Economics": "Average"
-      },
-      "q4b_course_history": {
-        "Foreign Languages": "AP French, Spanish III",
-        "Social Studies / History": "World Geography, Cultural Studies",
-        "Art / Creative Subjects": "Photography"
-      },
-      "q5_education_willingness": "college_technical",
-      "q14_constraints": ["open_relocating"],
-      "q17_support_confidence": "strong_support",
-      "q19_20_impact_inspiration": "I want to connect different cultures and help people understand each other. I'm inspired by diplomats, translators, and travel professionals who bridge cultural gaps."
-    },
-    {
-      "profile_id": "B04",
-      "name": "B04",
-      "q1_grade_zip": { 
-        "grade": "9", 
-        "zipCode": "98101" 
-      },
-      "q3_career_knowledge": "no",
-      "q10_traits": ["compassionate", "collaborative", "leadership"],
-      "q8_interests_text": "Community service, social justice, helping disadvantaged populations, organizing events",
-      "q9_experience_text": "Volunteer at homeless shelter, organized school food drive, member of social justice club",
-      "q4_academic_performance": {
-        "Math": "Average",
-        "Science (Biology, Chemistry, Physics)": "Average",
-        "English / Language Arts": "Good",
-        "Social Studies / History": "Excellent",
-        "Art / Creative Subjects": "Average",
-        "Physical Education / Health": "Average",
-        "Technology / Computer Science": "Average",
-        "Foreign Languages": "Good",
-        "Business / Economics": "Good"
-      },
-      "q4b_course_history": {
-        "Social Studies / History": "Civics, Social Justice Studies",
-        "English / Language Arts": "Speech and Debate"
-      },
-      "q5_education_willingness": "advanced_degree",
-      "q14_constraints": ["stay_close_home"],
-      "q17_support_confidence": "some_support",
-      "q19_20_impact_inspiration": "I want to fight for fairness and help people who don't have a voice. I'm inspired by social workers, activists, and community leaders who create positive change."
-    },
-    {
-      "profile_id": "B05",
-      "name": "B05",
-      "q1_grade_zip": { 
-        "grade": "10", 
-        "zipCode": "85001" 
-      },
-      "q3_career_knowledge": "no",
-      "q10_traits": ["detail_oriented", "patient", "independent"],
-      "q8_interests_text": "Numbers, patterns, organization, financial planning, budgeting",
-      "q9_experience_text": "Helped family with tax preparation, treasurer of school club, part-time job at local business",
-      "q4_academic_performance": {
-        "Math": "Excellent",
-        "Science (Biology, Chemistry, Physics)": "Good",
-        "English / Language Arts": "Average",
-        "Social Studies / History": "Average",
-        "Art / Creative Subjects": "Average",
-        "Physical Education / Health": "Average",
-        "Technology / Computer Science": "Good",
-        "Foreign Languages": "Average",
-        "Business / Economics": "Excellent"
-      },
-      "q4b_course_history": {
-        "Math": "AP Statistics, Pre-Calculus",
-        "Business / Economics": "Accounting, Personal Finance",
-        "Technology / Computer Science": "Business Applications"
-      },
-      "q5_education_willingness": "college_technical",
-      "q14_constraints": ["earn_money_soon", "predictable_hours"],
-      "q17_support_confidence": "some_support",
-      "q19_20_impact_inspiration": "I want to help people and businesses manage their money wisely. I'm inspired by accountants and financial advisors who help others achieve financial security."
-    },
-    {
-      "profile_id": "R01",
-      "name": "R01",
-      "q1_grade_zip": { 
-        "grade": "11", 
-        "zipCode": "20001" 
-      },
-      "q3_career_knowledge": "no",
-      "q10_traits": ["leadership", "collaborative", "outgoing"],
-      "q8_interests_text": "Community organizing, cultural events, mentoring younger students, public speaking",
-      "q9_experience_text": "Youth leadership program, organized cultural celebration at school, mentor in after-school program",
-      "q4_academic_performance": {
-        "Math": "Good",
-        "Science (Biology, Chemistry, Physics)": "Average",
-        "English / Language Arts": "Good",
-        "Social Studies / History": "Excellent",
-        "Art / Creative Subjects": "Good",
-        "Physical Education / Health": "Good",
-        "Technology / Computer Science": "Average",
-        "Foreign Languages": "Good",
-        "Business / Economics": "Good"
-      },
-      "q4b_course_history": {
-        "Social Studies / History": "African American Studies, AP U.S. Government",
-        "English / Language Arts": "Speech and Debate",
-        "Art / Creative Subjects": "Cultural Arts"
-      },
-      "q5_education_willingness": "advanced_degree",
-      "q14_constraints": ["stay_close_home"],
-      "q17_support_confidence": "some_support",
-      "q19_20_impact_inspiration": "I want to be a voice for my community and create opportunities for others who look like me. I'm inspired by civil rights leaders and community organizers who fight for justice."
-    },
-    {
-      "profile_id": "R02",
-      "name": "R02",
-      "q1_grade_zip": { 
-        "grade": "12", 
-        "zipCode": "87101" 
-      },
-      "q3_career_knowledge": "no",
-      "q10_traits": ["creative", "collaborative", "patient"],
-      "q8_interests_text": "Traditional arts and crafts, storytelling, preserving cultural heritage, working with elders",
-      "q9_experience_text": "Learned traditional crafts from grandmother, volunteer at cultural center, translate for community members",
-      "q4_academic_performance": {
-        "Math": "Average",
-        "Science (Biology, Chemistry, Physics)": "Average",
-        "English / Language Arts": "Good",
-        "Social Studies / History": "Good",
-        "Art / Creative Subjects": "Excellent",
-        "Physical Education / Health": "Good",
-        "Technology / Computer Science": "Average",
-        "Foreign Languages": "Excellent",
-        "Business / Economics": "Average"
-      },
-      "q4b_course_history": {
-        "Art / Creative Subjects": "Native American Studies, Traditional Arts",
-        "Foreign Languages": "Spanish, Native Language Studies",
-        "Social Studies / History": "Indigenous History"
-      },
-      "q5_education_willingness": "college_technical",
-      "q14_constraints": ["stay_close_home"],
-      "q17_support_confidence": "some_support",
-      "q19_20_impact_inspiration": "I want to preserve my culture and help my community maintain its traditions while adapting to the modern world. I'm inspired by elders and cultural preservationists."
-    },
-    {
-      "profile_id": "R03",
-      "name": "R03",
-      "q1_grade_zip": { 
-        "grade": "10", 
-        "zipCode": "10001" 
-      },
-      "q3_career_knowledge": "no",
-      "q10_traits": ["analytical", "curious", "collaborative"],
-      "q8_interests_text": "Science, medicine, helping underserved communities, research, health disparities",
-      "q9_experience_text": "Volunteer at community health clinic, science fair participant, tutor younger students in STEM",
-      "q4_academic_performance": {
-        "Math": "Excellent",
-        "Science (Biology, Chemistry, Physics)": "Excellent",
-        "English / Language Arts": "Good",
-        "Social Studies / History": "Good",
-        "Art / Creative Subjects": "Average",
-        "Physical Education / Health": "Good",
-        "Technology / Computer Science": "Good",
-        "Foreign Languages": "Good",
-        "Business / Economics": "Average"
-      },
-      "q4b_course_history": {
-        "Math": "AP Calculus AB, Statistics",
-        "Science (Biology, Chemistry, Physics)": "AP Biology, AP Chemistry",
-        "Technology / Computer Science": "Computer Science Principles"
-      },
-      "q5_education_willingness": "advanced_degree",
-      "q14_constraints": ["stay_close_home"],
-      "q17_support_confidence": "some_support",
-      "q19_20_impact_inspiration": "I want to become a doctor or researcher to help address health disparities in communities like mine. I'm inspired by healthcare professionals who serve underrepresented populations."
-    },
-    {
-      "profile_id": "R04",
-      "name": "R04",
-      "q1_grade_zip": { 
-        "grade": "9", 
-        "zipCode": "77001" 
-      },
-      "q3_career_knowledge": "no",
-      "q10_traits": ["hands_on", "independent", "detail_oriented"],
-      "q8_interests_text": "Mechanics, electronics, building things, problem-solving, working with tools",
-      "q9_experience_text": "Help family with car repairs, built computer from parts, work part-time at auto shop",
-      "q4_academic_performance": {
-        "Math": "Good",
-        "Science (Biology, Chemistry, Physics)": "Good",
-        "English / Language Arts": "Average",
-        "Social Studies / History": "Average",
-        "Art / Creative Subjects": "Average",
-        "Physical Education / Health": "Good",
-        "Technology / Computer Science": "Good",
-        "Foreign Languages": "Average",
-        "Business / Economics": "Average"
-      },
-      "q4b_course_history": {
-        "Technology / Computer Science": "Engineering Design, Auto Shop",
-        "Math": "Algebra II, Geometry",
-        "Science (Biology, Chemistry, Physics)": "Physics"
-      },
-      "q5_education_willingness": "short_training",
-      "q14_constraints": ["earn_money_soon"],
-      "q17_support_confidence": "limited_support",
-      "q19_20_impact_inspiration": "I want to have skills that are always in demand and be able to fix things that matter to people. I'm inspired by skilled tradespeople who take pride in their craft."
-    },
-    {
-      "profile_id": "R05",
-      "name": "R05",
-      "q1_grade_zip": { 
-        "grade": "11", 
-        "zipCode": "94102" 
-      },
-      "q3_career_knowledge": "no",
-      "q10_traits": ["compassionate", "outgoing", "leadership"],
-      "q8_interests_text": "Working with children, education, community development, cultural bridge-building",
-      "q9_experience_text": "Tutor ESL students, volunteer at community center, organize cultural exchange events",
-      "q4_academic_performance": {
-        "Math": "Average",
-        "Science (Biology, Chemistry, Physics)": "Average",
-        "English / Language Arts": "Excellent",
-        "Social Studies / History": "Good",
-        "Art / Creative Subjects": "Good",
-        "Physical Education / Health": "Average",
-        "Technology / Computer Science": "Average",
-        "Foreign Languages": "Excellent",
-        "Business / Economics": "Average"
-      },
-      "q4b_course_history": {
-        "English / Language Arts": "AP English Language, ESL Teaching Assistant",
-        "Foreign Languages": "AP Spanish, Mandarin",
-        "Social Studies / History": "Multicultural Studies"
-      },
-      "q5_education_willingness": "advanced_degree",
-      "q14_constraints": ["stay_close_home"],
-      "q17_support_confidence": "some_support",
-      "q19_20_impact_inspiration": "I want to help immigrant families and students succeed in school and life. I'm inspired by teachers and social workers who help people navigate new cultures."
-    },
-    {
-      "profile_id": "U01",
-      "name": "U01",
-      "q1_grade_zip": { 
-        "grade": "10", 
-        "zipCode": "10001" 
-      },
-      "q3_career_knowledge": "no",
-      "q10_traits": ["outgoing", "collaborative", "leadership"],
-      "q8_interests_text": "Fashion, social media, networking, event planning, urban culture",
-      "q9_experience_text": "Intern at local fashion boutique, manage social media for school events, organize community block parties",
-      "q4_academic_performance": {
-        "Math": "Average",
-        "Science (Biology, Chemistry, Physics)": "Average",
-        "English / Language Arts": "Good",
-        "Social Studies / History": "Average",
-        "Art / Creative Subjects": "Excellent",
-        "Physical Education / Health": "Good",
-        "Technology / Computer Science": "Good",
-        "Foreign Languages": "Average",
-        "Business / Economics": "Good"
-      },
-      "q4b_course_history": {
-        "Art / Creative Subjects": "Fashion Design, Digital Media",
-        "Business / Economics": "Marketing, Entrepreneurship",
-        "Technology / Computer Science": "Social Media Marketing"
-      },
-      "q5_education_willingness": "college_technical",
-      "q14_constraints": ["flexible_hours"],
-      "q17_support_confidence": "some_support",
-      "q19_20_impact_inspiration": "I want to create trends and help people express themselves through style and culture. I'm inspired by fashion designers and influencers who shape urban culture."
-    },
-    {
-      "profile_id": "U02",
-      "name": "U02",
-      "q1_grade_zip": { 
-        "grade": "12", 
-        "zipCode": "60601" 
-      },
-      "q3_career_knowledge": "no",
-      "q10_traits": ["analytical", "independent", "curious"],
-      "q8_interests_text": "Urban planning, architecture, public transportation, city development, sustainability",
-      "q9_experience_text": "Intern at city planning office, participate in youth city council, research urban sustainability projects",
-      "q4_academic_performance": {
-        "Math": "Good",
-        "Science (Biology, Chemistry, Physics)": "Good",
-        "English / Language Arts": "Average",
-        "Social Studies / History": "Excellent",
-        "Art / Creative Subjects": "Good",
-        "Physical Education / Health": "Average",
-        "Technology / Computer Science": "Good",
-        "Foreign Languages": "Average",
-        "Business / Economics": "Good"
-      },
-      "q4b_course_history": {
-        "Social Studies / History": "AP Human Geography, Urban Studies",
-        "Math": "Statistics, Pre-Calculus",
-        "Science (Biology, Chemistry, Physics)": "Environmental Science"
-      },
-      "q5_education_willingness": "advanced_degree",
-      "q14_constraints": ["stay_close_home"],
-      "q17_support_confidence": "some_support",
-      "q19_20_impact_inspiration": "I want to make cities more livable and sustainable for everyone. I'm inspired by urban planners and architects who design spaces that bring communities together."
-    },
-    {
-      "profile_id": "U03",
-      "name": "U03",
-      "q1_grade_zip": { 
-        "grade": "11", 
-        "zipCode": "90210" 
-      },
-      "q3_career_knowledge": "no",
-      "q10_traits": ["creative", "adventurous", "independent"],
-      "q8_interests_text": "Music production, entertainment industry, digital content creation, performing arts",
-      "q9_experience_text": "Produce music for local artists, create content for YouTube channel, perform at open mic nights",
-      "q4_academic_performance": {
-        "Math": "Average",
-        "Science (Biology, Chemistry, Physics)": "Average",
-        "English / Language Arts": "Good",
-        "Social Studies / History": "Average",
-        "Art / Creative Subjects": "Excellent",
-        "Physical Education / Health": "Average",
-        "Technology / Computer Science": "Good",
-        "Foreign Languages": "Average",
-        "Business / Economics": "Good"
-      },
-      "q4b_course_history": {
-        "Art / Creative Subjects": "Music Production, Digital Arts",
-        "Technology / Computer Science": "Digital Media, Audio Engineering",
-        "Business / Economics": "Entertainment Business"
-      },
-      "q5_education_willingness": "college_technical",
-      "q14_constraints": ["flexible_hours"],
-      "q17_support_confidence": "some_support",
-      "q19_20_impact_inspiration": "I want to create music and content that moves people and reflects urban experiences. I'm inspired by producers and artists who use their platform to tell authentic stories."
-    },
-    {
-      "profile_id": "U04",
-      "name": "U04",
-      "q1_grade_zip": { 
-        "grade": "9", 
-        "zipCode": "30309" 
-      },
-      "q3_career_knowledge": "no",
-      "q10_traits": ["compassionate", "collaborative", "patient"],
-      "q8_interests_text": "Community health, social work, helping at-risk youth, mental health awareness",
-      "q9_experience_text": "Volunteer at community center, peer mediator program, organize mental health awareness events",
-      "q4_academic_performance": {
-        "Math": "Average",
-        "Science (Biology, Chemistry, Physics)": "Good",
-        "English / Language Arts": "Good",
-        "Social Studies / History": "Excellent",
-        "Art / Creative Subjects": "Average",
-        "Physical Education / Health": "Good",
-        "Technology / Computer Science": "Average",
-        "Foreign Languages": "Average",
-        "Business / Economics": "Average"
-      },
-      "q4b_course_history": {
-        "Social Studies / History": "Psychology, Sociology",
-        "Science (Biology, Chemistry, Physics)": "Health Sciences",
-        "English / Language Arts": "Communication Skills"
-      },
-      "q5_education_willingness": "advanced_degree",
-      "q14_constraints": ["stay_close_home"],
-      "q17_support_confidence": "some_support",
-      "q19_20_impact_inspiration": "I want to help young people in my community overcome challenges and build better futures. I'm inspired by social workers and counselors who never give up on people."
-    },
-    {
-      "profile_id": "U05",
-      "name": "U05",
-      "q1_grade_zip": { 
-        "grade": "10", 
-        "zipCode": "33101" 
-      },
-      "q3_career_knowledge": "no",
-      "q10_traits": ["hands_on", "detail_oriented", "independent"],
-      "q8_interests_text": "Technology repair, cybersecurity, computer networks, digital forensics",
-      "q9_experience_text": "Repair computers for neighbors, participate in cybersecurity competitions, volunteer IT support at community center",
-      "q4_academic_performance": {
-        "Math": "Good",
-        "Science (Biology, Chemistry, Physics)": "Average",
-        "English / Language Arts": "Average",
-        "Social Studies / History": "Average",
-        "Art / Creative Subjects": "Average",
-        "Physical Education / Health": "Average",
-        "Technology / Computer Science": "Excellent",
-        "Foreign Languages": "Average",
-        "Business / Economics": "Average"
-      },
-      "q4b_course_history": {
-        "Technology / Computer Science": "AP Computer Science A, Cybersecurity",
-        "Math": "Algebra II, Statistics"
-      },
-      "q5_education_willingness": "college_technical",
-      "q14_constraints": ["earn_money_soon"],
-      "q17_support_confidence": "limited_support",
-      "q19_20_impact_inspiration": "I want to protect people and businesses from cyber threats and help them use technology safely. I'm inspired by cybersecurity experts who stay ahead of digital criminals."
-    },
-    {
-      "profile_id": "RU01",
-      "name": "RU01",
-      "q1_grade_zip": { 
-        "grade": "11", 
-        "zipCode": "59718" 
-      },
-      "q3_career_knowledge": "no",
-      "q10_traits": ["hands_on", "independent", "patient"],
-      "q8_interests_text": "Agriculture, machinery, land management, outdoor work, sustainable farming",
-      "q9_experience_text": "Work on family ranch, operate farm equipment, participate in FFA, help with livestock",
-      "q4_academic_performance": {
-        "Math": "Good",
-        "Science (Biology, Chemistry, Physics)": "Good",
-        "English / Language Arts": "Average",
-        "Social Studies / History": "Average",
-        "Art / Creative Subjects": "Average",
-        "Physical Education / Health": "Good",
-        "Technology / Computer Science": "Average",
-        "Foreign Languages": "Average",
-        "Business / Economics": "Good"
-      },
-      "q4b_course_history": {
-        "Science (Biology, Chemistry, Physics)": "Agricultural Science, Environmental Science",
-        "Business / Economics": "Agricultural Business",
-        "Technology / Computer Science": "Agricultural Technology"
-      },
-      "q5_education_willingness": "college_technical",
-      "q14_constraints": ["stay_close_home"],
-      "q17_support_confidence": "some_support",
-      "q19_20_impact_inspiration": "I want to continue the family tradition of farming while using new technology to be more sustainable. I'm inspired by farmers who adapt to change while caring for the land."
-    },
-    {
-      "profile_id": "RU02",
-      "name": "RU02",
-      "q1_grade_zip": { 
-        "grade": "12", 
-        "zipCode": "72701" 
-      },
-      "q3_career_knowledge": "no",
-      "q10_traits": ["compassionate", "patient", "collaborative"],
-      "q8_interests_text": "Healthcare, helping elderly, nursing, emergency medical services, community health",
-      "q9_experience_text": "Volunteer at local clinic, help care for grandparents, first aid certified, volunteer firefighter",
-      "q4_academic_performance": {
-        "Math": "Average",
-        "Science (Biology, Chemistry, Physics)": "Good",
-        "English / Language Arts": "Good",
-        "Social Studies / History": "Average",
-        "Art / Creative Subjects": "Average",
-        "Physical Education / Health": "Excellent",
-        "Technology / Computer Science": "Average",
-        "Foreign Languages": "Average",
-        "Business / Economics": "Average"
-      },
-      "q4b_course_history": {
-        "Science (Biology, Chemistry, Physics)": "Biology, Anatomy & Physiology",
-        "Physical Education / Health": "Health Sciences, First Aid"
-      },
-      "q5_education_willingness": "college_technical",
-      "q14_constraints": ["stay_close_home"],
-      "q17_support_confidence": "some_support",
-      "q19_20_impact_inspiration": "I want to provide healthcare to people in rural areas who don't have easy access to medical services. I'm inspired by rural nurses and EMTs who serve their communities."
-    },
-    {
-      "profile_id": "RU03",
-      "name": "RU03",
-      "q1_grade_zip": { 
-        "grade": "10", 
-        "zipCode": "83025" 
-      },
-      "q3_career_knowledge": "no",
-      "q10_traits": ["adventurous", "independent", "hands_on"],
-      "q8_interests_text": "Outdoor recreation, wildlife, forestry, conservation, hunting and fishing guides",
-      "q9_experience_text": "Work as hunting guide assistant, volunteer for wildlife conservation projects, outdoor leadership camp",
-      "q4_academic_performance": {
-        "Math": "Average",
-        "Science (Biology, Chemistry, Physics)": "Good",
-        "English / Language Arts": "Average",
-        "Social Studies / History": "Average",
-        "Art / Creative Subjects": "Average",
-        "Physical Education / Health": "Excellent",
-        "Technology / Computer Science": "Average",
-        "Foreign Languages": "Average",
-        "Business / Economics": "Average"
-      },
-      "q4b_course_history": {
-        "Science (Biology, Chemistry, Physics)": "Environmental Science, Wildlife Biology",
-        "Physical Education / Health": "Outdoor Education"
-      },
-      "q5_education_willingness": "college_technical",
-      "q14_constraints": ["stay_close_home"],
-      "q17_support_confidence": "some_support",
-      "q19_20_impact_inspiration": "I want to protect wildlife and help people appreciate nature through outdoor experiences. I'm inspired by park rangers and guides who share their love of the outdoors."
-    },
-    {
-      "profile_id": "RU04",
-      "name": "RU04",
-      "q1_grade_zip": { 
-        "grade": "9", 
-        "zipCode": "58501" 
-      },
-      "q3_career_knowledge": "no",
-      "q10_traits": ["detail_oriented", "analytical", "independent"],
-      "q8_interests_text": "Energy, engineering, renewable resources, problem-solving, mechanics",
-      "q9_experience_text": "Help maintain wind turbines with family member, participate in science fair, build renewable energy projects",
-      "q4_academic_performance": {
-        "Math": "Good",
-        "Science (Biology, Chemistry, Physics)": "Excellent",
-        "English / Language Arts": "Average",
-        "Social Studies / History": "Average",
-        "Art / Creative Subjects": "Average",
-        "Physical Education / Health": "Good",
-        "Technology / Computer Science": "Good",
-        "Foreign Languages": "Average",
-        "Business / Economics": "Average"
-      },
-      "q4b_course_history": {
-        "Math": "Algebra II, Geometry",
-        "Science (Biology, Chemistry, Physics)": "Physics, Chemistry",
-        "Technology / Computer Science": "Engineering Design"
-      },
-      "q5_education_willingness": "advanced_degree",
-      "q14_constraints": ["open_relocating"],
-      "q17_support_confidence": "some_support",
-      "q19_20_impact_inspiration": "I want to develop clean energy solutions that can help rural communities become more sustainable. I'm inspired by engineers who solve energy challenges."
-    },
-    {
-      "profile_id": "RU05",
-      "name": "RU05",
-      "q1_grade_zip": { 
-        "grade": "11", 
-        "zipCode": "67401" 
-      },
-      "q3_career_knowledge": "no",
-      "q10_traits": ["leadership", "collaborative", "patient"],
-      "q8_interests_text": "Education, community development, local government, preserving rural traditions",
-      "q9_experience_text": "Tutor younger students, participate in youth leadership program, volunteer for local government projects",
-      "q4_academic_performance": {
-        "Math": "Average",
-        "Science (Biology, Chemistry, Physics)": "Average",
-        "English / Language Arts": "Good",
-        "Social Studies / History": "Excellent",
-        "Art / Creative Subjects": "Average",
-        "Physical Education / Health": "Average",
-        "Technology / Computer Science": "Average",
-        "Foreign Languages": "Average",
-        "Business / Economics": "Good"
-      },
-      "q4b_course_history": {
-        "Social Studies / History": "Government, Rural Sociology",
-        "English / Language Arts": "Speech and Debate",
-        "Business / Economics": "Agricultural Economics"
-      },
-      "q5_education_willingness": "advanced_degree",
-      "q14_constraints": ["stay_close_home"],
-      "q17_support_confidence": "some_support",
-      "q19_20_impact_inspiration": "I want to help rural communities thrive and preserve what makes them special while adapting to modern challenges. I'm inspired by local leaders who serve their communities."
     }
   ]
 }

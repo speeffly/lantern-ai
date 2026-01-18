@@ -53,71 +53,126 @@ const getProfileDisplayInfo = (profile: TestProfile) => {
     // Skills-based profiles
     icon = '🛠️';
     if (profileId === 'S01') {
+      name = 'S01 - Boy Scout Builder';
       description = 'Hands-on builder who likes fixing and creating things';
     } else if (profileId === 'S02') {
+      name = 'S02 - Math Competition Winner';
       description = 'Analytical problem solver interested in STEM fields';
     } else if (profileId === 'S03') {
+      name = 'S03 - Volunteer Coordinator';
       description = 'Compassionate helper focused on supporting others';
     } else if (profileId === 'S04') {
+      name = 'S04 - Theater Kid Artist';
       description = 'Creative communicator interested in arts and media';
     } else if (profileId === 'S05') {
+      name = 'S05 - Student Council President';
       description = 'Business leader with entrepreneurial interests';
+    } else if (profileId === 'S06_male_engineering') {
+      name = 'S06 - Male Engineering Student';
+      description = 'Male student focused on mechanical engineering and problem-solving';
+    } else if (profileId === 'S07_female_healthcare') {
+      name = 'S07 - Female Healthcare Student';
+      description = 'Female student interested in nursing and patient care';
     }
   } else if (profileId.startsWith('B0')) {
     // Background-based profiles
     icon = '🌟';
     if (profileId === 'B01') {
+      name = 'B01 - 4-H Farm Kid';
       description = 'Rural/agricultural background with outdoor interests';
     } else if (profileId === 'B02') {
+      name = 'B02 - Library Volunteer Scholar';
       description = 'Academic/research oriented with strong study habits';
     } else if (profileId === 'B03') {
+      name = 'B03 - Exchange Student Traveler';
       description = 'International/travel background with cultural awareness';
     } else if (profileId === 'B04') {
+      name = 'B04 - Social Justice Activist';
       description = 'Social justice focused with community service experience';
     } else if (profileId === 'B05') {
+      name = 'B05 - Family Business Helper';
       description = 'Financial/business oriented with organizational skills';
+    } else if (profileId === 'B06_first_gen_trade') {
+      name = 'B06 - First-Gen Trade Student';
+      description = 'First-generation college student pursuing electrical trade';
+    } else if (profileId === 'B07_upper_middle_business') {
+      name = 'B07 - Upper-Middle Class Business Student';
+      description = 'Privileged background student interested in management consulting';
     }
   } else if (profileId.startsWith('R0')) {
     // Race/ethnicity-based profiles
     icon = '🤝';
     if (profileId === 'R01') {
+      name = 'R01 - African American Leader';
       description = 'Community leader focused on social impact and representation';
     } else if (profileId === 'R02') {
+      name = 'R02 - Native American Artist';
       description = 'Cultural preservationist interested in heritage and traditions';
     } else if (profileId === 'R03') {
+      name = 'R03 - Latina Pre-Med Student';
       description = 'STEM-focused student addressing health disparities';
     } else if (profileId === 'R04') {
+      name = 'R04 - Hispanic Mechanic';
       description = 'Skilled trades student with hands-on mechanical interests';
     } else if (profileId === 'R05') {
+      name = 'R05 - Asian American Tutor';
       description = 'Education/community bridge-builder helping diverse populations';
+    } else if (profileId === 'R06_african_american_law') {
+      name = 'R06 - African American Law Student';
+      description = 'African American student interested in legal advocacy and justice';
+    } else if (profileId === 'R07_asian_american_technology') {
+      name = 'R07 - Asian American Tech Student';
+      description = 'Asian American student focused on software development and innovation';
     }
   } else if (profileId.startsWith('U0')) {
     // Urban profiles
     icon = '🏙️';
     if (profileId === 'U01') {
+      name = 'U01 - City Fashion Influencer';
       description = 'Fashion/social media focused urban student';
     } else if (profileId === 'U02') {
+      name = 'U02 - Urban Planning Intern';
       description = 'Urban planning and sustainability interested student';
     } else if (profileId === 'U03') {
+      name = 'U03 - Hip-Hop Producer';
       description = 'Music/entertainment industry focused creative student';
     } else if (profileId === 'U04') {
+      name = 'U04 - Community Center Volunteer';
       description = 'Community health and social work oriented student';
     } else if (profileId === 'U05') {
+      name = 'U05 - Inner City Tech Whiz';
       description = 'Technology/cybersecurity focused urban student';
+    } else if (profileId === 'U06_urban_public_policy') {
+      name = 'U06 - Urban Policy Analyst';
+      description = 'Urban student interested in public policy and city governance';
+    } else if (profileId === 'U07_urban_ux_design') {
+      name = 'U07 - Urban UX Designer';
+      description = 'Urban student focused on inclusive digital design';
     }
   } else if (profileId.startsWith('RU0')) {
     // Rural profiles
     icon = '🌾';
     if (profileId === 'RU01') {
+      name = 'RU01 - Ranch Hand Farmer';
       description = 'Agricultural/farming focused rural student';
     } else if (profileId === 'RU02') {
+      name = 'RU02 - Small Town Caregiver';
       description = 'Rural healthcare focused student serving communities';
     } else if (profileId === 'RU03') {
+      name = 'RU03 - Hunting Guide Outdoorsman';
       description = 'Outdoor recreation/conservation focused student';
     } else if (profileId === 'RU04') {
+      name = 'RU04 - Wind Farm Engineer';
       description = 'Energy/engineering student interested in sustainability';
     } else if (profileId === 'RU05') {
+      name = 'RU05 - Country School Leader';
       description = 'Rural community leadership and education focused student';
+    } else if (profileId === 'RU06_rural_agriculture') {
+      name = 'RU06 - Rural Agriculture Technician';
+      description = 'Rural student focused on agricultural science and farming technology';
+    } else if (profileId === 'RU07_rural_healthcare') {
+      name = 'RU07 - Rural Healthcare Worker';
+      description = 'Rural student committed to providing healthcare in underserved areas';
     }
   }
   
@@ -128,42 +183,57 @@ const getProfileDisplayInfo = (profile: TestProfile) => {
     // Decided profiles
     icon = '🎯';
     if (profile.q3a1_trade_careers === 'electrician') {
+      name = 'D1 - Blue Collar Electrician';
       description = 'Student focused on electrical trade work with hands-on skills';
     } else if (profile.q3a6_healthcare_careers === 'registered_nurse') {
+      name = 'D2 - Caring Nurse Candidate';
       description = 'Student interested in nursing and patient care';
     } else if (profile.q3a2_engineering_careers === 'mechanical_engineer') {
+      name = 'D3 - STEM Track Engineer';
       description = 'Student focused on engineering and mechanical systems';
     } else if (profile.q3a9_artist_careers === 'ux_ui_designer') {
+      name = 'D4 - Creative Tech Designer';
       description = 'Student interested in digital design and user experience';
     } else if (profile.q3a10_law_careers === 'paralegal') {
+      name = 'D5 - Future Legal Professional';
       description = 'Student interested in legal work and paralegal career';
     }
   } else if (category === 'U' && !profileId.startsWith('U0')) {
     // Legacy undecided profiles
     icon = '❓';
     if (profileId.includes('hands_on_builder')) {
+      name = 'U1 - Hands-On Builder Type';
       description = 'Undecided student who likes building and fixing things';
     } else if (profileId.includes('helping_people')) {
+      name = 'U2 - People Helper Personality';
       description = 'Undecided student interested in helping and caring for others';
     } else if (profileId.includes('tech_problem_solver')) {
+      name = 'U3 - Tech Problem Solver';
       description = 'Undecided student interested in technology and problem-solving';
     } else if (profileId.includes('creative_communicator')) {
+      name = 'U4 - Creative Communicator Type';
       description = 'Undecided student interested in creativity and communication';
     } else if (profileId.includes('public_service_minded')) {
+      name = 'U5 - Public Service Minded';
       description = 'Undecided student interested in government and community service';
     }
   } else if (category === 'P') {
     // Path-known profiles
     icon = '🎯';
     if (profileId.includes('business_path')) {
+      name = 'P1 - Business Track Student';
       description = 'Student knows they want business but unsure of specific role';
     } else if (profileId.includes('technology_path')) {
+      name = 'P2 - Tech Path Explorer';
       description = 'Student knows they want tech but unsure of specific area';
     } else if (profileId.includes('educator_path')) {
+      name = 'P3 - Future Educator Type';
       description = 'Student knows they want education but unsure of specific role';
     } else if (profileId.includes('public_safety_path')) {
+      name = 'P4 - Public Safety Oriented';
       description = 'Student knows they want public safety but unsure of specific role';
     } else if (profileId.includes('other_path')) {
+      name = 'P5 - Sports & Fitness Focused';
       description = 'Student interested in sports/fitness but unsure of specific career';
     }
   }
@@ -397,7 +467,7 @@ export default function TestProfilesPage() {
                   <li>• Clicking "Generate Career Plan" will immediately process the assessment</li>
                   <li>• You'll see personalized career recommendations based on the profile</li>
                   <li>• Perfect for testing the system or seeing example results</li>
-                  <li>• Profile categories: Skills-based (S), Background-based (B), Race/Ethnicity (R), Urban (U), Rural (RU), plus legacy Decided (D), Undecided (U), and Path-Known (P) students</li>
+                  <li>• 50 total profiles across categories: Skills-based (S), Background-based (B), Race/Ethnicity (R), Urban (U), Rural (RU), plus legacy Decided (D), Undecided (U), and Path-Known (P) students</li>
                 </ul>
               </div>
             </div>

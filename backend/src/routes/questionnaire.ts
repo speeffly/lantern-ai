@@ -1,5 +1,6 @@
 import express from 'express';
 import { QuestionnaireService } from '../services/questionnaireService';
+import { TestProfilesService } from '../services/testProfilesService';
 import { RecommendationEngine } from '../services/recommendationEngine';
 import { ApiResponse } from '../types';
 
@@ -27,7 +28,7 @@ router.get('/', (req, res) => {
 // GET /api/questionnaire/test-profiles - Get test profiles
 router.get('/test-profiles', (req, res) => {
   try {
-    const testProfiles = QuestionnaireService.getTestProfiles();
+    const testProfiles = TestProfilesService.getTestProfiles();
     
     res.json({
       success: true,
@@ -39,6 +40,71 @@ router.get('/test-profiles', (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve test profiles'
+    } as ApiResponse);
+  }
+});
+
+// GET /api/questionnaire/test-profiles/categories - Get test profiles by category
+router.get('/test-profiles/categories', (req, res) => {
+  try {
+    const categorizedProfiles = TestProfilesService.getTestProfilesByCategory();
+    
+    res.json({
+      success: true,
+      data: categorizedProfiles,
+      message: 'Categorized test profiles retrieved successfully'
+    } as ApiResponse);
+  } catch (error) {
+    console.error('❌ Error getting categorized test profiles:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve categorized test profiles'
+    } as ApiResponse);
+  }
+});
+
+// GET /api/questionnaire/test-profiles/stats - Get test profiles statistics
+router.get('/test-profiles/stats', (req, res) => {
+  try {
+    const stats = TestProfilesService.getStatistics();
+    
+    res.json({
+      success: true,
+      data: stats,
+      message: 'Test profiles statistics retrieved successfully'
+    } as ApiResponse);
+  } catch (error) {
+    console.error('❌ Error getting test profiles statistics:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve test profiles statistics'
+    } as ApiResponse);
+  }
+});
+
+// GET /api/questionnaire/test-profiles/:profileId - Get a specific test profile
+router.get('/test-profiles/:profileId', (req, res) => {
+  try {
+    const { profileId } = req.params;
+    const testProfile = TestProfilesService.getTestProfile(profileId);
+    
+    if (!testProfile) {
+      return res.status(404).json({
+        success: false,
+        error: 'Test profile not found'
+      } as ApiResponse);
+    }
+    
+    res.json({
+      success: true,
+      data: testProfile,
+      message: 'Test profile retrieved successfully'
+    } as ApiResponse);
+  } catch (error) {
+    console.error('❌ Error getting test profile:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve test profile'
     } as ApiResponse);
   }
 });
