@@ -4,7 +4,7 @@
 
 ## 🎉 LIVE DEMO - Presidential Innovation Challenge Ready!
 
-### 🌐 **Frontend**: https://main.d3k8x9y2z1m4n5.amplifyapp.com
+### 🌐 **Frontend**:https://main.d36ebthmdi6xdg.amplifyapp.com
 ### 🚀 **Backend**: Ready for Render deployment (SQLite optimized)
 
 ## 🏆 Competition Status: COMPLETE ✅
@@ -224,3 +224,4 @@ For questions or issues, please contact [support contact]
 
 Built with ❤️ for rural students exploring their future careers
 #
+
