@@ -232,7 +232,7 @@ export default function CounselorSettingsPage() {
                 <strong>System Version:</strong> Lantern AI v1.0.0 (Enhanced Assessment)
               </div>
               <div className="text-sm text-gray-600">
-                <strong>Last Updated:</strong> December 2024
+                <strong>Last Updated:</strong> January 2026
               </div>
               <div className="text-sm text-gray-600">
                 <strong>Support:</strong> This is a demonstration system for the Presidential Innovation Challenge

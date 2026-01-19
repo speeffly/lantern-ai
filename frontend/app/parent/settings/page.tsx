@@ -380,7 +380,7 @@ export default function ParentSettingsPage() {
             </div>
             <div>
               <h4 className="font-medium text-gray-900 mb-2">Last Updated</h4>
-              <p className="text-sm text-gray-600">December 2024</p>
+              <p className="text-sm text-gray-600">January 2026</p>
             </div>
           </div>
           <div className="mt-4 p-4 bg-blue-50 rounded-lg">
