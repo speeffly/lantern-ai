@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Lantern AI - Career Exploration for Rural Students',
-  description: 'AI-powered career guidance for rural healthcare and infrastructure careers',
+  title: 'Lantern AI - Career Exploration for High School Students',
+  description: 'AI-powered career guidance',
 }
 
 export default function RootLayout({
