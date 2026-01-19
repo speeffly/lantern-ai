@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
+import sgMail from '@sendgrid/mail';
 import { DatabaseServicePG } from './databaseServicePG';
 
 export interface EmailVerificationToken {
@@ -13,6 +14,18 @@ export interface EmailVerificationToken {
 
 export class EmailVerificationService {
   private static transporter: nodemailer.Transporter | null = null;
+  private static sendGridInitialized = false;
+
+  /**
+   * Initialize SendGrid
+   */
+  private static initializeSendGrid(): void {
+    if (!this.sendGridInitialized && process.env.SENDGRID_API_KEY) {
+      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+      this.sendGridInitialized = true;
+      console.log('📧 SendGrid initialized successfully');
+    }
+  }
 
   /**
    * Initialize email transporter
@@ -87,7 +100,7 @@ export class EmailVerificationService {
   }
 
   /**
-   * Send verification email
+   * Send verification email using SendGrid or fallback to nodemailer
    */
   static async sendVerificationEmail(
     email: string, 
@@ -95,67 +108,66 @@ export class EmailVerificationService {
     token: string
   ): Promise<boolean> {
     try {
-      const transporter = this.getTransporter();
       const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
       const verificationUrl = `${baseUrl}/verify-email?token=${token}`;
+      const emailProvider = process.env.EMAIL_PROVIDER || 'smtp';
 
-      const mailOptions = {
-        from: process.env.FROM_EMAIL || 'noreply@lanternai.com',
-        to: email,
-        subject: 'Verify Your Lantern AI Account',
-        html: `
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Verify Your Email</title>
-          </head>
-          <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-              <h1 style="color: white; margin: 0; font-size: 28px;">🏮 Lantern AI</h1>
-              <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Career Guidance Platform</p>
+      // Email content
+      const subject = 'Verify Your Lantern AI Account';
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Verify Your Email</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0; font-size: 28px;">🏮 Lantern AI</h1>
+            <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Career Guidance Platform</p>
+          </div>
+          
+          <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <h2 style="color: #333; margin-top: 0;">Welcome to Lantern AI, ${firstName}!</h2>
+            
+            <p>Thank you for creating your account. To get started with personalized career guidance, please verify your email address by clicking the button below:</p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${verificationUrl}" 
+                 style="background: #667eea; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block; font-size: 16px;">
+                Verify Email Address
+              </a>
             </div>
             
-            <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-              <h2 style="color: #333; margin-top: 0;">Welcome to Lantern AI, ${firstName}!</h2>
-              
-              <p>Thank you for creating your account. To get started with personalized career guidance, please verify your email address by clicking the button below:</p>
-              
-              <div style="text-align: center; margin: 30px 0;">
-                <a href="${verificationUrl}" 
-                   style="background: #667eea; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block; font-size: 16px;">
-                  Verify Email Address
-                </a>
-              </div>
-              
-              <p style="color: #666; font-size: 14px;">If the button doesn't work, you can copy and paste this link into your browser:</p>
-              <p style="background: #f5f5f5; padding: 10px; border-radius: 5px; word-break: break-all; font-size: 14px;">
-                ${verificationUrl}
+            <p style="color: #666; font-size: 14px;">If the button doesn't work, you can copy and paste this link into your browser:</p>
+            <p style="background: #f5f5f5; padding: 10px; border-radius: 5px; word-break: break-all; font-size: 14px;">
+              ${verificationUrl}
+            </p>
+            
+            <div style="border-top: 1px solid #eee; margin-top: 30px; padding-top: 20px;">
+              <p style="color: #666; font-size: 14px; margin: 0;">
+                <strong>What's next?</strong><br>
+                Once verified, you'll be able to:
               </p>
-              
-              <div style="border-top: 1px solid #eee; margin-top: 30px; padding-top: 20px;">
-                <p style="color: #666; font-size: 14px; margin: 0;">
-                  <strong>What's next?</strong><br>
-                  Once verified, you'll be able to:
-                </p>
-                <ul style="color: #666; font-size: 14px; margin: 10px 0;">
-                  <li>Take personalized career assessments</li>
-                  <li>Get AI-powered career recommendations</li>
-                  <li>Access detailed career pathways and action plans</li>
-                  <li>Connect with counselors and track your progress</li>
-                </ul>
-              </div>
-              
-              <div style="border-top: 1px solid #eee; margin-top: 20px; padding-top: 20px; color: #666; font-size: 12px;">
-                <p>This verification link will expire in 24 hours. If you didn't create this account, you can safely ignore this email.</p>
-                <p>Need help? Contact us at <a href="mailto:support@lanternai.com" style="color: #667eea;">support@lanternai.com</a></p>
-              </div>
+              <ul style="color: #666; font-size: 14px; margin: 10px 0;">
+                <li>Take personalized career assessments</li>
+                <li>Get AI-powered career recommendations</li>
+                <li>Access detailed career pathways and action plans</li>
+                <li>Connect with counselors and track your progress</li>
+              </ul>
             </div>
-          </body>
-          </html>
-        `,
-        text: `
+            
+            <div style="border-top: 1px solid #eee; margin-top: 20px; padding-top: 20px; color: #666; font-size: 12px;">
+              <p>This verification link will expire in 24 hours. If you didn't create this account, you can safely ignore this email.</p>
+              <p>Need help? Contact us at <a href="mailto:support@lanternai.com" style="color: #667eea;">support@lanternai.com</a></p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `;
+
+      const textContent = `
 Welcome to Lantern AI, ${firstName}!
 
 Thank you for creating your account. To get started with personalized career guidance, please verify your email address by visiting this link:
@@ -175,23 +187,83 @@ Need help? Contact us at support@lanternai.com
 
 Best regards,
 The Lantern AI Team
-        `
-      };
+      `;
 
-      const info = await transporter.sendMail(mailOptions);
-      
-      // Log email for development
-      if (process.env.NODE_ENV === 'development') {
-        // console.log('📧 Verification email sent:');
-        // console.log('   To:', email);
-        // console.log('   Token:', token);
-        // console.log('   URL:', verificationUrl);
-        // console.log('   Message ID:', info.messageId);
+      // Use SendGrid if configured
+      if (emailProvider === 'sendgrid' && process.env.SENDGRID_API_KEY) {
+        this.initializeSendGrid();
+        
+        const msg = {
+          to: email,
+          from: {
+            email: process.env.FROM_EMAIL || 'noreply@lanternai.com',
+            name: 'Lantern AI'
+          },
+          subject: subject,
+          text: textContent,
+          html: htmlContent,
+          // SendGrid specific settings
+          trackingSettings: {
+            clickTracking: {
+              enable: true,
+              enableText: false
+            },
+            openTracking: {
+              enable: true
+            }
+          },
+          mailSettings: {
+            sandboxMode: {
+              enable: process.env.NODE_ENV === 'development' && process.env.SENDGRID_SANDBOX === 'true'
+            }
+          }
+        };
+
+        const result = await sgMail.send(msg);
+        
+        if (process.env.NODE_ENV === 'development') {
+          console.log('📧 SendGrid verification email sent:');
+          console.log('   To:', email);
+          console.log('   Token:', token);
+          console.log('   URL:', verificationUrl);
+          console.log('   Message ID:', result[0].headers['x-message-id']);
+        }
+
+        return true;
+      } else {
+        // Fallback to nodemailer for other providers
+        const transporter = this.getTransporter();
+        const mailOptions = {
+          from: process.env.FROM_EMAIL || 'noreply@lanternai.com',
+          to: email,
+          subject: subject,
+          html: htmlContent,
+          text: textContent
+        };
+
+        const info = await transporter.sendMail(mailOptions);
+        
+        if (process.env.NODE_ENV === 'development') {
+          console.log('📧 Nodemailer verification email sent:');
+          console.log('   To:', email);
+          console.log('   Token:', token);
+          console.log('   URL:', verificationUrl);
+          console.log('   Message ID:', info.messageId);
+        }
+
+        return true;
       }
-
-      return true;
     } catch (error) {
-      // console.error('❌ Failed to send verification email:', error);
+      console.error('❌ Failed to send verification email:', error);
+      
+      // Log SendGrid specific errors
+      if (error && typeof error === 'object' && 'response' in error) {
+        const sgError = error as any;
+        if (sgError.response && sgError.response.body) {
+          console.error('SendGrid Error Details:', sgError.response.body);
+        }
+      }
+      
       return false;
     }
   }

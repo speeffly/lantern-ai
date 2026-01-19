@@ -7,6 +7,7 @@ import { CareerPlanService } from '../services/careerPlanService';
 import { AuthServiceDB } from '../services/authServiceDB';
 import { ApiResponse } from '../types';
 import { authenticateToken } from '../middleware/auth';
+import { requireEmailVerification, checkEmailVerification } from '../middleware/emailVerification';
 // File system imports removed - using embedded questions instead
 
 const router = express.Router();
@@ -280,7 +281,7 @@ router.get('/questions', async (req, res) => {
 });
 
 // POST /api/counselor-assessment/submit
-router.post('/submit', upload.single('transcriptFile'), async (req, res) => {
+router.post('/submit', authenticateToken, requireEmailVerification, upload.single('transcriptFile'), async (req, res) => {
   try {
     const { sessionId } = req.body;
     let responses = req.body.responses;

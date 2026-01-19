@@ -2,11 +2,13 @@ import express from 'express';
 import { RecommendationEngine } from '../services/recommendationEngine';
 import { StudentProfile } from '../types/recommendation';
 import { ApiResponse } from '../types';
+import { authenticateToken } from '../middleware/auth';
+import { checkEmailVerification } from '../middleware/emailVerification';
 
 const router = express.Router();
 
 // POST /api/recommendations - Main recommendation endpoint
-router.post('/', async (req, res) => {
+router.post('/', authenticateToken, checkEmailVerification, async (req, res) => {
   try {
     console.log('📥 Received recommendation request');
     
