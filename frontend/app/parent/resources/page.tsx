@@ -92,19 +92,19 @@ export default function ParentResourcesPage() {
           title: 'Parent Guide to Career Planning',
           description: 'Essential information for supporting your child\'s career exploration',
           type: 'Guide',
-          available: true
+          available: false
         },
         {
           title: 'How to Use Lantern AI',
           description: 'Step-by-step instructions for navigating the platform with your child',
           type: 'Tutorial',
-          available: true
+          available: false
         },
         {
           title: 'Understanding Assessment Results',
           description: 'How to interpret and discuss your child\'s career assessment results',
           type: 'Guide',
-          available: true
+          available: false
         }
       ]
     },
@@ -116,19 +116,19 @@ export default function ParentResourcesPage() {
           title: 'Conversation Starters',
           description: 'Questions and topics to discuss career interests with your child',
           type: 'Worksheet',
-          available: true
+          available: false
         },
         {
           title: 'Family Career Planning Worksheet',
           description: 'Structured activities for family career exploration sessions',
           type: 'Worksheet',
-          available: true
+          available: false
         },
         {
           title: 'Questions for School Counselors',
           description: 'What to ask during parent-counselor meetings about career planning',
           type: 'Checklist',
-          available: true
+          available: false
         }
       ]
     },
